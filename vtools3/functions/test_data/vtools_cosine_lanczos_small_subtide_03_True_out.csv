@@ -1,3 +1,4 @@
+# This file was produced by running original vtools using the ts=small_subtide(0.03,True) and cosine_lanczos(ts,hours(40))
 2000-01-01 00:00:00,nan
 2000-01-01 00:15:00,nan
 2000-01-01 00:30:00,nan
