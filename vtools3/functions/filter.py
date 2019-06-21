@@ -24,17 +24,6 @@ __all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
          "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
 
 
-def minutes(n):
-    return pd.tseries.offsets.Minute(n)
-
-def hours(n):
-    return pd.tseries.offsets.Hour(n)
-
-def days(n):
-    return pd.tseries.offsets.Day(n)
-
-def months(n):
-    return pd.tseries.offsets.MonthOffset(n)
 
 ## This dic saves the missing points for different intervals. 
 #first_point={time_interval(minutes=15):48,time_interval(hours=1):36}
