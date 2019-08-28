@@ -20,8 +20,8 @@ from scipy.signal.filter_design import butter
 #from vtools.data.timeseries import rts
 #from vtools.data.constants import *
 
-__all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
-         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
+#__all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
+#         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
 
 
 def minutes(n):
@@ -35,6 +35,7 @@ def days(n):
 
 def months(n):
     return pd.tseries.offsets.MonthOffset(n)
+
 
 ## This dic saves the missing points for different intervals. 
 #first_point={time_interval(minutes=15):48,time_interval(hours=1):36}
@@ -133,6 +134,9 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
         
     
     freq=ts.index.freq
+    if freq is None:
+        raise ValueError("Time series has no frequency attribute")
+    
     m=filter_len
     
     cf = process_cutoff(cutoff_frequency,cutoff_period,freq)
@@ -177,8 +181,6 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     if (padlen is None) and (padtype is not None):
         padlen=6*m
 
-    print("m={}".format(m))
-
     if padlen is not None:   # is None sensible? 
         if padlen>len(data):
             raise ValueError("Padding length is more  than data size")
@@ -204,7 +206,7 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
 
 
     out = ts.copy(deep=True)
-    out.values=d2
+    out[:]=d2
         
     return out
 
@@ -283,11 +285,9 @@ def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
         else:
             cf=butterworth_cutoff_frequencies[interval]
 
-    print("cf is {}".format(cf))
+
     ## get butter filter coefficients.
     [b,a]=butter(order/2,cf)
-    print(len(b))
-    print(len(a))
     d2=filtfilt(b,a,ts.values,axis=0,padlen=90)
     out = ts.copy(deep=True)
     out.values=d2
