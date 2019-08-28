@@ -16,17 +16,6 @@ from scipy.signal.filter_design import butter
 #         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
 
 
-def minutes(n):
-    return pd.tseries.offsets.Minute(n)
-
-def hours(n):
-    return pd.tseries.offsets.Hour(n)
-
-def days(n):
-    return pd.tseries.offsets.Day(n)
-
-def months(n):
-    return pd.tseries.offsets.MonthOffset(n)
 
 
 ## This dic saves the missing points for different intervals. 
