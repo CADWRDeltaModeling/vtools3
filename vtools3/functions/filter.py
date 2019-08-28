@@ -5,20 +5,12 @@
 from numpy import abs
 import pandas as pd
 import numpy as np
-## Scipy import.
 from scipy import array as sciarray
-#from scipy import nan, isnan,add,convolve,transpose
-#from scipy import pi, sin
-#from scipy import where,arange,clip
 from scipy.signal import lfilter,firwin,filtfilt
-#from scipy.signal import fftconvolve
 from scipy.signal.filter_design import butter
 #from scipy.ndimage.filters import gaussian_filter 
-#from numpy import sqrt
+#from scipy.signal import fftconvolve
 
-#from vtools.data.vtime import *
-#from vtools.data.timeseries import rts
-#from vtools.data.constants import *
 
 #__all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
 #         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
@@ -76,8 +68,7 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     Parameters
     -----------
     
-    ts : :class:`~vtools.data.timeseries.TimeSeries`
-        Must has data of one dimension, and regular.
+    ts : Pandas or XArray time series
     
     filter_len  : int, time_interval
         Size of lanczos window, default is to number of samples within filter_period*1.25.
@@ -142,19 +133,6 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     cf = process_cutoff(cutoff_frequency,cutoff_period,freq)
     
     m = int(1.25 * 2. /cf)
-    
-#    if is_interval(m):
-#        m=int(ticks(m)/ticks(ts.interval))
-#    ## if m is none set it to number of interval within filter_period*1.25
-#    elif  (m is None):
-#        ## cf reverse is half of the interval within filtering period
-#        m=int(1.25*2.0/cf)
-#    elif type(1)==type(m):
-#        ## nothing to do
-#        pass
-#    else:
-#        raise TypeError("unkown filter length type")
-
    
         
         
