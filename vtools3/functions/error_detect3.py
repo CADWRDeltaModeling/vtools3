@@ -9,7 +9,7 @@ from scipy.stats.mstats import mquantiles
 from scipy.stats import iqr as scipy_iqr
 
 '''
-    3 functions to detect (and replace with NaN) any outliers or bad data
+    Functions to detect (and replace with NaN) any outliers or bad data
     
     norepeats: catches any repeated values. This will often occur if the sensor
     is not working properly, and since realistically the value will always be
@@ -24,20 +24,6 @@ from scipy.stats import iqr as scipy_iqr
     
     Output:             time series object with repeats replaced by NaNs
 
-
-
-    bounds: replaces any values outside of user-specified bounds with NaN. This
-    is useful for values that are clear sensor errors, such as water
-    temperatures of 600 degrees or negative conductivity values.
-    
-    Inputs: ts:         the time series
-            lbound:     the lower bound, default value is None for no bound
-            ubound:     the upper bound, default value is None for no bound
-            copy:       if True (default), a copy is made, leaving the original
-                        series intact
-    
-    Output:             time series object with bad values replaced by NaNs
-    
     
     
     med_outliers: uses a median filter on a rolling window to detect any
@@ -96,23 +82,73 @@ def norepeats(ts, threshold = 20, copy = True):
     return ts_out    
 
 
-def bounds(ts, lbound = None, ubound = None, copy = True):
+def med_outliers(ts,level=4.,scale = None,\
+                 filt_len=7,range=(None,None),
+                 quantiles = (0.25,0.75),
+                 copy = True):
+    """
+    Detect outliers by running a median filter, subtracting it
+    from the original series and comparing the resulting residuals
+    to a global robust range of scale (the interquartile range).
+    Individual time points are rejected if the residual at that time point is more than level times the range of scale. 
 
+    The original concept comes from Basu & Meckesheimer (2007)
+    although they didn't use the interquartile range but rather
+    expert judgment. To use this function effectively, you need to
+    be thoughtful about what the interquartile range will be. For instance,
+    for a strongly tidal flow station it is likely to 
+    
+    level: Number of times the scale or interquantile range the data has to be
+           to be rejected.d
+
+    scale: Expert judgment of the scale of maximum variation over a time step.
+           If None, the interquartile range will be used. Note that for a 
+           strongly tidal station the interquartile range may substantially overestimate the reasonable variation over a single time step, in which case the filter will work fine, but level should be set to 
+           a number (less than one) accordingly.
+
+    filt_len: length of median filter, default is 5
+    
+    quantiles : tuple of quantiles defining the measure of scale. Ignored
+          if scale is given directly. Default is interquartile range, and
+          this is almost always a reasonable choice.
+
+    copy: if True, a copy is made leaving original series intact
+
+    You can also specify rejection of  values based on a simple range
+
+    Returns: copy of series with outliers replaced by nan
+    """
     import warnings
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
 
-    #Range filter - anything outside of the specified range will be removed
-    if not lbound is None:
-        ts_out.data[ts_out.data < lbound] = np.nan
+    if ts_out.ndim == 1:
+        filt = medfilt(ts_out,filt_len)
+    else:
+        filt = np.apply_along_axis(medfilt,0,ts_out,filt_len)
+    res = ts_out - filt
 
-    if not ubound is None:
-        ts_out.data[ts_out.data > ubound] = np.nan
 
+    if not scale:
+        low,high = mquantiles(res[~ np.isnan(res)],quantiles)
+        scale = high - low 
+
+    outlier = (np.absolute(res) > level*scale) | (np.absolute(res) < -level*scale)
+    values = np.where(outlier,np.nan,ts_out.values)
+ 
+    ts_out.iloc[:,:]= values
+
+    warnings.resetwarnings()
+
+    
     return ts_out
 
 
-def med_outliers(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
+
+
+
+
+def med_outliers2(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
                  quantiles=(25,75),seclevel=3.0,secscale=None,
                  secfilt_len=241,secquantiles=(25,75),copy=True):
 
@@ -121,13 +157,13 @@ def med_outliers(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
     warnings.filterwarnings("ignore")
     
     #Secondary filter - median filter is first applied on a larger scale
+    # todo: reroute to scipy.ndimage.median_filter
     if secfilt:
-            #ts_out.data = ts_out.data.flatten()
-        if ts_out.data.ndim == 1:
-            filt = medfilt(ts_out.data,secfilt_len)
+        if ts_out.ndim == 1:
+            filt = medfilt(ts_out,secfilt_len)
         else:
-            filt = np.apply_along_axis(medfilt,0,ts_out.data,secfilt_len)
-        res = ts_out.data - filt
+            filt = np.apply_along_axis(medfilt,0,ts_out,secfilt_len)
+        res = ts_out - filt
 
 
         for k in range(len(ts.data)):
@@ -136,8 +172,6 @@ def med_outliers(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
                 slicehigh = int(min(len(ts.data), k + ((secfilt_len - 1)/2) + 1))
                 rwindow = ts.data[slicelow:slicehigh]
                 iqr = scipy_iqr(rwindow[~np.isnan(rwindow)], None, secquantiles)
-                #low,high = mquantiles(rwindow[~ np.isnan(rwindow)],secquantiles)
-                #iqr = high - low
             else:
                 iqr = secscale
                 
@@ -146,11 +180,11 @@ def med_outliers(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
 
     #Main filter - performs a median filter on the data
     #ts_out.data = ts_out.data.flatten()
-    if ts_out.data.ndim == 1:
-        filt = medfilt(ts_out.data,filt_len)
+    if ts_out.ndim == 1:
+        filt = medfilt(ts_out.values,filt_len)
     else:
-        filt = np.apply_along_axis(medfilt,0,ts_out.data,filt_len)
-    res = ts_out.data - filt
+        filt = np.apply_along_axis(medfilt,0,ts_out.values,filt_len)
+    res = ts_out - filt
 
     for k in range(len(ts.data)):
         if not scale:
@@ -164,7 +198,7 @@ def med_outliers(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
             iqr = scale
 
         if (res[k] > level*iqr) or (res[k] < -level*iqr):
-            ts_out.data[k]= np.nan
+            ts_out.iloc[:,k]= np.nan
 
     warnings.resetwarnings()
 

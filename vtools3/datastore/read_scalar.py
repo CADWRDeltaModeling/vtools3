@@ -2,6 +2,7 @@ import csv
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
+from vtools3.data.vtime import  hours
 
 from error_detect import *
 import datetime as dtm
@@ -9,6 +10,7 @@ from read_ts import read_ts
 from write_ts import *
 import glob
 from unit_conversions import *
+from vtools3.functions.merge import *
 
 def remove_isolated(ts,thresh):
     goodloc = np.where(np.isnan(ts.data),0,1)
@@ -83,7 +85,7 @@ def csv_retrieve_ts(fpat,fdir,start,end,selector=":",
     # higher priority than the older ones for merging
     matches.reverse()
     if len(matches) == 0:
-        raise ValueError("No matches to file pattern {} in directory {}".format(fpat,dir))
+        raise ValueError("No matches to file pattern {} in directory {}".format(fpat,fdir))
     for m in matches:
         dargs = {}
         if not dateparser is None: dargs["date_parser"] = dateparser
