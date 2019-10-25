@@ -182,65 +182,7 @@ def monotonic_spline(ts,times,filter_nan=True):
 
     return interpolate_ts(ts,times,method=MONOTONIC_SPLINE,filter_nan=filter_nan)  
 
-def linear(ts,times,filter_nan=True):
-    """Interpolate a time series by linear interpolation.
 
-    Parameters
-    ----------
-    ts : :class:`~vtools.data.timeseries.TimeSeries`
-        Series to be interpolated
-    times : :ref:`time_interval <time_intervals>`  or :ref:`time_sequence <time_sequence>`
-        The new times to which the series will be interpolated. Can also be a string that can be parsed into a time interval.    
-    filter_nan : boolean, optional
-        Should nan points should be omitted or not.
-    
-    Returns
-    -------
-    result : :class:`~vtools.data.timeseries.TimeSeries`
-        A regular time series if `times` is a `time_interval`, or irregular time series if `times` is a `time_sequence`. 
-    """    
-    return interpolate_ts(ts,times,method=LINEAR,filter_nan=filter_nan)
-
-def nearest_neighbor(ts,times,filter_nan=True,**dic):
-    """
-       Interpolating series using nearest valid neighbor.
-
-    Parameters
-    ----------
-    ts : :class:`~vtools.data.timeseries.TimeSeries`
-        Series to be interpolated
-    times : :ref:`time_interval <time_intervals>`  or :ref:`time_sequence <time_sequence>`
-        The new times to which the series will be interpolated. Can also be a string that can be parsed into a time interval. 
-    filter_nan : boolean, optional 
-        True if NaN point should be ommitted or not.
-    
-    Returns
-    -------
-    result : :class:`~vtools.data.timeseries.TimeSeries`
-    A regular time series if second input is time interval,
-             or irregular time series otherwise. 
-    """
-    return interpolate_ts(ts,times,method=NEAREST,filter_nan=filter_nan,**dic)  
-
-def previous_neighbor(ts,times,filter_nan=True,**dic):
-    """Interpolate at time series using value at the previous valid neighbor
-
-    Parameters
-    ----------
-    ts : :class:`~vtools.data.timeseries.TimeSeries`
-        Series to be interpolated
-    times : :ref:`time_interval <time_intervals>`  or :ref:`time_sequence <time_sequence>`
-        The new times to which the series will be interpolated. Can also be a string that can be parsed into a time interval. 
-    filter_nan : boolean,optional
-        True if nan points should be omitted or not.
-    
-    Returns
-    -------
-    result : :class:`~vtools.data.timeseries.TimeSeries`
-    A regular time series if second input is time interval,
-             or irregular time series otherwise.        
-    """
-    return interpolate_ts(ts,times,method=PREVIOUS,filter_nan=filter_nan,**dic)
 
 def rhistinterp(ts,interval,**dic):
     """ Interpolating a regular time series (rts) to a finer rts by rational histospline.
@@ -274,55 +216,7 @@ def rhistinterp(ts,interval,**dic):
     """
     return interpolate_ts(ts,interval,method=RATIONAL_HISTOSPLINE,**dic)
 
-def next_neighbor(ts,times,filter_nan=True,**dic):
-    """Interpolate by next (forward in time) valid neighbors.
 
-    Parameters
-    ----------
-    ts : :class:`~vtools.data.timeseries.TimeSeries`
-        Series to be interpolated
-
-    times : :ref:`time_interval <time_intervals>`  or :ref:`time_sequence <time_sequence>`
-        The new times to which the series will be interpolated. Can also be a string that can be parsed into a time interval. 
-
-    filter_nan : boolean,optional
-        True if nan points should be omitted or not.
-    
-    Returns
-    -------
-    result : :class:`~vtools.data.timeseries.TimeSeries`
-        A regular time series if `times` is time interval or irregular time series otherwise.   
-    
-              
-    """
-    return interpolate_ts(ts,times,method=NEXT,filter_nan=filter_nan,**dic)
-
-def spline(ts,times,filter_nan=True,**dic):    
-    """Interpolating gaps using cubic spline.
-       The spline does not need to pass data point. The closeness
-       can be controlled by parameter s. 
-
-    Parameters
-    ----------
-    ts : :class:`~vtools.data.timeseries.TimeSeries`
-        Series to be interpolated
-
-    times : :ref:`time_interval <time_intervals>`  or :ref:`time_sequence <time_sequence>`
-        The new times to which the series will be interpolated. Can also be a string that can be parsed into a time interval.
-        
-    filter_nan : boolean,optional
-        True if nan points should be omitted or not.
-    
-    s : float, optional
-        Smoothing parameter. s=1.0e-3 by default. The lower s is, the closer the fitted curve will be to the data points, and the less smoother the filter will be. This is different from monotonic spline, currently a bit slower and perhaps more robust.
-    
-    Returns
-    -------
-    result : :class:`~vtools.data.timeseries.TimeSeries`
-        A regular time series if second input is time interval, or irregular time series otherwise.   
-    
-    """
-    return interpolate_ts(ts,times,method=SPLINE,filter_nan=filter_nan,**dic)
 
 def _interpolate2rts(ts,interval,method=SPLINE,filter_nan=True,**dic):
     
@@ -825,78 +719,6 @@ def _spline(data,ticks,tticks,time_begin=None,time_end=None,\
         values=transpose(values)
         return values
 
-
-########################################################################### 
-## Private interface.
-###########################################################################            
-def _check_data_length(x,k):
-    
-    if len(x)< k+2:
-        raise ValueError("time series is too short to do interpolation.")
-
-def _check_input_times(times):
-
-    issequence=False    
-    if isSequenceType(times):
-        ## Here assume sequence contains
-        ## elements of same type.
-        test_tm=times[0]
-        issequence=True
-    else:
-        test_tm=times
-
-    if not issequence:
-        times=[times]
-        
-    if isinstance(test_tm,datetime.datetime):
-        tticks=map(ticks,times)
-        tticks=array(tticks,float)           
-    elif isNumberType(test_tm):      
-        tticks=array(times,float)
-    else:
-        raise TypeError("Second input for interpolation functions" \
-        " must be list/array of number or datatime, or single" \
-        " number or datetime")
-
-    return tticks
-
-def _check_fitting_bounds(ts_ticks,k,time_begin,time_end):
-    
-    # If boundary is given findout boundary index within ts.    
-    begin_index=0
-    end_index=len(ts_ticks)-1
-
-    if type(time_begin)==datetime.datetime:
-        time_begin=ticks(time_begin)
-
-    if type(time_end)==datetime.datetime:
-        time_end=ticks(time_end)    
-    
-    if time_begin:
-        begin_index=searchsorted(ts_ticks,time_begin,side='right')
-        if begin_index>(len(ts_ticks)-3+k):
-            raise ValueError(" Fitting interval is out of available timesers data."+ 
-                             " Move interval begining time backward.")
-
-    if time_end:
-        end_index=searchsorted(ts_ticks,time_end,side='right')-1
-        if end_index>(len(ts_ticks)-3+k):
-            raise ValueError(" Fitting interval is out of available timesers data."+ 
-                             "Move interval begining time backward.")
-    
-    return begin_index,end_index
-
-
-def filter_nana(ts_data,ts_ticks):
-    
-    if ts_data.ndim>1:
-        raise ValueError( "filtering-NaN is only defined for"+ 
-                        "one dimensional time series data." )
-    ts_ticks=compress(logical_not(isnan(ts_data)),ts_ticks)
-    ts_data=compress(logical_not(isnan(ts_data)),ts_data)
-    
-
-    return ts_data,ts_ticks
 
     
 def gap_size(x):
