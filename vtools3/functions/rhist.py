@@ -61,7 +61,7 @@ def rhistinterp(ts,dest, p, lowbound, tolbound=1.e-3):
     
     
     cols = ts.columns
-    result = pd.DataFrame([],index=ndx2)
+    result = pd.DataFrame([],index=dest)
     for col in cols:
         y = ts[col].to_numpy()
         out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p)
