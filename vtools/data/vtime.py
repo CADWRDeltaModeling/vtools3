@@ -85,23 +85,10 @@ def dst_to_standard_naive(ts, dst_zone = "US/Pacific", standard_zone="Etc/GMT+8"
     df2 = pd.DataFrame({"isdst":isdst},index=ndx2.tz_localize(None))    
     df2 = df2.loc[~df2.index.duplicated(keep="last"),:]
 
-    print ts.index
-    print df2
+    print(ts.index)
+    print(df2)
     ambig = df2.loc[ts.index,"isdst"].values
 
     # Here is the real work        
     ts2 = ts.tz_localize("US/Pacific",ambiguous=ambig).tz_convert(standard_zone).tz_localize(None) 
     return ts2    
-        
-    
-    
-    
-    
-
-
-            
-    
-    
-
-    
-

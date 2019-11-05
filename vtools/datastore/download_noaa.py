@@ -1,6 +1,10 @@
 """ Script to download NOAA water level data
 """
-import urllib2
+import sys                 # noqa
+if sys.version_info[0] == 2:
+    import urllib2
+else:
+    import urllib.request, urllib.error
 import bs4
 import calendar
 import datetime as dtm
@@ -18,23 +22,34 @@ stationlist = {"9414290":"San Francisco",
                "9415102":"Martinez-Amorco Pier"}
 
 
-name_to_id = dict((v,k) for k, v in stationlist.iteritems())
+name_to_id = dict((stationlist[k], k) for k in stationlist)
 
 
 def retrieve_csv(url):
-    response = urllib2.urlopen(url)
+    if sys.version_info[0] == 2:
+        response = urllib2.urlopen(url)
+    else:
+        response = urllib.request.urlopen(url)
     return response.read()
 
 
 def retrieve_table(url):
     done = False
     while not done:
-        try:
-            soup = bs4.BeautifulSoup(urllib2.urlopen(url))
-            done = True
-        except urllib2.URLError:
-            print("Failed to retrieve %s" % url)
-            print("Try again...")
+        if sys.version_info[0] == 2:
+            try:
+                soup = bs4.BeautifulSoup(urllib2.urlopen(url))
+                done = True
+            except urllib2.URLError:
+                print("Failed to retrieve %s" % url)
+                print("Try again...")
+        else:
+            try:
+                soup = bs4.BeautifulSoup(urllib.request.urlopen(url))
+                done = True
+            except urllib2.error.URLError:
+                print("Failed to retrieve %s" % url)
+                print("Try again...")
 
     table = soup.table.pre.pre.string
     return table
@@ -43,6 +58,7 @@ def retrieve_table(url):
 def write_table(table, fname, first):
     f = open(fname, 'a')
     # Remove the Error line
+    print(table)
     table = table[:table.find("Error")]
     if table[-1] != '\n':
         table += '\n'
@@ -57,7 +73,8 @@ def write_table(table, fname, first):
 
 def write_header(fname, headers):
     f = open(fname, 'w')
-    for key, value in headers.iteritems():
+    for key in headers:
+        value = headers[key]
         buf = "# \"%s\"=\"%s\"\n" % (key, value)
         f.write(buf)
     f.flush()
@@ -83,11 +100,11 @@ def retrieve_data(station_id, start, end, product=None):
             production, it is either water_level or predictions.
 
     """
-    if station_id in stationlist.keys():
+    if station_id in stationlist:
         strstation = stationlist[station_id]
     else:
         strstation = station_id
-        if station_id in name_to_id.keys():
+        if station_id in name_to_id:
             station_id = name_to_id[station_id]
     print("Station: %s"  % strstation)
 
@@ -122,7 +139,7 @@ def retrieve_data(station_id, start, end, product=None):
     if product is None:
         product = 'water_level'
     fname = "{}_{}.txt".format(station_id,product)    
-    if not product in product_info.keys():
+    if not product in product_info:
         raise ValueError("Product not supported: {}".format(product))
     first = True
     headers = product_info[product]
@@ -140,8 +157,7 @@ def retrieve_data(station_id, start, end, product=None):
             url = "http://tidesandcurrents.noaa.gov/api/datagetter?product=%s&application=NOS.COOPS.TAC.PHYSOCEANL&station=%s&begin_date=%s&end_date=%s&datum=%s&units=metric&time_zone=LST&format=csv" % (product, station_id, date_start, date_end, datum)
             print("Retrieving %s, %s, %s..." % (station_id, date_start, date_end))
             print("URL: {}".format(url))
-            # raw_table = retrieve_table(url)
-            raw_table = retrieve_csv(url)
+            raw_table = retrieve_csv(url).decode()
             if raw_table[0] == '\n':
                 datum = "STND"
                 url = "http://tidesandcurrents.noaa.gov/api/datagetter?product=%s&application=NOS.COOPS.TAC.PHYSOCEANL&station=%s&begin_date=%s&end_date=%s&datum=%s&units=metric&time_zone=LST&format=csv" % (product, station_id, date_start, date_end, datum)
@@ -198,9 +214,9 @@ def list_stations():
 def assure_datetime(dtime, isend = False):
     if isinstance(dtime,dtm.datetime): 
         return dtime
-    elif isinstance(dtime,unicode) or isinstance(dtime,str):
+    elif isinstance(dtime, str):
         if len(dtime) > 4:
-            return dtm.datetime(*map(int, re.split(r'[^\d]', dtime)))
+            return dtm.datetime(list(*map(int, re.split(r'[^\d]', dtime))))
         elif len(dtime) == 4:
             return dtm.datetime(int(dtime),12,31,23,59) if isend else dtm.datetime(int(dtime),1,1)
         else:
@@ -210,7 +226,7 @@ def assure_datetime(dtime, isend = False):
         
  
         
-def download_noaa(stations,product,start,end):
+def noaa_download(stations,product,start,end):
     start = assure_datetime(start)
     end = assure_datetime(end,isend=True)
         
@@ -233,11 +249,11 @@ def main():
             raise ValueError("Either station or stationfile required")
 
         if args.start:
-            start = dtm.datetime(*map(int, re.split(r'[^\d]', args.start)))
+            start = dtm.datetime(list(*map(int, re.split(r'[^\d]', args.start))))
         else:
             start = None
         if args.end:
-            end = dtm.datetime(*map(int, re.split(r'[^\d]', args.end)))
+            end = dtm.datetime(list(*map(int, re.split(r'[^\d]', args.end))))
         else:
             end = None
 
@@ -271,7 +287,7 @@ def main():
                     print("station id=%s" % sid)
                     stage_stations.append(sid)
 
-        return download_noaa(stage_stations,args.product,start,end)
+        return noaa_download(stage_stations,args.product,start,end)
 
 
 if __name__ == "__main__":

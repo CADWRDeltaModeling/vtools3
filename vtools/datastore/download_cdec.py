@@ -4,9 +4,13 @@
     For help/usage:
     python cdec_download.py --help
 """
+import sys                       # noqa
 import argparse
 
-import urllib2
+if sys.version_info[0] == 2:
+    import urllib2
+else:
+    import urllib.request
 import re
 import zipfile
 import os
@@ -57,7 +61,7 @@ def cdec_download(stations,dest_dir,start,end="Now",param="ec",overwrite=False):
     """
     if end == None: end = "Now"
     if not type(param) == list:
-        if not param in params.keys():
+        if not param in params:
             raise ValueError("Requested param has no code in script or is incorrect")
         param=[param]*len(stations)
     paramcode=[params[p] for p in param]
@@ -84,8 +88,11 @@ def cdec_download(stations,dest_dir,start,end="Now",param="ec",overwrite=False):
             for dur in dur_codes:
                 station_query = station_query_base % (cdec_base_url,station,code,dur,stime,etime)
                 print(station_query)
-                response = urllib2.urlopen(station_query)
-                station_html = response.read().replace("\r","")
+                if sys.version_info[0] == 2:
+                    response = urllib2.urlopen(station_query)
+                else:
+                    response = urllib.request.urlopen(station_query)
+                station_html = response.read().decode().replace("\r","")
                 if station_html.startswith("Title") or station_html.startswith("STATION_ID") and len(station_html) > 16:
                     found = True
                     with open(path,"w") as f:
@@ -130,9 +137,9 @@ if __name__ == '__main__':
     param = args.param
     start = args.start
     end = args.end
-    stime = dt.datetime(*map(int, re.split('[^\d]', start))) 
+    stime = dt.datetime(list(*map(int, re.split(r'[^\d]', start))))
     if end:
-        etime = dt.datetime(*map(int, re.split('[^\d]', end))) 
+        etime = dt.datetime(list(*map(int, re.split(r'[^\d]', end))))
     else:
         etime = "Now"
     if param_column and param:

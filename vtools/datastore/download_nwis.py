@@ -5,8 +5,15 @@
     python nwis_download.py --help
 """
 import argparse
+import sys
 
-import urllib2
+if sys.version_info[0] == 2:
+    import urllib2
+elif sys.version_info[0] == 3:
+    import urllib.request
+else:
+    raise RuntimeError("Not recognizable Python version")
+
 import re
 import zipfile
 import os
@@ -60,11 +67,14 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
             station_query = station_query_base % (station,stime,etime)
         print(station_query)
         try: 
-            response = urllib2.urlopen(station_query)
+            if sys.version_info[0] == 2:
+                response = urllib2.urlopen(station_query)
+            elif sys.version_info[0] == 3:
+                response = urllib.request.urlopen(station_query)
         except:
             failures.append(station)
         else:    
-            station_html = response.read().replace("\r","")
+            station_html = response.read().decode().replace("\r","")
             if len(station_html) > 30 and not "No sites found matching" in station_html:
                 found = True
                 with open(path,"w") as f:
@@ -97,9 +107,9 @@ if __name__ == '__main__':
     start = args.start
     end = args.end
     param = args.param
-    stime = dt.datetime(*map(int, re.split('[^\d]', start))) 
+    stime = dt.datetime(list(*map(int, re.split(r'[^\d]', start))))
     if end:
-        etime = dt.datetime(*map(int, re.split('[^\d]', end))) 
+        etime = dt.datetime(list(*map(int, re.split(r'[^\d]', end))))
     else:
         etime = dt.datetime.now()
     

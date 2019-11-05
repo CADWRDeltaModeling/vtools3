@@ -2,8 +2,12 @@
     The main function in this file is wdl_download. Currently takes a list of stations, downloads data.
  
 """
+import sys                       # noqa
 
-import urllib2
+if sys.version_info[0] == 2:
+    import urllib2
+else:
+    import urllib.request
 import re
 import zipfile
 import os
@@ -25,7 +29,7 @@ def wdl_download(stations,years,dest_dir,overwrite=False):
     dtime  = dt.datetime(1990,1,1)
     
     items = {"FLOW":"discharge",
-             "STAGE":"gageheight",
+             "STAGE_15-MINUTE":"gageheight",
              "CONDUCTIVITY":"conductance",
              "VELOCITY":"velocity",
              "ADCP_WATER_TEMPERATURE":"temperature",
@@ -37,10 +41,13 @@ def wdl_download(stations,years,dest_dir,overwrite=False):
 
     for station in stations:
         station_query = "http://wdl.water.ca.gov/waterdatalibrary/docs/Hydstra/index.cfm?site=%s" % station
-        response = urllib2.urlopen(station_query)
-        station_html = response.read()
+        if sys.version_info[0] == 2:
+            response = urllib2.urlopen(station_query)
+        else:
+            response = urllib.request.urlopen(station_query)
+        station_html = response.read().decode()
         params = [x for x in items if  "%s_"%x in station_html]
-        for param in items.keys():
+        for param in items:
             station_param = "%s_%s" % (station,items[param])
             newname = "%s.csv" % station_param
             dest_path = os.path.join(dest_dir,newname)
@@ -62,13 +69,16 @@ def wdl_download(stations,years,dest_dir,overwrite=False):
                 searchcsvstr = """%s/%s/%s/(%s.*.CSV)""" % (base_url,station,year,param)
                 yrcsvfile = re.search(searchcsvstr,station_html)
                 if yrzipfile:
-                    url = yrzipfile.group(0)                
-                    response = urllib2.urlopen(url)
+                    url = yrzipfile.group(0)
+                    if sys.version_info[0] == 2:
+                        response = urllib2.urlopen(url)
+                    else:
+                        response = urllib.request.urlopen(url)
                     f = station_param_yr+".zip"
                     f = f.lower()
                     localname = os.path.join(".",work_dir,f)
                     with open(localname, "wb") as local_file:
-                        local_file.write(response.read())
+                        local_file.write(response.read().decode())
                     zf = zipfile.ZipFile(localname)
                     filenames = zf.namelist()
                     assert len(filenames) == 1
@@ -103,7 +113,10 @@ def wdl_download(stations,years,dest_dir,overwrite=False):
                     data_years.append(str(year))
                 elif yrcsvfile:
                     url = yrcsvfile.group(0)                
-                    response = urllib2.urlopen(url)
+                    if sys.version_info[0] == 2:
+                        response = urllib2.urlopen(url)
+                    else:
+                        response = urllib.request.urlopen(url)
                     workfile = station_param_yr+".csv"
                     workfile = workfile.lower()
                     localname = os.path.join(".",work_dir,workfile)
@@ -132,8 +145,7 @@ def wdl_download(stations,years,dest_dir,overwrite=False):
                     destfile.close()
                     os.remove(os.path.join(work_dir,workfile))
                     data_years.append(str(year))
-                    
-            print("Data for station %s param %s in years: %s" % (station, param, string.join(data_years,",")))
+            # print("Data for station %s param %s in years: %s" % (station, param, string.join(data_years,",")))
             print("Total # data for %s: %s" % (station_param,ndata))
             #if ndata > 0: convert2netcdf(dest_path,ndata)
             
