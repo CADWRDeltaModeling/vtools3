@@ -1,0 +1,38 @@
+{% set name = "vtools3" %}
+{% set data = load_setup_py_data() %}
+
+package:
+  name: "{{ name|lower }}"
+  
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  # If the installation is complex, or different between Unix and Windows, use
+  # separate bld.bat and build.sh files instead of this key.  Add the line
+  # "skip: True  # [py<35]" (for example) to limit to Python 3.5 and newer, or
+  # "skip: True  # [not win]" to limit to Windows.
+  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed -vv .
+  noarch: python
+    
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - pandas >=0.23
+  run:
+    - python
+    - numpy  >=1.11
+    - pandas >=0.23
+  test:
+    imports:
+      - vtools
+
+about:
+  home: https://github.com/CADWRDeltaModeling/vtools3
+  summary: "Timeseries analysis and processing tools using pandas/xarray"
+  license: "Apache"
+  license_file: LICENSE
