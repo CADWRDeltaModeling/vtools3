@@ -24,7 +24,8 @@ def find_version(*file_paths):
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ["numpy>=1.16,<2", "pandas>=0.23", "scipy>=1.2"]
+requirements = ["numpy>=1.16,<2", "pandas>=0.23",
+                "scipy>=1.2", "beautifulsoup4>=4.8"]
 
 setup(
     name='vtools3',
