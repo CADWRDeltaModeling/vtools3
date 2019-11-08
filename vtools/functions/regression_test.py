@@ -97,8 +97,8 @@ cse_mean14 = cse_stage.rolling(15*96).mean()
 stage_diff = (cse_stage - cse_mean14).abs()
 ndo_fit_diff = (log_ndo - fit).abs()
 
-print type(stage_diff)
-print type(ndo_fit_diff)
+print(type(stage_diff))
+print(type(ndo_fit_diff))
 
 ok = (stage_diff  < 0.3) & ( ndo_fit_diff < 0.4) & (reg.abs() < 0.3)
 #ok_flag = np.where(ok,5.,0.)
@@ -120,7 +120,7 @@ usept.plot(ax=ax)
 ax.legend(["reg","fit","log_ndo","stage","stage(14)","stage_diff","ndo_fit_diff","usept"])
 sampled = data.loc[ok,:]
 print("Number of samples")
-print (sampled.shape)
+print((sampled.shape))
 sampled.to_csv("sampled.csv")
 
 
