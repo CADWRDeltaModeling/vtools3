@@ -58,7 +58,7 @@ def retrieve_table(url):
 def write_table(table, fname, first):
     f = open(fname, 'a')
     # Remove the Error line
-    print(table)
+    #print(table)
     table = table[:table.find("Error")]
     if table[-1] != '\n':
         table += '\n'
