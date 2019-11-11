@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vtools.datastore package &#8212; vtools 3.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vtools.functions package" href="vtools.functions.html" />
+    <link rel="prev" title="vtools.data package" href="vtools.data.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vtools.functions.html" title="vtools.functions package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vtools.data.html" title="vtools.data package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">vtools 3.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">vtools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="vtools-datastore-package">
+<h1>vtools.datastore package<a class="headerlink" href="#vtools-datastore-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-vtools.datastore.download_cdec">
+<span id="vtools-datastore-download-cdec-module"></span><h2>vtools.datastore.download_cdec module<a class="headerlink" href="#module-vtools.datastore.download_cdec" title="Permalink to this headline">¶</a></h2>
+<p>Download robot for water data library
+The main function in this file is cdec_download.</p>
+<p>For help/usage:
+python cdec_download.py –help</p>
+<dl class="function">
+<dt id="vtools.datastore.download_cdec.cdec_download">
+<code class="sig-name descname">cdec_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">start</em>, <em class="sig-param">end='Now'</em>, <em class="sig-param">param='ec'</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#cdec_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.cdec_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download robot for CDEC
+Requires a list of stations, destination directory and start/end date
+These dates are passed on to CDEC … actual return dates can be
+slightly different</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_cdec.create_arg_parser">
+<code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.create_arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_cdec.ping">
+<code class="sig-name descname">ping</code><span class="sig-paren">(</span><em class="sig-param">host</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#ping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.ping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if host (str) responds to a ping request.
+Remember that some hosts may not respond to a ping request even if the host name is valid.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_cdec.process_station_list">
+<code class="sig-name descname">process_station_list</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">cdec_ndx</em>, <em class="sig-param">param_ndx=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#process_station_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.process_station_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-vtools.datastore.download_noaa">
+<span id="vtools-datastore-download-noaa-module"></span><h2>vtools.datastore.download_noaa module<a class="headerlink" href="#module-vtools.datastore.download_noaa" title="Permalink to this headline">¶</a></h2>
+<p>Script to download NOAA water level data</p>
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.assure_datetime">
+<code class="sig-name descname">assure_datetime</code><span class="sig-paren">(</span><em class="sig-param">dtime</em>, <em class="sig-param">isend=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#assure_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.assure_datetime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.create_arg_parser">
+<code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.create_arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an ArgumentParser</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.list_stations">
+<code class="sig-name descname">list_stations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#list_stations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.list_stations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show NOAA station ID’s in our study area.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.noaa_download">
+<code class="sig-name descname">noaa_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">product</em>, <em class="sig-param">start</em>, <em class="sig-param">end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#noaa_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.noaa_download" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.retrieve_csv">
+<code class="sig-name descname">retrieve_csv</code><span class="sig-paren">(</span><em class="sig-param">url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#retrieve_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.retrieve_csv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.retrieve_data">
+<code class="sig-name descname">retrieve_data</code><span class="sig-paren">(</span><em class="sig-param">station_id</em>, <em class="sig-param">start</em>, <em class="sig-param">end</em>, <em class="sig-param">product=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#retrieve_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.retrieve_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download stage data from NOAA tidesandcurrents, and save it to
+NOAA CSV format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id</strong><span class="classifier">int or str</span></dt><dd><p>station id</p>
+</dd>
+<dt><strong>start</strong><span class="classifier">datetime.datetime</span></dt><dd><p>first date to download</p>
+</dd>
+<dt><strong>end</strong><span class="classifier">datetime.datetime</span></dt><dd><p>last date to download, inclusive of the date</p>
+</dd>
+<dt><strong>product</strong><span class="classifier">str</span></dt><dd><p>production, it is either water_level or predictions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.retrieve_table">
+<code class="sig-name descname">retrieve_table</code><span class="sig-paren">(</span><em class="sig-param">url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#retrieve_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.retrieve_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.write_header">
+<code class="sig-name descname">write_header</code><span class="sig-paren">(</span><em class="sig-param">fname</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#write_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.write_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.write_table">
+<code class="sig-name descname">write_table</code><span class="sig-paren">(</span><em class="sig-param">table</em>, <em class="sig-param">fname</em>, <em class="sig-param">first</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#write_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.write_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-vtools.datastore.download_nwis">
+<span id="vtools-datastore-download-nwis-module"></span><h2>vtools.datastore.download_nwis module<a class="headerlink" href="#module-vtools.datastore.download_nwis" title="Permalink to this headline">¶</a></h2>
+<p>Download robot for Nationla Water Informaton System (NWIS)
+The main function in this file is nwis_download.</p>
+<p>For help/usage:
+python nwis_download.py –help</p>
+<dl class="function">
+<dt id="vtools.datastore.download_nwis.create_arg_parser">
+<code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis.create_arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_nwis.nwis_download">
+<code class="sig-name descname">nwis_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">start</em>, <em class="sig-param">end=None</em>, <em class="sig-param">param=None</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis.html#nwis_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis.nwis_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download robot for NWIS
+Requires a list of stations, destination directory and start/end date
+These dates are passed on to CDEC … actual return dates can be
+slightly different</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_nwis.process_station_list">
+<code class="sig-name descname">process_station_list</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis.html#process_station_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis.process_station_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-vtools.datastore.download_wdl">
+<span id="vtools-datastore-download-wdl-module"></span><h2>vtools.datastore.download_wdl module<a class="headerlink" href="#module-vtools.datastore.download_wdl" title="Permalink to this headline">¶</a></h2>
+<p>Download robot for water data library
+The main function in this file is wdl_download. Currently takes a list of stations, downloads data.</p>
+<dl class="function">
+<dt id="vtools.datastore.download_wdl.wdl_download">
+<code class="sig-name descname">wdl_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">years</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#wdl_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.wdl_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download robot for Water Data Library
+First loads the stations page to see which variables are available 
+from a hardwired list (conductance, gage elevation, flow, etc). 
+Then it downloads all the years from years that are available for 
+those variables and adds the data to txt files one per station-variable.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="vtools-datastore-read-cdec-module">
+<h2>vtools.datastore.read_cdec module<a class="headerlink" href="#vtools-datastore-read-cdec-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="vtools-datastore-read-scalar-module">
+<h2>vtools.datastore.read_scalar module<a class="headerlink" href="#vtools-datastore-read-scalar-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="vtools-datastore-read-ts-module">
+<h2>vtools.datastore.read_ts module<a class="headerlink" href="#vtools-datastore-read-ts-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="vtools-datastore-read-usbr-module">
+<h2>vtools.datastore.read_usbr module<a class="headerlink" href="#vtools-datastore-read-usbr-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-vtools.datastore">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vtools.datastore" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">vtools.datastore package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-vtools.datastore.download_cdec">vtools.datastore.download_cdec module</a></li>
+<li><a class="reference internal" href="#module-vtools.datastore.download_noaa">vtools.datastore.download_noaa module</a></li>
+<li><a class="reference internal" href="#module-vtools.datastore.download_nwis">vtools.datastore.download_nwis module</a></li>
+<li><a class="reference internal" href="#module-vtools.datastore.download_wdl">vtools.datastore.download_wdl module</a></li>
+<li><a class="reference internal" href="#vtools-datastore-read-cdec-module">vtools.datastore.read_cdec module</a></li>
+<li><a class="reference internal" href="#vtools-datastore-read-scalar-module">vtools.datastore.read_scalar module</a></li>
+<li><a class="reference internal" href="#vtools-datastore-read-ts-module">vtools.datastore.read_ts module</a></li>
+<li><a class="reference internal" href="#vtools-datastore-read-usbr-module">vtools.datastore.read_usbr module</a></li>
+<li><a class="reference internal" href="#module-vtools.datastore">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vtools.data.html"
+                        title="previous chapter">vtools.data package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vtools.functions.html"
+                        title="next chapter">vtools.functions package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/vtools.datastore.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vtools.functions.html" title="vtools.functions package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vtools.data.html" title="vtools.data package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">vtools 3.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >vtools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, California Department of Water Resources.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>
