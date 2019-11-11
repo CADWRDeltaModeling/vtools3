@@ -40,7 +40,11 @@ def test_wdl_download():
     for fpath in expected_artifacts:
         ts = pd.read_csv(fpath, header=None)
         assert(ts.loc[0][1] == 5.65)
-    clean_up(expected_artifacts)
+    #FIXME: conductance and temperature are unexpected atleast by test above
+    unexpected_artifacts = ['{}_{}.csv'.format(s,t) 
+        for s in stations
+        for t in ['gageheight','conductance','temperature']]
+    clean_up(unexpected_artifacts)
 
 
 def test_noaa_download():
