@@ -174,6 +174,20 @@ to remove edge effect.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="vtools.functions.filter.generate_godin_fir">
+<code class="sig-name descname">generate_godin_fir</code><span class="sig-paren">(</span><em class="sig-param">timeinterval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/filter.html#generate_godin_fir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.filter.generate_godin_fir" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate godin filter impulse response for given timeinterval
+timeinterval could be anything that pd.Timedelta can accept</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.filter.godin_filter">
+<code class="sig-name descname">godin_filter</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">timeinterval='15min'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/filter.html#godin_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.filter.godin_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses FIR filter and convolves with the data frame values
+return godin filtered values for data frame values</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="vtools.functions.filter.lowpass_cosine_lanczos_filter_coef">
 <code class="sig-name descname">lowpass_cosine_lanczos_filter_coef</code><span class="sig-paren">(</span><em class="sig-param">cf</em>, <em class="sig-param">m</em>, <em class="sig-param">normalize=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/filter.html#lowpass_cosine_lanczos_filter_coef"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.filter.lowpass_cosine_lanczos_filter_coef" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the convolution coefficients for low pass lanczos filter.</p>
