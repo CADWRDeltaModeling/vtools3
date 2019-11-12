@@ -12,16 +12,6 @@ from read_scalar import *
 from vtools3.functions.filter import cosine_lanczos
 from vtools3.data.vtime import hours,minutes,days
 
-
-from unit_conversions import ec_psu_25c
-
-
-# 1970.2058633  3798.60021635 5561.45924409 7279.506588
-print psu_ec_25c(np.arange(1,5))
-print ec_psu_25c(2640)
-
-
-
 def period_op(ts,period = "D",agg="mean",max_absent_frac=0.):
     
     period = pd.tseries.frequencies.to_offset(period)

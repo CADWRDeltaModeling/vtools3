@@ -2,7 +2,7 @@
 """ Routines to read field data files
 """
 
-from vtools.data.vtime import infer_interval
+#from vtools.data.vtime import infer_interval
 import vtools.data.vtime as vtt
 import vtools.data.timeseries as vts
 import numpy
@@ -10,6 +10,9 @@ import abc
 import datetime
 import re
 import sys
+
+def infer_interval():
+    raise NotImplementedError("Originally in vtools.data")
 
 __all__ = ['read_ts', 'read_noaa', 'read_wdl', 'read_cdec',
            'read_usgs', 'read_usgs_rdb','read_vtide']

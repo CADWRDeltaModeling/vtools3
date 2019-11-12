@@ -7,12 +7,11 @@ def ts_merge(series):
     
     Parameters
     ----------
-    series  :  tuple(time series)`
+    series  :  tuple(:class:`DataFrame <pandas:pandas.DataFrame>`) or tuple(:class:`DataArray) <xarray:xarray.DataArray>`
         Series ranked from hight to low priority              
-
     Returns
     -------    
-    merged : :class:`~vtools.data.timeseries.TimeSeries`
+    merged : :class:`DataFrame <pandas:pandas.DataFrame>`
         A new time series with time interval same as the inputs, time extent
         the union of the inputs, and filled first with ts1, then with remaining
         gaps filled with ts2, then ts3....

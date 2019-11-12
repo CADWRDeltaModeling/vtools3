@@ -1,16 +1,18 @@
-import csv
+#import csv
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
-from vtools3.data.vtime import  hours
+from vtools.data.vtime import  hours
 
-from error_detect import *
+#from error_detect import *
 import datetime as dtm
-from read_ts import read_ts
-from write_ts import *
+#from read_ts import read_ts
+#from write_ts import *
 import glob
-from unit_conversions import *
-from vtools3.functions.merge import *
+from vtools.functions.merge import *
+#from unit_conversions import *
+
+
 
 def remove_isolated(ts,thresh):
     goodloc = np.where(np.isnan(ts.data),0,1)
