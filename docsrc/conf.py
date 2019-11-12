@@ -130,7 +130,7 @@ html_theme_options = {
 # Note that this is failing because of some sort of break in
 # __templates/layout.html compared to prior version
 html_logo = 'dwrsmall.jpg'
-Implemented numpydoc
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
