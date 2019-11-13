@@ -2,14 +2,10 @@
     This module contains factory and helper functions for working with
     times and time intervals.
 
-    The module will import the name datetime and is
-    designed to work exclusively with python datetimes. In addition, datetimes
-    are convertible to long integer timestamps called ticks. The resolution
-    of 1 tick in ticks per second may be obtained using the resolution()
-    function or certain utility constants such as ticks_per_day. Never
-    code with hard wired numbers.
-
-    For time intervals (or deltas), VTools requires a time and time
+    For time intervals (or deltas), VTools uses classes that are compatible
+    with the "freq" argument of 
+    
+    requires a time and time
     interval system that is consistent (e.g. time+n*interval makes sense)
     and that can be applied to both calendar dependent
     and calendar-independent intervals. Because this requirement
@@ -52,8 +48,6 @@ def years(y):
 
 
 
-
-
 def dst_to_standard_naive(ts, dst_zone = "US/Pacific", standard_zone="Etc/GMT+8"):
     """ Convert timezone-unaware series from a local (with daylight) time to standard time
         This would be useful, say, for converting a series that is PDT during summer to one that is not.
@@ -92,3 +86,9 @@ def dst_to_standard_naive(ts, dst_zone = "US/Pacific", standard_zone="Etc/GMT+8"
     # Here is the real work        
     ts2 = ts.tz_localize("US/Pacific",ambiguous=ambig).tz_convert(standard_zone).tz_localize(None) 
     return ts2    
+
+
+
+
+
+
