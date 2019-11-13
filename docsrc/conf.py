@@ -35,17 +35,12 @@ sys.path.insert(0, os.path.abspath('..'))
 extensions = ['nbsphinx', 'sphinx.ext.mathjax',
           'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
           'matplotlib.sphinxext.mathmpl',
-          #'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
-          #'matplotlib.sphinxext.ipython_directive',
           'sphinx.ext.intersphinx',
           'sphinx.ext.autodoc',
           'sphinxarg.ext',
-          'sphinx.ext.doctest','numpydoc']
-          #'numpydoc']
-          #'ipython_console_highlighting',
-          #'inheritance_diagram',
-          #'numpydoc']
+          'sphinx.ext.doctest',
+          'numpydoc']
 
 autodoc_member_order = 'alphabetical'
           

@@ -8,8 +8,6 @@ import numpy as np
 from scipy import array as sciarray
 from scipy.signal import lfilter,firwin,filtfilt
 from scipy.signal.filter_design import butter
-#from scipy.ndimage.filters import gaussian_filter 
-#from scipy.signal import fftconvolve
 
 
 #__all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
@@ -57,7 +55,7 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     Parameters
     -----------
     
-    ts : Pandas or XArray time series
+    ts : :class:`DataFrame <pandas:pandas.DataFrame>`
     
     filter_len  : int, time_interval
         Size of lanczos window, default is to number of samples within filter_period*1.25.
@@ -188,7 +186,7 @@ def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
     -----------
     
     
-    ts : Pandas series or DataFrame, or xarray object
+    ts : :class:`DataFrame <pandas:pandas.DataFrame>`
         Must be one or two dimensional, and regular.
     
     order: int ,optional
@@ -311,14 +309,43 @@ def generate_godin_fir(timeinterval):
     wts25=np.zeros(tidal_period)
     wts25[:]=1.0/wts25.size
     return np.convolve(wts25,np.convolve(wts24,wts24))
-def godin_filter(df,timeinterval='15min'):
-    '''
-    Uses FIR filter and convolves with the data frame values
-    return godin filtered values for data frame values
-    '''
-    godin_ir=generate_godin_fir(df.index.freq)
-    assert len(df.columns) == 1
-    dfg=pd.DataFrame(np.convolve(df.iloc[:,0].values,godin_ir,mode='same'), 
-        columns=df.columns, index = df.index)
+    
+    
+def godin_filter(ts):
+    """ Low-pass Godin filter a regular time series.
+    Applies the :math:`\mathcal{A_{24}^{2}A_{25}}` Godin filter [1]_
+    The filter is generalized to be the equivalent of one
+    boxcar of the length of the lunar diurnal (~25 hours)
+    constituent and two of the solar diurnal (~24 hours), though the
+    implementation combines these steps.
+    
+    
+    Parameters
+    -----------
+    
+    ts : :class:`DataFrame <pandas:pandas.DataFrame>`
+  
+    Returns
+    -------
+    result : :class:`DataFrame <pandas:pandas.DataFrame>`
+        A new regular time series with the same interval of ts. 
+        
+    Raise
+    --------
+    ValueError
+        If input time series is not univariate
+        
+    References
+    ----------
+    .. [1] Godin (1972) Analysis of Tides
+        
+    """
+
+    
+    godin_ir=generate_godin_fir(ts.index.freq)
+    if not (len(ts.columns) == 1):
+        raise ValueError("Godin Filter not functional for multivariate series yet")
+    dfg=pd.DataFrame(np.convolve(ts.iloc[:,0].values,godin_ir,mode='same'), 
+        columns=ts.columns, index = ts.index)
     return dfg
 #
