@@ -4,7 +4,9 @@ Module for data interpolation using splines or interfaces unavailable in Pandas.
 
 import numpy as np
 import pandas as pd
-from vtools.functions._monotonic_spline import _monotonic_spline
+from vtools.functions._monotonic_spline import *
+
+
 
 def rhistinterp(ts,dest, p, lowbound, tolbound=1.e-3):
     """ Interpolate a regular time series (rts) to a finer rts by rational histospline.
@@ -317,13 +319,6 @@ def rhist_val(xnew,x,p,q,a,b,c):
 
 
 
-
-
-from _monotonic_spline import *
-import pandas as pd
-from vtools3.functions._monotonic_spline import _monotonic_spline
-import matplotlib.pyplot as plt
-
 def monotonic_spline(ts,dest):    
     """ Interpolating a regular time series (rts) to a finer rts by rational histospline.
 
@@ -373,6 +368,8 @@ def monotonic_spline(ts,dest):
     
 
 def example():
+    import matplotlib.pyplot as plt
+
     nper = 20
     xx = np.linspace(0,12.,nper)
     yy = np.cos(2.*np.pi*xx/6.)
