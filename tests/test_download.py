@@ -1,5 +1,6 @@
 """ Tests for downloading scripts
 """
+import pytest
 import os
 import pandas as pd
 from vtools.datastore.download_nwis import nwis_download
@@ -14,7 +15,7 @@ def clean_up(expected_artifacts):
         if os.path.exists(f):
             os.remove(f)
 
-
+@pytest.mark.webtest
 def test_nwis_download():
     # Setting up
     stations = ['11313452', ]
@@ -30,7 +31,7 @@ def test_nwis_download():
         assert(float(ts.loc[1]['15416_00060']) == -11100.)
     clean_up(expected_artifacts)
 
-
+@pytest.mark.webtest
 def test_wdl_download():
     stations = ['B95060', ]
     years = [2018, ]
@@ -46,7 +47,7 @@ def test_wdl_download():
         for t in ['gageheight','conductance','temperature']]
     clean_up(unexpected_artifacts)
 
-
+@pytest.mark.webtest
 def test_noaa_download():
     # Setting up
     stations = ['9414290', ]
@@ -62,7 +63,7 @@ def test_noaa_download():
         assert(ts.loc[0][1] == 0.623)
     clean_up(expected_artifacts)
 
-
+@pytest.mark.webtest
 def test_cdec_download():
     stations = ['OSJ', ]
     dest_dir = '.'
