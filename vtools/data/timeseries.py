@@ -278,11 +278,10 @@ def gap_size(ts):
         
         
     """
-    raise NotImplementedError()
-    # Note code below is real, but incomplete. Comes from an SO answer.
+    
+
     s = ts.index.to_series()
-    cols = ['op','setting']
-    for c in cols:
+    for c in ts.columns:
         #test missing values
         miss = ts[c].isna()
         #create consecutive groups
@@ -295,6 +294,8 @@ def gap_size(ts):
         out = m2.sub(m1).dt.total_seconds().div(60).astype(int)
         #map to column
         ts[c] = g.map(out)
+        ts.loc[~miss,c] = 0.       
+    return ts
     
 def datetime_elapsed(index_or_ts,reftime=None,dtype="d",inplace=False):
     """Convert a time series or DatetimeIndex to an integer/double series of elapsed time
@@ -402,8 +403,23 @@ def example():
     ref = pd.Timestamp(2017,1,1,11,59)
     df2 = datetime_elapsed(df,reftime=ref,dtype=int)    
     print(elapsed_datetime(df2,reftime=ref) - df)
+
+def example_gap():
+    ndx = pd.date_range(pd.Timestamp(2017,1,1,12),freq='15min',periods=10)
+    vals0 = np.arange(0.,10.,dtype='d')
+    vals1 = vals0.copy()
+    vals2 = vals0.copy()
+    vals0[0:3] = np.nan
+    vals0[7:-1] = np.nan
+    vals1[2:4] = np.nan
+    vals1[6] = np.nan
+
+    df = pd.DataFrame({'vals0':vals0,'vals1':vals1,'vals2':vals2},index = ndx)
+    print(df)
+    print(gap_size(df))
+
     
 if __name__=="__main__":
-    example()    
+    example_gap()    
     
     
