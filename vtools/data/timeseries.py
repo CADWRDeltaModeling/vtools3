@@ -258,44 +258,6 @@ def extrapolate_ts(ts,start=None,end=None,method="constant",val=np.nan):
     return new_ts
         
     
-def gap_size(ts):
-    """ Assess the size of local gaps
-    Identifies gaps (runs of missing data) and quantifies the
-    length of the gap. Each time point receives the length of the run
-    in terms of seconds or number of values in the time dimension,
-    with non-missing data returning zero.     
-    
-    Parameters
-    -----------
-    
-    ts : :class:`DataFrame <pandas:pandas.DataFrame>`
-  
-    Returns
-    -------
-    result : :class:`DataFrame <pandas:pandas.DataFrame>`
-        A new regular time series with the same freq as the argument
-        holding the size of the gap. 
-        
-        
-    """
-    
-
-    s = ts.index.to_series()
-    for c in ts.columns:
-        #test missing values
-        miss = ts[c].isna()
-        #create consecutive groups
-        g = miss.ne(miss.shift()).cumsum()
-        #aggregate minimal 
-        m1 = s.groupby(g).min()
-        #get minimal of next groups, last value is replaced last value of index
-        m2 = m1.shift(-1).fillna(ts.index[-1])
-        #get difference, convert to minutes
-        out = m2.sub(m1).dt.total_seconds().div(60).astype(int)
-        #map to column
-        ts[c] = g.map(out)
-        ts.loc[~miss,c] = 0.       
-    return ts
     
 def datetime_elapsed(index_or_ts,reftime=None,dtype="d",inplace=False):
     """Convert a time series or DatetimeIndex to an integer/double series of elapsed time
@@ -404,22 +366,9 @@ def example():
     df2 = datetime_elapsed(df,reftime=ref,dtype=int)    
     print(elapsed_datetime(df2,reftime=ref) - df)
 
-def example_gap():
-    ndx = pd.date_range(pd.Timestamp(2017,1,1,12),freq='15min',periods=10)
-    vals0 = np.arange(0.,10.,dtype='d')
-    vals1 = vals0.copy()
-    vals2 = vals0.copy()
-    vals0[0:3] = np.nan
-    vals0[7:-1] = np.nan
-    vals1[2:4] = np.nan
-    vals1[6] = np.nan
-
-    df = pd.DataFrame({'vals0':vals0,'vals1':vals1,'vals2':vals2},index = ndx)
-    print(df)
-    print(gap_size(df))
 
     
 if __name__=="__main__":
-    example_gap()    
+    example()    
     
     
