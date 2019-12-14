@@ -7,11 +7,11 @@ from vtools.data.vtime import *
 import datetime as _datetime
 import numpy as np
 
-all = ["gap_size","rts","rts_constant","its","extrapolate_ts"]
+all = ["gap_size","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
 
 
     
-def rts(data,start,interval,props=None):
+def rts(data,start,freq,columns=None,props=None):
     """ Create a regular or calendar time series from data and time parameters
 
         Parameters
@@ -20,8 +20,8 @@ def rts(data,start,interval,props=None):
             Should be a array/list of values. There is no restriction on data 
              type, but not all functionality like addition or interpolation will work on all data.
         
-        start : :py:class:`datetime.datetime`
-            Can also be a string representing a datetime.
+        start : :class:`Pandas.Timestamp`
+            Timestamp or a string or type that can be coerced to one.
         
         interval : :ref:`time_interval<time_intervals>`
             Can also be a string representing an interval that is
@@ -29,149 +29,57 @@ def rts(data,start,interval,props=None):
 
         Returns
         -------
-        result :  :class:`~vtools.data.timeseries.TimeSeries`
-            A regular time series.
+        result :  :class:`Pandas.DataFrame`
+            A regular time series with the `freq` attribute set
     """
     
-    if type(start)==type(' '):
-        start=parse_time(start)
-    if type(interval)==type(' '):
-        interval=parse_interval(interval)
-    timeseq=time_sequence(start,interval,len(data))
     if type(data)==list:
-        data=scipy.array(data)
-    if (props is None):
-        props = {}
-    elif not(type(props)==type({})):
-        raise TypeError("input props must be a dictionary")
-    
-    
-    ts=TimeSeries(timeseq,data,props)
-    ts.interval=interval
-    return ts
-
-def its(times,data,props=None):
-    """ Create an irregular time series from time and data sequences
-        
-        Parameters
-        ----------
-        times : :ref:`time_sequence<time_sequences>`
-            An array or list of datetimes or ticks
-        
-        data : array or list of values
-            An array/list of values. No restriction on data type,
-            but not all functionality will work on every data type.
-        
-        Returns
-        -------
-        result :  :class:`~vtools.data.timeseries.TimeSeries`
-            An irregular TimeSeries instance
-    """
-    # convert times to a tick sequence
-    if type(data)==list:
-        data=scipy.array(data)
-    if (props is None): props = {}        
-    ts=TimeSeries(times,data,props)
-
+        data=np.array(data)
+    if (not props is None):
+        raise NotImplementedError("Props reserved for future implementation using xarray")
+    tslen = data.shape[0]
+    ndx = pd.date_range(start,freq=freq,periods=tslen)
+    ts = pd.DataFrame(data,index=ndx,columns=columns)
     return ts
 
 
-def its2rts(its,interval,original_dates=True):
-   """ Convert an irregular time series to a regular.
-   
-       .. note::
-       This function assumes observations were taken at "almost regular" intervals with some 
-       variation due to clocks/recording. It nudges the time to "neat" time points to obtain the
-       corresponding regular index, allowing gaps. There is no correctness checking, 
-       The dates are stored at the original "imperfect" time points if original_dates == True,
-       otherwise at the "nudged" regular times.
-       
-        Parameters
-        ----------
-        its : :class:`~vtools.data.timeseries.TimeSeries`
-             A irregular time series.
-             
-        
-        interval : :ref:`time_interval<time_intervals>`
-            Interval of resulting regular timeseries,Can also be a string 
-            representing an interval that is understood by :func:`vools.vtime.parse_interval`. 
-
-        original_dates:boolean,optional
-            Use original datetime or nudged regular times.
-        
-        Returns
-        -------
-        result :  :class:`~vtools.data.timeseries.TimeSeries`
-            A regular time series.
-       
-   """
-   import warnings
-   if not isinstance(interval, _datetime.timedelta): 
-       raise ValueErrror("Only exact regular intervals (secs, mins, hours, days)\
-                        accepted in its2rts")
-   start = round_ticks(its.ticks[0],interval)
-   stime = ticks_to_time(start)
-   end = round_ticks(its.ticks[-1],interval)
-   interval_seconds = ticks(interval)
-   its_ticks = its.ticks   
-   n = (end - start)/interval_seconds
-   tseq = time_sequence(stime, interval, n+1)   # todo: Changed from n+1 to n+2 a bit casually
-   outsize = list(its.data.shape)
-   outsize[0] = n+1
-   
-   data = np.full(tuple(outsize),fill_value=np.nan,dtype=its.data.dtype)
-   vround = np.vectorize(round_ticks)
-   tround = vround(its.ticks,interval)   
-   ndx = np.searchsorted(tseq,tround)
-   conflicts = np.equal(ndx[1:],ndx[:-1])
-   if any(conflicts):
-        badndx = np.extract(conflicts,ndx[1:])
-        badtime = tseq[badndx]
-        # todo: use warnings.warn()
-        for t in badtime[0:10]:
-            warnings.warn("Warning multiple time steps map to a single neat output step near: %s " % ticks_to_time(t))
-   data[ndx,]=its.data
-   if original_dates:
-       tseq[ndx]=its.ticks
-   newprops = {} if its.props is None else its.props
-   ts = TimeSeries(tseq,data,newprops)
-   ts.interval = interval
-   return ts
-
-
-def rts_constant(start,end,interval,val=np.nan):
-    
-    """ Create a regular or calendar time series filled with constant value
+def rts_formula(start,end,freq,valfunc=np.nan):    
+    """ Create a regular time series filled with constant value or formula based on elapsed seconds
 
         Parameters
         ----------
-        start : :py:class:`datetime.datetime`
-            Starting time, can also be a string representing a datetime.
+        start : :class:`Pandas.Timestamp`
+            Starting Timestamp or a string or type that can be coerced to one.
+
         
-        end : :py:class:`datetime.datetime`
-            Ending time,can also be a string representing a datetime.
+        end : :class:`Pandas.Timestamp`
+            Ending Timestamp or a string or type that can be coerced to one.
         
-        interval : :ref:`time_interval<time_intervals>`
-            Can also be a string representing an interval that is 
-            understood by :func:`vools.vtime.parse_interval`. 
+        freq : :ref:`time_interval<time_intervals>`
+            Can also be a string representing an interval. 
             
-        val : float,int
-            Constant will be filled into the time series.
-            Optional, default is nan.
+        valfunc : dict
+            Constant or dictionary that maps column names to lambdas based on elapsed time from the starts of the series. An example would be {"value": lambda x: np.nan}
             
         Returns
         -------
-        result :  :class:`~vtools.data.timeseries.TimeSeries`
-            A regular time series wiht constant values
+        result :  :class:`Pandas.DataFrame`
+            A regular time series with the `freq` attribute set
+            
     """
+    from numbers import Number as numtype   
+    ndx = pd.date_range(start=start,end=end,freq=freq)
+    secs = (ndx - ndx[0]).total_seconds()
     
-    
-    num_data=number_intervals(start,end,interval)+1
-    data=np.empty(num_data)
-    data.fill(val)
-    ts=rts(data,start,interval,{})
+    if isinstance(valfunc,numtype):
+        data = np.array([valfunc for x in secs])
+        cols = ["value"]
+    else:    
+        data = np.array([valfunc[x](secs) for x in valfunc]).T
+        cols = valfunc.keys()
+    ts=rts(data,start,freq,columns=cols)
     return ts
-        
+
 
 def extrapolate_ts(ts,start=None,end=None,method="constant",val=np.nan):
     
@@ -195,14 +103,14 @@ def extrapolate_ts(ts,start=None,end=None,method="constant",val=np.nan):
             
         Returns
         -------
-        result :  :class:`~vtools.data.timeseries.TimeSeries`
+        result :class:`Pandas.DataFrame`
            An new time series extended to the input start and end.
            This function will only extend, not clip, so if you want to be
-           sure the returned function is the correct siae you need to apply
+           sure the returned function is the correct size you need to apply
            a window afterwards.
-           
-           
     """
+    raise NotImplementedError
+    
     if start is None:
         start=ts.start
     if end is None:
