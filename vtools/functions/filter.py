@@ -310,7 +310,6 @@ def generate_godin_fir(timeinterval):
     wts25[:]=1.0/wts25.size
     return np.convolve(wts25,np.convolve(wts24,wts24))
     
-    
 def godin_filter(ts):
     """ Low-pass Godin filter a regular time series.
     Applies the :math:`\mathcal{A_{24}^{2}A_{25}}` Godin filter [1]_
@@ -340,12 +339,16 @@ def godin_filter(ts):
     .. [1] Godin (1972) Analysis of Tides
         
     """
-
-    
+    freqstr=ts.index.freqstr
+    if freqstr == None:
+        freqstr=pd.infer_freq(ts.index)
+    if freqstr == None:
+        raise Exception("""No regular frequency could be determined from the index of the data frame or from infer_freq method""")
     godin_ir=generate_godin_fir(ts.index.freq)
     if not (len(ts.columns) == 1):
         raise ValueError("Godin Filter not functional for multivariate series yet")
     dfg=pd.DataFrame(np.convolve(ts.iloc[:,0].values,godin_ir,mode='same'), 
         columns=ts.columns, index = ts.index)
+
     return dfg
 #
