@@ -81,7 +81,7 @@ def csv_retrieve_ts(fpat, fdir, start, end, selector=":",
     if prefer_age != "new":
         raise NotImplementedError("Haven't implemented prefer = 'old' yet")
 
-    # The matches are in lexicogrphical order. Reversing them puts the newer ones
+    # The matches are in lexicographical order. Reversing them puts the newer ones
     # higher priority than the older ones for merging
     matches.reverse()
     if len(matches) == 0:

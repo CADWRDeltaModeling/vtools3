@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Script to download NOAA water level data
 """
 import sys                 # noqa

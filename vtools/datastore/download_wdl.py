@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Download robot for water data library
     The main function in this file is wdl_download. Currently takes a list of stations, downloads data.
  

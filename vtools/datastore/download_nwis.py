@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Download robot for Nationla Water Informaton System (NWIS)
     The main function in this file is nwis_download. 
     
