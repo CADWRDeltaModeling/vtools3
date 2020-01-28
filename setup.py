@@ -25,7 +25,7 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = ["numpy>=1.16,<2", "pandas>=0.23",
-                "scipy>=1.2", "beautifulsoup4>=4.8"]
+                "scipy>=1.2", "beautifulsoup4>=4.8", "xlrd"]
 
 setup(
     name='vtools3',
