@@ -8,7 +8,7 @@ from vtools.functions._monotonic_spline import *
 
 
 
-def rhistinterp(ts,dest, p, lowbound, tolbound=1.e-3):
+def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
     """ Interpolate a regular time series (rts) to a finer rts by rational histospline.
 
     The rational histospline preserves area under the curve. This is a good choice of spline for period averaged data where an interpolant is desired
@@ -42,8 +42,11 @@ def rhistinterp(ts,dest, p, lowbound, tolbound=1.e-3):
         an index of type DateTimeIndex
     """
     # Get the source index including two endpoints
-    # todo: easier way?    
-    ndx_left = ts.index.to_timestamp(how='s')
+    # todo: easier way?
+    try:
+        ndx_left = ts.index.to_timestamp(how='s')
+    except AttributeError:
+        raise ValueError("Time series to interpolate must have PeriodIndex") 
     ndx_right = ts.index.to_timestamp(how='e').round('S')
     ndx = ndx_left.union(ndx_right)
 
@@ -51,9 +54,8 @@ def rhistinterp(ts,dest, p, lowbound, tolbound=1.e-3):
     x = (ndx - strt).total_seconds().to_numpy()
     
     if not isinstance(dest,pd.Index):
-        end=ndx[-1].end_time.round(dest)
-        print(end)
-        dest = pd.DateTimeIndex(start = strt, end = end, freq = dest)
+        end=ndx[-1].floor(dest)
+        dest = pd.date_range(start = strt, end = end, freq = dest)
     xnew = (dest-strt).total_seconds().to_numpy()
     
     
@@ -61,7 +63,13 @@ def rhistinterp(ts,dest, p, lowbound, tolbound=1.e-3):
     result = pd.DataFrame([],index=dest)
     for col in cols:
         y = ts[col].to_numpy()
-        out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p)
+        try:
+            out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
+        except:
+            #import matplotlib.pyplot as plt
+            #ts[col].plot()
+            #plt.show()
+            raise ValueError("In rhist_bound, could not meet lower bound in column {}".format(col))
         result[col] = out
     return result    
 
@@ -128,8 +136,8 @@ def rhist_bound(x,y,xnew,y0,yn,p,lbound=None,
         bound_viol = lbound - ynew.min()
         while(bound_viol > floor_eps and iter < maxiter):
             iter += 1
-            print ("Iteration {}".format(iter))
-            print ("Bound gap = {}".format((ynew.min() - lbound)))
+            #print ("Iteration {}".format(iter))
+            #print ("Bound gap = {}".format((ynew.min() - lbound)))
             xbad = xnew[ynew < lbound]
             bad_ndx_left = np.minimum(np.searchsorted(x,xbad,side="right"),len(x)-1) -1 
             p[bad_ndx_left] *= pfactor
