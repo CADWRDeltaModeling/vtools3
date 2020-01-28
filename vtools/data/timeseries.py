@@ -7,7 +7,7 @@ from vtools.data.vtime import *
 import datetime as _datetime
 import numpy as np
 
-all = ["gap_size","rts","rts_constant","its","extrapolate_ts"]
+all = ["rts","rts_constant","its","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
 
 
     
@@ -32,7 +32,7 @@ def rts(data,start,interval,props=None):
         result :  :class:`~vtools.data.timeseries.TimeSeries`
             A regular time series.
     """
-    
+    raise NotImplementedError("Placeholder for vtools3")
     if type(start)==type(' '):
         start=parse_time(start)
     if type(interval)==type(' '):
@@ -67,6 +67,8 @@ def its(times,data,props=None):
         result :  :class:`~vtools.data.timeseries.TimeSeries`
             An irregular TimeSeries instance
     """
+    raise NotImplementedError("Placeholder for vtools3")
+    
     # convert times to a tick sequence
     if type(data)==list:
         data=scipy.array(data)
@@ -105,6 +107,8 @@ def its2rts(its,interval,original_dates=True):
             A regular time series.
        
    """
+   raise NotImplementedError("Placeholder for vtools3")
+   
    import warnings
    if not isinstance(interval, _datetime.timedelta): 
        raise ValueErrror("Only exact regular intervals (secs, mins, hours, days)\
@@ -165,7 +169,8 @@ def rts_constant(start,end,interval,val=np.nan):
             A regular time series wiht constant values
     """
     
-    
+    raise NotImplementedError("Placeholder for vtools3")
+   
     num_data=number_intervals(start,end,interval)+1
     data=np.empty(num_data)
     data.fill(val)
@@ -203,6 +208,8 @@ def extrapolate_ts(ts,start=None,end=None,method="constant",val=np.nan):
            
            
     """
+    raise NotImplementedError("Placeholder for vtools3")
+
     if start is None:
         start=ts.start
     if end is None:
@@ -309,7 +316,7 @@ def datetime_elapsed(index_or_ts,reftime=None,dtype="d",inplace=False):
         result.index = elapsed
     return result
 
-def elapsed_datetime(index_or_ts, time_unit='s', reftime=None,inplace=False):
+def elapsed_datetime(index_or_ts,reftime=None,time_unit='s',inplace=False):
     """Convert a time series or numerical Index to a Datetime index or series
 
     Parameters
@@ -330,7 +337,6 @@ def elapsed_datetime(index_or_ts, time_unit='s', reftime=None,inplace=False):
         A new index using DatetimeIndex inferred from elapsed time from `reftime` as its value and of type `dtype`
         
     """        
-    print("inside",index_or_ts)
     try:
         ndx = index_or_ts.index
         input_index = False
