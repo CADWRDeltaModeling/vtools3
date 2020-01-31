@@ -1,7 +1,7 @@
 import vtools
 from vtools.data.timeseries import *
 from vtools.functions.interpolate import *
-from vtools.functions.shift import *
+#from vtools.functions.shift import *
 import numpy as np
 
 
@@ -22,88 +22,7 @@ def ts_data_arg(f):
     b.__doc__ = f.__doc__
     return b
 
-def calculate_lag(a, b, max_shift, period=None, resolution=time_interval(minutes=1), interpolate_method=None):
-    """ Calculate lag of the second time series b, that maximizes the cross-correlation with a.
 
-        Parameters
-        ----------
-        a,b: vtools.data.timeseries.Timeseries
-            Two time series to compare. The time extent of b must be the same or a superset of that of a.
-
-        max_shift: interval
-            Maximum pos/negative time shift to consider in cross-correlation (ie, from -max_shift to +max_shift)
-
-        period: interval, optional
-            Period that will be used to further clip the time_window of analysis to fit a periodicity.
-
-        interpolate_method: str, optional
-            Interpolate method to generate a time series with a lag-calculation
-            interpolation
-
-        Returns
-        -------
-
-        lag : datetime.timedelta
-            lag
-    """
-    # Get the available range from the first time series
-    time_window_b = (b.start, b.end)
-    a_avail = a.window(time_window_b[0], time_window_b[1])
-    time_window = (a_avail.start, a_avail.end)
-    if (time_window[1] - time_window[0]).total_seconds() <= 0.:
-        raise ValueError('No available time series in the given time_window')
-
-    # Calculate actual time range to use
-    start = time_window[0] + max_shift
-    if period is not None:
-        n_periods = np.floor(((time_window[1] - max_shift) - start).total_seconds() / period.total_seconds())
-        if n_periods <= 0.:
-            raise ValueError("The time series is too short to cover one period.")
-        end = start + time_interval(seconds=n_periods * period.total_seconds())
-    else:
-        end = time_window[1] - max_shift
-    if (end - start).total_seconds() < 0.:
-        raise ValueError("The time series is too short.")
-
-    # This is actual time series to calculate lag
-    a_part = a.window(start, end)
-    start = a_part.start
-    end = a_part.end
-    a_part_masked = np.ma.masked_invalid(a_part.data, np.nan)
-
-    # Interpolate the second vector
-    factor = a_avail.interval.total_seconds() / resolution.total_seconds()
-    if not factor - np.floor(factor) < 1.e-6:
-        raise ValueError('The interval of the time series is not integer multiple of the resolution.')
-    else:
-        factor = int(np.floor(factor))
-
-    new_n = np.ceil((end - start + 2 * max_shift).total_seconds() / resolution.total_seconds()) + 1
-    max_shift_tick = int(max_shift.total_seconds() / resolution.total_seconds())
-    length = 2 * max_shift_tick + 1
-    n = len(a_part)
-    if interpolate_method is None:
-        interpolate_method = LINEAR
-    b_interpolated = interpolate_ts(b, time_sequence(a_part.start-max_shift, resolution, new_n), method=interpolate_method)
-
-    def unnorm_xcor(lag):
-        lag = int(lag)
-        b_part = b_interpolated.data[lag:lag+factor*n-1:factor]
-        return -np.ma.inner(a_part_masked, b_part)
-
-    index = np.arange(-max_shift_tick, max_shift_tick + 1)
-    brent = True
-    if brent is True:
-        from scipy.optimize import minimize_scalar
-        res = minimize_scalar(unnorm_xcor, method='bounded',
-                              bounds=(0, length), options={'xatol': 0.5})
-        v0 = index[int(np.floor(res.x))] * resolution.total_seconds()
-    else:
-        re = np.empty(length)
-        for i in range(length):
-            re[i] = unnorm_xcor(i)
-        v0 = index[np.argmax(-re)] * resolution.total_seconds()
-    return time_interval(seconds=v0)
 
 @ts_data_arg
 def mse(predictions, targets):
@@ -233,7 +152,7 @@ def corr_coefficient(predictions,targets,bias=False):
     return corrcoef(y,z,bias)[0][1]
     
 def _main():
-    from vtools.data.sample_series import arma
+    #from vtools.data.sample_series import arma
     start=datetime(2009,3,12)
     intvl = minutes(15)
     lag = minutes(37)
