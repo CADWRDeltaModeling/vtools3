@@ -10,7 +10,20 @@ import numpy as np
 all = ["gap_size","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
 
 
+def time_overlap(ts0,ts1,valid=True):
+    """Check for overlapping time coverage between series
+       Returns a tuple of start and end of overlapping periods. Only considers
+       the time stamps of the start/end, possibly ignoring NaNs at the beginning
+       if valid=True, does not check for actual time stamp alignment
+    """
+    if valid:
+        start = max(ts0.first_valid_index(),ts1.first_valid_index())
+        end = min(ts0.last_valid_index(),ts1.last_valid_index())
 
+    else:
+        start = max(ts0.index[0],ts1.index[0])
+        end = min(ts0.index[-1], ts1.index[-1])
+    return (start,end)  if end > start else None
     
 def rts(data,start,freq,columns=None,props=None):
     """ Create a regular or calendar time series from data and time parameters
