@@ -250,11 +250,11 @@ def main():
             raise ValueError("Either station or stationfile required")
 
         if args.start:
-            start = dtm.datetime(list(*map(int, re.split(r'[^\d]', args.start))))
+            start = dtm.datetime(*list(map(int, re.split(r'[^\d]', args.start))))
         else:
             start = None
         if args.end:
-            end = dtm.datetime(list(*map(int, re.split(r'[^\d]', args.end))))
+            end = dtm.datetime(*list(map(int, re.split(r'[^\d]', args.end))))
         else:
             end = None
 

@@ -138,9 +138,9 @@ if __name__ == '__main__':
     param = args.param
     start = args.start
     end = args.end
-    stime = dt.datetime(list(*map(int, re.split(r'[^\d]', start))))
+    stime = dt.datetime(*list(map(int, re.split(r'[^\d]', start))))
     if end:
-        etime = dt.datetime(list(*map(int, re.split(r'[^\d]', end))))
+        etime = dt.datetime(*list(map(int, re.split(r'[^\d]', end))))
     else:
         etime = "Now"
     if param_column and param:
