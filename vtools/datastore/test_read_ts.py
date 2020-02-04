@@ -22,7 +22,10 @@ import pandas as pd
 #ts = read_ts("ts_data/usgs_2017_csv_format.csv",
 #             start=pd.Timestamp(2008,3,4),end=pd.Timestamp(2008,3,5,2),hint="usgs")
 
-ts=None
+ts = read_ts("ts_data/dto.csv")
+assert np.isclose(ts.loc["2020-02-03","VALUE"],13253.), "Daily series"
+del(ts)
+
 ts = read_vtide("ts_data/vtide_example.txt")
 assert isinstance(ts,pd.DataFrame), "Returned a time series"
 
@@ -128,3 +131,7 @@ assert ((ts0.iloc[:,0] == ts1.iloc[:,0]) | ts0.iloc[:,0].isna() ).all(axis=None)
 assert np.isclose(ts0.loc["2019-11-02 12:00","Water Temperature"],13.5)
 
 ts = read_cdec1("ts_data/SJR.csv",start = pd.Timestamp(2008,10,23),end=pd.Timestamp(2020,5,1))
+
+
+
+
