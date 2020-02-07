@@ -331,7 +331,7 @@ def is_noaa_file(fname):
             linelower = line.lower()
             if "agency" in linelower and "noaa" in linelower: 
                 return True 
-            if "x, n, r" in linelower:
+            if "x, n, r" in linelower or "o, f, r, l" in linelower:
                 return True
     return False
     
@@ -435,7 +435,6 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
             return ts
         except Exception as e:
             continue
-    
     if ts is None:
         raise ValueError("File format not supported or error during read: {}\n" .format(fpath))
 
@@ -446,24 +445,6 @@ def write_ts():
 
 def write_vtide():
     pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -525,6 +506,8 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
     import os
     import fnmatch
     fdir,fpat = path_pattern(fpath_pattern)
+    
+    if not fdir: fdir = "."    
     matches = []
     for root, dirnames, filenames in os.walk(fdir):
         for filename in fnmatch.filter(filenames, fpat):
@@ -654,13 +637,13 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
         big_ts.index = big_ts.index.round(f)
         big_ts = big_ts.loc[~big_ts.index.duplicated(keep='first')]
         # Now everything is on an expected timestamp, so subsample leaving uncovered times NaN
-        big_ts = big_ts.asfreq(f,method=None)
+        big_ts = big_ts.asfreq(f)
     # This try/except Ensures frame rather than Series
     if start is None: start = big_ts.index[0]
     if end is None: end = big_ts.index[-1]
     try:
-        return big_ts.to_frame().loc[start:end,:]
+        retval = big_ts.to_frame().loc[start:end,:]
     except:
-        return big_ts.loc[start:end,:]
-
-
+        retval = big_ts.loc[start:end,:]
+    
+    return retval
