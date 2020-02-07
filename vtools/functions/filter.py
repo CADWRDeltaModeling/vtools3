@@ -119,12 +119,14 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     
     cf = process_cutoff(cutoff_frequency,cutoff_period,freq)
     
-    m = int(1.25 * 2. /cf)
-   
-        
-        
+    if m is None:
+        m = int(1.25 * 2. /cf)
+    elif type(m) != int:
+        raise NotImplementedError("Filter lengths specified in time not ready")
+
     ##find out nan location and fill with 0.0. This way we can use the
-    ## signal processing filtrations out-of-the box without nans causing trouble
+    ## signal processing filtrations out-of-the box without nans causing trouble,
+    ## but we have to post process the areas touched by nan
     idx=np.where(np.isnan(ts.values))[0]
     data=sciarray(ts.values).copy()
     
@@ -149,16 +151,12 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     if padlen is not None:   # is None sensible? 
         if padlen>len(data):
             raise ValueError("Padding length is more  than data size")
-
-
         
     ## get filter coefficients. sizeo of coefis is 2*m+1 in fact
-    coefs= lowpass_cosine_lanczos_filter_coef(cf,m)
-    
+    coefs= lowpass_cosine_lanczos_filter_coef(cf,int(m))
     
     d2=filtfilt(coefs,[1.0],data,axis=0,padtype=padtype,padlen=padlen)
-
-
+    
 
     if(len(idx)>0):
         d2[result_nan_idx]=np.nan
@@ -169,13 +167,10 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
         d2[0:2*m]=np.nan
         d2[len(d2)-2*m:len(d2)]=np.nan
 
-
     out = ts.copy(deep=True)
     out[:]=d2
         
     return out
-
-
 
 
 def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
