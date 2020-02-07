@@ -1,30 +1,8 @@
 import vtools
 from vtools.data.timeseries import *
-from vtools.functions.interpolate import *
-#from vtools.functions.shift import *
 import numpy as np
+from lag_cross_correlation import *
 
-
-
-def ts_data_arg(f):
-    """ Decorator used to ensure that functions can be used on time series or arrays"""
-    def b(predictions,targets,*args,**kwargs):
-        if( isinstance(predictions,vtools.data.timeseries.TimeSeries) ):
-            x = predictions.data
-        else:
-            x = predictions
-        if( isinstance(targets,vtools.data.timeseries.TimeSeries) ):
-            y = targets.data
-        else:
-            y = targets  
-        return f(x,y,**kwargs) 
-    b.__name__= f.__name__
-    b.__doc__ = f.__doc__
-    return b
-
-
-
-@ts_data_arg
 def mse(predictions, targets):
     """Mean squared error
 
@@ -38,9 +16,9 @@ def mse(predictions, targets):
        mse : vtools.data.timeseries.TimeSeries
            Mean squared error between predictions and targets
     """
-    return np.nanmean((predictions - targets) ** 2.)
+    return ((predictions - targets)**2.).mean()
 
-@ts_data_arg
+
 def rmse(predictions, targets):
     """Root mean squared error
        
@@ -54,9 +32,8 @@ def rmse(predictions, targets):
        mse : float
            Mean squared error
     """
-    return np.sqrt(np.nanmean((predictions - targets) ** 2.))
+    return ((predictions - targets) ** 2).mean() ** .5
 
-@ts_data_arg    
 def median_error(predictions, targets):
     """ Calculate the median error, discounting nan values
     
@@ -71,9 +48,9 @@ def median_error(predictions, targets):
         med : float
             Median error
     """
-    return np.nanmedian(predictions - targets)
-
-@ts_data_arg  
+    return (predictions - targets).median()
+    
+  
 def skill_score(predictions,targets,ref=None):
     """Calculate a Nash-Sutcliffe-like skill score based on mean squared error
        
@@ -91,14 +68,11 @@ def skill_score(predictions,targets,ref=None):
            Root mean squared error
     """
     if not ref:
-        ref = np.nanmean(targets)
-    else:
-        if isinstance(ref,vtools.data.timeseries.TimeSeries):
-            ref = ref.data
+        ref = targets.mean()
             
     return 1.0 - (mse(predictions,targets)/mse(ref,targets))
 
-@ts_data_arg     
+    
 def tmean_error(predictions,targets,limits=None,inclusive=[True,True]):
     """ Calculate the (possibly trimmed) mean error, discounting nan values
     
@@ -119,12 +93,11 @@ def tmean_error(predictions,targets,limits=None,inclusive=[True,True]):
             Trimmed mean error
     """
     import scipy
-    y = numpy.ma.masked_invalid(predictions)
-    z = numpy.ma.masked_invalid(targets)
+    y = np.ma.masked_invalid(predictions)
+    z = np.ma.masked_invalid(targets)
     return scipy.stats.mstats.tmean(y-z,limits)
 
-@ts_data_arg     
-def corr_coefficient(predictions,targets,bias=False):
+def corr_coefficient(predictions,targets,method="pearson"):
     """Calculates the correlation coefficient (the 'r' in '-squared' between two series.
    
     For time series where the targets are serially correlated and may span only a fraction
@@ -136,8 +109,8 @@ def corr_coefficient(predictions,targets,bias=False):
     predictions, targets : array_like
         Time series to analyze
     
-    bias : boolean
-        Whether to use the biased (N) or unbiased (N-1) sample size for normalization
+    method : pearson’, ‘kendall’, ‘spearman’
+        Method compatilble with pandasa
     
     Returns
     -------
@@ -146,47 +119,55 @@ def corr_coefficient(predictions,targets,bias=False):
     """
     
     
-    from numpy.ma import corrcoef
-    y = numpy.ma.masked_invalid(predictions)
-    z = numpy.ma.masked_invalid(targets)
-    return corrcoef(y,z,bias)[0][1]
+    return predictions.corr(targets,method)
     
 def _main():
+    from statsmodels.tsa.arima_process import arma_generate_sample
+    import matplotlib.pyplot as plt
     #from vtools.data.sample_series import arma
-    start=datetime(2009,3,12)
+    start=pd.Timestamp(2009,3,12)
     intvl = minutes(15)
     lag = minutes(37)
-    tseq = time_sequence(start, intvl, n=4000).astype('d')/float(ticks_per_hour)
-    trend = (tseq-tseq[0])/4000.
-    noise = arma([0.2,0.1],[0.1,-0.1],sigma=0.1,n=len(tseq),discard=500)
-    base = np.cos(tseq*2.*np.pi/12.4) + 0.4*np.cos(tseq*2.*np.pi/24. - 1.2)
+    index = pd.date_range(start=start,freq=intvl,periods=4000)
+    x=np.linspace(0,500.,4000)    
+    arparams = np.array([0.975])
+    maparams = np.array([.5,0.25,0.25])
+    ar = np.r_[1, -arparams] # add zero-lag and negate
+    ma = np.r_[1, maparams] # add zero-lag
+    noise = arma_generate_sample(ar, ma,nsample=4000)     
+    base = np.cos(x*2.*np.pi/12.4) + 0.4*np.cos(x*2.*np.pi/24. - 1.2)
     scale = 1.30
-    y0 = base + noise
-    y1 = scale*base + trend
-    ts0 = rts(y0,start,intvl)
-    ts1 = rts(y1,start,intvl)
-    ts1 = shift(ts1,lag)
+    y0 = base + noise/20.
+    y1 = scale*base + x/400.
+
+    ts0 = pd.Series(y0,index=index)
+    ts1 = pd.Series(y1,index=index)
+    ts1 = ts1.shift(2)
     
-    lag_sec = calculate_lag(ts0,ts1, (datetime(2009,3,14),datetime(2009,4,14)),max_shift=minutes(60),period = days(21))
-    print("lag = %s" % (lag_sec/60.))
-    print("skill = %s" % skill_score(ts0.data, shift(ts1,seconds(lag_sec)).data))
+    ts0.plot()
+    ts1.plot()
+    plt.show()
     
-    x = np.array([2.,4.,6.])
+    #lag_sec = calculate_lag(ts0,ts1,minutes(60),res=seconds(1))
+    #print("lag = {}".format((lag_sec/60.)))
+    #print("skill = {}".format(skill_score(ts0, ts1)))
+    
+    dr = pd.date_range(start=pd.Timestamp(2009,2,10),freq="15min",periods=4)
+    x = pd.Series([2.,4.,6.,8.],index=dr)
     y = x*1.5
-    print(mse(x,y.mean()))
-    print(rmse(x,x.mean()))
+    
+    print(mse(x,y))
+    print(rmse(x,y))
     print(skill_score(x,y))
     print(median_error(x,y))
     
     z0 = np.array([1.,np.nan,7.,5.,7.,10.,12.,14.])
     z1 = np.array([2.,3.,5.,6.,8.,11.,13.,36.])
-    zts0 = rts(z0,start,intvl)
-    zts1 = rts(z1,start,intvl)
-    print("OK")
-    print("tmean %s" % tmean_error(z0,z1,limits=(-1.,1.)))
+    dr2 = pd.date_range(pd.Timestamp(2009,2,10),freq="15min",periods=8)
     
-    print("tmean %s" % tmean_error(zts0,zts1,limits=(-1.,1.)))
-    print("r %s" % corr_coefficient(zts0,zts1))
+    zts0 = pd.Series(z0,index=dr2)
+    zts1 = pd.Series(z1,index=dr2)
+    print("r {}".format(corr_coefficient(zts0,zts1)))
 
  
     
