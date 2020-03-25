@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-from read_ts import read_cdec
-from vtools.data.api import rts
 import numpy as np
 import numpy.ma as ma
 import sys
@@ -84,7 +82,7 @@ def norepeats(ts, threshold = 20, copy = True):
 
 def med_outliers(ts,level=4.,scale = None,\
                  filt_len=7,range=(None,None),
-                 quantiles = (0.25,0.75),
+                 quantiles = (0.1,0.9),
                  copy = True):
     """
     Detect outliers by running a median filter, subtracting it
@@ -122,21 +120,26 @@ def med_outliers(ts,level=4.,scale = None,\
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
 
+    vals = ts_out.to_numpy()
     if ts_out.ndim == 1:
-        filt = medfilt(ts_out,filt_len)
+        filt = medfilt(vals,filt_len)
     else:
-        filt = np.apply_along_axis(medfilt,0,ts_out,filt_len)
+        filt = np.apply_along_axis(medfilt,0,vals,filt_len)
+        
+
     res = ts_out - filt
 
 
-    if not scale:
-        low,high = mquantiles(res[~ np.isnan(res)],quantiles)
-        scale = high - low 
+    if scale is None:
+        qq = res.quantile( q=quantiles)
+        print(qq)
+        scale = qq[quantiles[1]] - qq[quantiles[0]]  
+        print("scale=",scale)
 
     outlier = (np.absolute(res) > level*scale) | (np.absolute(res) < -level*scale)
     values = np.where(outlier,np.nan,ts_out.values)
  
-    ts_out.iloc[:,:]= values
+    ts_out.iloc[:]= values
 
     warnings.resetwarnings()
 
