@@ -1,7 +1,7 @@
 import vtools
 from vtools.data.timeseries import *
 import numpy as np
-from lag_cross_correlation import *
+
 
 def mse(predictions, targets):
     """Mean squared error
@@ -171,7 +171,7 @@ def _main():
 
  
     
-all = [calculate_lag,mse,rmse,median_error,tmean_error,corr_coefficient,skill_score]
+all = [mse,rmse,median_error,tmean_error,corr_coefficient,skill_score]
     
 if __name__ == "__main__":
     _main()
