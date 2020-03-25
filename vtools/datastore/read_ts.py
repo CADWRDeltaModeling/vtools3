@@ -5,7 +5,7 @@ import matplotlib.pylab as plt
 import datetime as dtm
 import glob
 from vtools.functions.merge import *
-
+from vtools.data.vtime import minutes
 
 
 def is_des(fname):
@@ -114,7 +114,7 @@ def is_wdl(fname):
     with open(fname,"r") as f:
         first_line = f.readline()
         parts = first_line.split(",")
-        if not len(parts) == 3: return false
+        if not len(parts) == 3: return False
         try:
             pd.to_datetime(parts[0])
             return True
@@ -159,14 +159,14 @@ def is_usgs1(fname):
 def usgs_data_columns1(fname):
     MAX_SCAN_LINE=60
     import re
-    description_re = re.compile(r"#\s+(ts|ts_id)\s*(parameter)\s*description")
+    description_re = re.compile(r"#\s+(ts|ts_id|dd)\s*(parameter)\s*description")
     colnames=[]
     description={}
     with open(fname,"r") as f:
         reading_cols = False
         for i,line in enumerate(f):
             if i > MAX_SCAN_LINE: return False
-            linelower = line.lower()
+            linelower = line.lower().strip()
             if not linelower.startswith("#"): 
                 raise ValueError("Column names could not be inferred in file: {}".format(fname))
             if description_re.match(linelower):
@@ -423,14 +423,15 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
     """
     from os.path import split as op_split
     readers = [read_usgs1,read_usgs2,read_usgs_csv1,
-               read_noaa,read_wdl,read_des,
-               read_cdec1,read_cdec2]
+               read_noaa,read_des,
+               read_cdec1,read_cdec2,read_wdl]
     ts = None
     reader_count = 0
     for reader in readers:
         if hint is not None:
             if hint not in reader.__name__: continue
         try:
+            print(reader.__name__)
             ts = reader(fpath,start=None,end=None,selector=None,force_regular=force_regular)
             return ts
         except Exception as e:
@@ -624,12 +625,19 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
     big_ts = ts_merge(tsm)  # pd.concat(tsm)
     if force_regular: 
         if freq == 'infer': 
-            f = pd.infer_freq(big_ts.index)
+            f = pd.infer_freq(big_ts.index[0:6])
+            if f is None:
+                 big_ts.index=big_ts.index.round('1min')
+                 f = pd.infer_freq(big_ts.index[0:6])
             if f is None:
                 # Give it one more shot halfway through
                 istrt = len(big_ts)//2
                 f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
             if f is None:
+                big_ts.index = big_ts.index.round('1min')
+                istrt = 2*len(big_ts)//3
+                f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
+                #f = minutes(15)
                 raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
         else: 
             raise NotImplementedError("force_regular with prescribed frequency not implemented yet")
@@ -645,5 +653,5 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
         retval = big_ts.to_frame().loc[start:end,:]
     except:
         retval = big_ts.loc[start:end,:]
-    
+    #if hasattr(big_ts,"freq"): retval = retval.asfreq(big_ts.freq)
     return retval
