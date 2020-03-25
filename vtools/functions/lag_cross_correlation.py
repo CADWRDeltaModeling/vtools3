@@ -70,7 +70,7 @@ def calculate_lag(lagged,base,max_lag,res,
 
 
     lagged_hr = lagged.resample(res).interpolate(interpolate_method)
-    do_plot=True
+    do_plot=False
     if do_plot:
         lagstride=6
         ilag = np.arange(-max_lag/res,max_lag/res,lagstride)
