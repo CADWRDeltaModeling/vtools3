@@ -128,7 +128,7 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     ## signal processing filtrations out-of-the box without nans causing trouble,
     ## but we have to post process the areas touched by nan
     idx=np.where(np.isnan(ts.values))[0]
-    data=sciarray(ts.values).copy()
+    data=np.array(ts.values).copy()
     
     ## figure out indexes that will be nan after the filtration,which
     ## will "grow" the nan region around the original nan by 2*m
@@ -286,7 +286,7 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
     sigma=[np.sin(np.pi*k/m)/(np.pi*k/m) for k in np.arange(1,m+1,1,dtype='float')]
     prod= [c*s for c,s in zip(coscoef,sigma)]
     temp = prod[-1::-1]+[cf]+prod
-    res=sciarray(temp)
+    res=np.array(temp)
     if normalize:
         res = res/res.sum()
     return res    
