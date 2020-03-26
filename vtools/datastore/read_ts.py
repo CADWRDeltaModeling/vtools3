@@ -215,14 +215,17 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
     # https://stackoverflow.com/questions/57714830/convert-from-naive-local-daylight-time-to-naive-local-standard-time-in-pandas
     dst = ts[TZCOL] == "PDT"
     if dst.any():
-        ts.index = ts.index.tz_localize('US/Pacific',ambiguous=ts["tz_cd"]=="PDT" ).tz_convert('Etc/GMT+8')
+        # todo: is backward a good choice?
+        ts.index = ts.index.tz_localize('US/Pacific',ambiguous=ts["tz_cd"]=="PDT" ,nonexistent='shift_backward').tz_convert('Etc/GMT+8')
         ts.index = ts.index.tz_localize(None)
     
     # Get rid of the time zone column
     ts = ts.drop(TZCOL,axis=1)
     
     # Get rid of redundant entries caused by the time zone
-    ts = ts.loc[~ts.index.duplicated(keep='first')]    
+    f = ts.index.freq
+    ts = ts.loc[~ts.index.duplicated(keep='first')]
+    if ts.index.freq is None: ts = ts.asfreq(f)
     return ts
 
 ################################################################
@@ -431,11 +434,13 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
         if hint is not None:
             if hint not in reader.__name__: continue
         try:
-            print(reader.__name__)
             ts = reader(fpath,start=None,end=None,selector=None,force_regular=force_regular)
             return ts
-        except Exception as e:
+        except IOError as e:
             continue
+        except Exception as e0:
+            raise
+
     if ts is None:
         raise ValueError("File format not supported or error during read: {}\n" .format(fpath))
 
@@ -638,7 +643,8 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                 istrt = 2*len(big_ts)//3
                 f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
                 #f = minutes(15)
-                raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
+                if f is None:
+                    raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
         else: 
             raise NotImplementedError("force_regular with prescribed frequency not implemented yet")
         # Round to neat times, which may cause duplicates
