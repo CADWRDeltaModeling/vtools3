@@ -3,4 +3,4 @@
 
 __author__ = """Eli Ateljevich, Nicky Sandhu, Kijin Nam"""
 __email__ = 'eli@water.ca.gov'
-__version__ = '3.0.3'
+__version__ = '3.0.4'
