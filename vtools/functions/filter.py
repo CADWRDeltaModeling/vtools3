@@ -133,7 +133,8 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     ## figure out indexes that will be nan after the filtration,which
     ## will "grow" the nan region around the original nan by 2*m
     ## slots in each direction
-    if  len(idx)>0:
+    if  False:
+        #len(idx)>0:
         data[idx]=0.0
         shifts=np.arange(-2*m,2*m+1)
         result_nan_idx=np.clip(np.add.outer(shifts,idx),0,len(ts)-1).ravel()
@@ -158,14 +159,14 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     d2=filtfilt(coefs,[1.0],data,axis=0,padtype=padtype,padlen=padlen)
     
 
-    if(len(idx)>0):
-        d2[result_nan_idx]=np.nan
+    #if(len(idx)>0):
+    #    d2[result_nan_idx]=np.nan
     
     ## replace edge points with nan if pading is not used
 
     if (padtype is None) and (fill_edge_nan==True):
-        d2[0:2*m]=np.nan
-        d2[len(d2)-2*m:len(d2)]=np.nan
+        d2[0:2*m,np.newaxis]=np.nan
+        d2[len(d2)-2*m:len(d2),np.newaxis]=np.nan
 
     out = ts.copy(deep=True)
     out[:]=d2
@@ -305,7 +306,7 @@ def generate_godin_fir(timeinterval):
     wts25[:]=1.0/wts25.size
     return np.convolve(wts25,np.convolve(wts24,wts24))
     
-def godin_filter(ts):
+def godin(ts):
     """ Low-pass Godin filter a regular time series.
     Applies the :math:`\mathcal{A_{24}^{2}A_{25}}` Godin filter [1]_
     The filter is generalized to be the equivalent of one
