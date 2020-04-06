@@ -1,4 +1,3 @@
-
 """Top-level package for vtools"""
 
 __author__ = """Eli Ateljevich, Nicky Sandhu, Kijin Nam"""
