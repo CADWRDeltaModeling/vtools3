@@ -43,5 +43,9 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-    ]
+    ],
+    entry_points = { 'console_scripts' : ['download_noaa=vtools.datastore.download_noaa:main',
+                                          'download_cdec=vtools.datastore.download_cdec:main',
+                                          'download_wdl=vtools.datastore.download_wdl:main',
+                                          'download_nwis=vtools.datastore.download_nwis:main'] }
 )

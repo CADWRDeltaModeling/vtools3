@@ -99,7 +99,8 @@ def process_station_list(file):
     stations = [x.strip().split(',')[0] for x in all_lines if not x.startswith("#")]
     return stations
                 
-if __name__ == '__main__':
+
+def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     destdir = args.dest_dir
@@ -121,4 +122,5 @@ if __name__ == '__main__':
         print("Station list does not exist")
         
 
-
+if __name__ == '__main__':
+    main()

@@ -94,7 +94,8 @@ def cdec_download(stations,dest_dir,start,end="Now",param="ec",overwrite=False):
                 else:
                     response = urllib.request.urlopen(station_query)
                 station_html = response.read().decode().replace("\r","")
-                if station_html.startswith("Title") or station_html.startswith("STATION_ID") and len(station_html) > 16:
+                if (station_html.startswith("Title") and len(station_html) > 16) or\
+                   (station_html.startswith("STATION_ID") and len(station_html)>90):
                     found = True
                     with open(path,"w") as f:
                         f.write(station_html)
@@ -125,9 +126,9 @@ def process_station_list(file,cdec_ndx,param_ndx=None):
             stations.append(cdec_id)
             if param_ndx: variables.append(param)            
     return stations,variables
-                
-if __name__ == '__main__':
+     
 
+def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     cdec_column = args.cdec_col
@@ -158,3 +159,5 @@ if __name__ == '__main__':
     else:
         print("Station list does not exist")
 
+if __name__ == '__main__':
+    main()

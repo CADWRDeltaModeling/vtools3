@@ -151,7 +151,7 @@ def wdl_download(stations,years,dest_dir,overwrite=False):
             #if ndata > 0: convert2netcdf(dest_path,ndata)
             
                     
-if __name__ == '__main__':
+def main():
     import sys
     stationlist = sys.argv[1]
     firstyr = int(sys.argv[2])
@@ -163,3 +163,5 @@ if __name__ == '__main__':
     overwrite = False    
     wdl_download(stations,years,destdir,overwrite)
 
+if __name__ == '__main__':
+    main()
