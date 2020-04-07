@@ -44,7 +44,15 @@ Once you have a copy of the source, you can install it with:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ conda create -y -n dev_vtools3
+    $ conda install -y -n dev_vtools3 -c cadwr-dms -c defaults numpy pandas scipy beautifulsoup4 xlrd
+    $ # for dev environment
+    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 pytest pytest-runner versioneer
+    $ # for docs generation
+    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib
+    $ cd vtools3/
+    $ conda activate dev_vtools3
+    $ pip install -e .
 
 .. _Github repo: https://github.com/CADWRDeltaModeling/vtools3
 .. _tarball: https://github.com/CADWRDeltaModeling/vtools3/tarball/master

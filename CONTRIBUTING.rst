@@ -64,11 +64,16 @@ Ready to contribute? Here's how to set up `vtools` for local development.
 
     $ git clone git@github.com:your_name_here/vtools.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a conda. Assuming you have conda installed, this is how you set up your fork for local development::
 
-    $ conda create -n vtools_dev
-    $ conda install numpy scipy pandas scikit-learn beautifulsoup4
+    $ conda create -y -n dev_vtools3
+    $ conda install -y -n dev_vtools3 -c cadwr-dms -c defaults numpy pandas scipy beautifulsoup4 xlrd
+    $ # for dev environment
+    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 pytest pytest-runner versioneer 
+    $ # for docs generation
+    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib
     $ cd vtools3/
+    $ conda activate dev_vtools3
     $ pip install -e .
 
 4. Create a branch for local development::
@@ -107,7 +112,7 @@ Tips
 
 To run a subset of tests::
 
-$ py.test tests.test_xxx
+$ pytest tests.test_xxx
 
 
 Deploying

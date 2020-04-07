@@ -1,3 +1,4 @@
-sphinx-apidoc --force -o . ../vtools
-make clean && make html
-xcopy /Y /E /H _build\* ..\docs
+call sphinx-apidoc --force -o . ../vtools
+call make clean
+call make html
+call xcopy /Y /E /H _build\* ..\docs
