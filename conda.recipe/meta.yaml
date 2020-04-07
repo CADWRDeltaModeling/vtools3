@@ -16,7 +16,12 @@ build:
   # "skip: True  # [not win]" to limit to Windows.
   script: {{ PYTHON }} -m pip install --no-deps --ignore-installed -vv .
   noarch: python
-    
+  entry_points:
+    - download_noaa = vtools.datastore.download_noaa:main
+    - download_cdec = vtools.datastore.download_cdec:main
+    - download_wdl = vtools.datastore.download_wdl:main
+    - download_nwis = vtools.datastore.download_nwis:main
+
 
 requirements:
   build:
@@ -29,6 +34,7 @@ requirements:
     - pandas >=0.23
     - scipy >=1.2
     - beautifulsoup4 >=4.8
+    - xlrd
   test:
     imports:
       - vtools
