@@ -44,18 +44,18 @@ vtools.functions.interpolate module
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.merge module
------------------------------
+vtools.functions.lag\_cross\_correlation module
+-----------------------------------------------
 
-.. automodule:: vtools.functions.merge
+.. automodule:: vtools.functions.lag_cross_correlation
    :members:
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.mspline module
--------------------------------
+vtools.functions.merge module
+-----------------------------
 
-.. automodule:: vtools.functions.mspline
+.. automodule:: vtools.functions.merge
    :members:
    :undoc-members:
    :show-inheritance:
@@ -72,14 +72,6 @@ vtools.functions.regression\_test module
 ----------------------------------------
 
 .. automodule:: vtools.functions.regression_test
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.rhist module
------------------------------
-
-.. automodule:: vtools.functions.rhist
    :members:
    :undoc-members:
    :show-inheritance:
@@ -104,6 +96,14 @@ vtools.functions.test\_filter module
 ------------------------------------
 
 .. automodule:: vtools.functions.test_filter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.functions.test\_lag module
+---------------------------------
+
+.. automodule:: vtools.functions.test_lag
    :members:
    :undoc-members:
    :show-inheritance:

@@ -12,6 +12,14 @@ vtools.datastore.download\_cdec module
    :undoc-members:
    :show-inheritance:
 
+vtools.datastore.download\_cimis module
+---------------------------------------
+
+.. automodule:: vtools.datastore.download_cimis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.datastore.download\_noaa module
 --------------------------------------
 
@@ -36,22 +44,6 @@ vtools.datastore.download\_wdl module
    :undoc-members:
    :show-inheritance:
 
-vtools.datastore.read\_cdec module
-----------------------------------
-
-.. automodule:: vtools.datastore.read_cdec
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.datastore.read\_scalar module
-------------------------------------
-
-.. automodule:: vtools.datastore.read_scalar
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 vtools.datastore.read\_ts module
 --------------------------------
 
@@ -64,6 +56,14 @@ vtools.datastore.read\_usbr module
 ----------------------------------
 
 .. automodule:: vtools.datastore.read_usbr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.datastore.test\_read\_ts module
+--------------------------------------
+
+.. automodule:: vtools.datastore.test_read_ts
    :members:
    :undoc-members:
    :show-inheritance:

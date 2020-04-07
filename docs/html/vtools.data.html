@@ -4,51 +4,219 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.data package &#8212; vtools 3.0.0 documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <title>vtools.data package &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="vtools.datastore package" href="vtools.datastore.html" />
-    <link rel="prev" title="vtools package" href="vtools.html" /> 
+    <link rel="prev" title="vtools package" href="vtools.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="vtools.datastore.html" title="vtools.datastore package"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="vtools.html" title="vtools package"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">vtools 3.0.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">vtools</a> &#187;</li> 
-      </ul>
-    </div>  
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="index.html"><img src="_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">#API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="vtools.html">vtools package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">vtools</a><ul>
+  <li><a href="vtools.html">vtools package</a><ul>
+      <li>Previous: <a href="vtools.html" title="previous chapter">vtools package</a></li>
+      <li>Next: <a href="vtools.datastore.html" title="next chapter">vtools.datastore package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="vtools-data-package">
 <h1>vtools.data package<a class="headerlink" href="#vtools-data-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-vtools.data.gap">
+<span id="vtools-data-gap-module"></span><h2>vtools.data.gap module<a class="headerlink" href="#module-vtools.data.gap" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.data.gap.example_gap">
+<code class="sig-name descname">example_gap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/gap.html#example_gap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.gap.example_gap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.gap.gap_count">
+<code class="sig-name descname">gap_count</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">state='gap'</em>, <em class="sig-param">dtype=&lt;class 'int'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/gap.html#gap_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.gap.gap_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count missing data
+Identifies gaps (runs of missing or non-missing data) and quantifies the
+length of the gap in terms of number of samples, which works better for
+regular series. Each time point receives the length of the run.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>Time series to analyze</p>
+</dd>
+<dt><strong>state</strong><span class="classifier"><cite>str</cite> one of ‘gap’|’good’|’both’</span></dt><dd><p>State to count. If state is gap, block size of missing data are counted 
+and reported for time points in the gap (every point in a given gap will
+receive the same value). Non missing data will have a size of zero. 
+Setting state to ‘good’ inverts this – missing blocks are reported as
+zero and good data are counted.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier"><cite>str</cite> or <cite>type</cite></span></dt><dd><p>Data type of output, should be acceptable to
+pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.astype.html#pandas.DataFrame.astype" title="(in pandas v1.0.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">astype</span></code></a></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.gap.gap_size">
+<code class="sig-name descname">gap_size</code><span class="sig-paren">(</span><em class="sig-param">ts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/gap.html#gap_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.gap.gap_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifies gaps (runs of missing data) and quantifies the
+length of the gap. Each time point receives the length of the run
+in terms of seconds or number of values in the time dimension,
+with non-missing data returning zero. Time is measured from the time the
+data first started being missing to when the data first starts being not missing
+.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>result</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>A new regular time series with the same freq as the argument
+holding the size of the gap.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ndx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">12</span><span class="p">),</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;15min&#39;</span><span class="p">,</span><span class="n">periods</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals2</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals0</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals0</span><span class="p">[</span><span class="mi">7</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals1</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="o">&gt;&gt;&gt;</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals1</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals1</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;vals0&#39;</span><span class="p">:</span><span class="n">vals0</span><span class="p">,</span><span class="s1">&#39;vals1&#39;</span><span class="p">:</span><span class="n">vals1</span><span class="p">,</span><span class="s1">&#39;vals2&#39;</span><span class="p">:</span><span class="n">vals2</span><span class="p">},</span><span class="n">index</span> <span class="o">=</span> <span class="n">ndx</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">gap_size</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="go">                         vals0  vals1  vals2</span>
+<span class="go">2017-01-01 12:00:00    NaN    0.0    0.0</span>
+<span class="go">2017-01-01 12:15:00    NaN    1.0    1.0</span>
+<span class="go">2017-01-01 12:30:00    NaN    NaN    2.0</span>
+<span class="go">2017-01-01 12:45:00    3.0    NaN    3.0</span>
+<span class="go">2017-01-01 13:00:00    4.0    4.0    4.0</span>
+<span class="go">2017-01-01 13:15:00    5.0    5.0    5.0</span>
+<span class="go">2017-01-01 13:30:00    6.0    NaN    6.0</span>
+<span class="go">2017-01-01 13:45:00    NaN    7.0    7.0</span>
+<span class="go">2017-01-01 14:00:00    NaN    8.0    8.0</span>
+<span class="go">2017-01-01 14:15:00    9.0    NaN    9.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>    
+<span class="go">                         vals0  vals1  vals2</span>
+<span class="go">2017-01-01 12:00:00   45.0    0.0    0.0</span>
+<span class="go">2017-01-01 12:15:00   45.0    0.0    0.0</span>
+<span class="go">2017-01-01 12:30:00   45.0   30.0    0.0</span>
+<span class="go">2017-01-01 12:45:00    0.0   30.0    0.0</span>
+<span class="go">2017-01-01 13:00:00    0.0    0.0    0.0</span>
+<span class="go">2017-01-01 13:15:00    0.0    0.0    0.0</span>
+<span class="go">2017-01-01 13:30:00    0.0   15.0    0.0</span>
+<span class="go">2017-01-01 13:45:00   30.0    0.0    0.0</span>
+<span class="go">2017-01-01 14:00:00   30.0    0.0    0.0</span>
+<span class="go">2017-01-01 14:15:00    0.0    0.0    0.0    </span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="module-vtools.data.sample_series">
 <span id="vtools-data-sample-series-module"></span><h2>vtools.data.sample_series module<a class="headerlink" href="#module-vtools.data.sample_series" title="Permalink to this headline">¶</a></h2>
@@ -86,18 +254,170 @@ must be supressed in order to see the more subtle subtidal amplitude</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-vtools.data.timeseries">
+<span id="vtools-data-timeseries-module"></span><h2>vtools.data.timeseries module<a class="headerlink" href="#module-vtools.data.timeseries" title="Permalink to this headline">¶</a></h2>
+<p>Time series module
+Helpers for creating regular and irregular time series, transforming irregular to regular
+and analyzing gaps.</p>
+<dl class="function">
+<dt id="vtools.data.timeseries.datetime_elapsed">
+<code class="sig-name descname">datetime_elapsed</code><span class="sig-paren">(</span><em class="sig-param">index_or_ts</em>, <em class="sig-param">reftime=None</em>, <em class="sig-param">dtype='d'</em>, <em class="sig-param">inplace=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#datetime_elapsed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.datetime_elapsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a time series or DatetimeIndex to an integer/double series of elapsed time</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>index_or_ts</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></span></dt><dd><p>Time series or index to be transformed</p>
+</dd>
+<dt><strong>reftime</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html#pandas.Timestamp" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></a> or something convertible</span></dt><dd><p>The reference time upon which elapsed time is measured. Default of None means start of 
+series</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">str like ‘i’ or ‘d’ or type like <cite>int</cite> (<cite>Int64</cite>) or <cite>float</cite> (<cite>Float64</cite>)</span></dt><dd><p>Data type for output, which starts out as a Float64 (‘d’) and gets converted, typically to Int64 (‘i’)</p>
+</dd>
+<dt><strong>inplace</strong><span class="classifier"><cite>bool</cite></span></dt><dd><p>If input is a data frame, replaces the index in-place with no copy</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>result :</dt><dd><p>A new index using elapsed time from <cite>reftime</cite> as its value and of type <cite>dtype</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.timeseries.elapsed_datetime">
+<code class="sig-name descname">elapsed_datetime</code><span class="sig-paren">(</span><em class="sig-param">index_or_ts</em>, <em class="sig-param">reftime=None</em>, <em class="sig-param">time_unit='s'</em>, <em class="sig-param">inplace=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#elapsed_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.elapsed_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a time series or numerical Index to a Datetime index or series</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>index_or_ts</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></span></dt><dd><p>Time series or index to be transformed with index in elapsed seconds from <cite>reftime</cite></p>
+</dd>
+<dt><strong>reftime</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html#pandas.Timestamp" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></a> or something convertible</span></dt><dd><p>The reference time upon which datetimes are to be evaluated.</p>
+</dd>
+<dt><strong>inplace</strong><span class="classifier"><cite>bool</cite></span></dt><dd><p>If input is a data frame, replaces the index in-place with no copy</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>result :</dt><dd><p>A new index using DatetimeIndex inferred from elapsed time from <cite>reftime</cite> as its value and of type <cite>dtype</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.timeseries.example">
+<code class="sig-name descname">example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.timeseries.extrapolate_ts">
+<code class="sig-name descname">extrapolate_ts</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">method='constant'</em>, <em class="sig-param">val=nan</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#extrapolate_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.extrapolate_ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend a regular time series with newer start/end</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>start</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></span></dt><dd><p>The starting time to be extended to.Optional, default no extension.</p>
+</dd>
+<dt><strong>end</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></span></dt><dd><p>The ending time to be extended to.Optional,default no extension.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">:string</span></dt><dd><p>Method to fill the extended part of resulting series. either
+“taper” or”constant”. default constant.</p>
+</dd>
+<dt><strong>val</strong><span class="classifier">float</span></dt><dd><p>Constant will be filled or the value that the last non-nan
+gets tapered to. Only constant is supported for multivariate data</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>result <code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></dt><dd><p>An new time series extended to the input start and end.
+This function will only extend, not clip, so if you want to be
+sure the returned function is the correct size you need to apply
+a window afterwards.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.timeseries.rts">
+<code class="sig-name descname">rts</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">start</em>, <em class="sig-param">freq</em>, <em class="sig-param">columns=None</em>, <em class="sig-param">props=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#rts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.rts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a regular or calendar time series from data and time parameters</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>data</strong><span class="classifier">array_like</span></dt><dd><dl class="simple">
+<dt>Should be a array/list of values. There is no restriction on data </dt><dd><p>type, but not all functionality like addition or interpolation will work on all data.</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>start</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.Timestamp</span></code></span></dt><dd><p>Timestamp or a string or type that can be coerced to one.</p>
+</dd>
+<dt><strong>interval</strong><span class="classifier"><span class="xref std std-ref">time_interval</span></span></dt><dd><p>Can also be a string representing an interval that is
+understood by <code class="xref py py-func docutils literal notranslate"><span class="pre">vools.vtime.parse_interval()</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>result</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></span></dt><dd><p>A regular time series with the <cite>freq</cite> attribute set</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.timeseries.rts_formula">
+<code class="sig-name descname">rts_formula</code><span class="sig-paren">(</span><em class="sig-param">start</em>, <em class="sig-param">end</em>, <em class="sig-param">freq</em>, <em class="sig-param">valfunc=nan</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#rts_formula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.rts_formula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a regular time series filled with constant value or formula based on elapsed seconds</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>start</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.Timestamp</span></code></span></dt><dd><p>Starting Timestamp or a string or type that can be coerced to one.</p>
+</dd>
+<dt><strong>end</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.Timestamp</span></code></span></dt><dd><p>Ending Timestamp or a string or type that can be coerced to one.</p>
+</dd>
+<dt><strong>freq</strong><span class="classifier"><span class="xref std std-ref">time_interval</span></span></dt><dd><p>Can also be a string representing an interval.</p>
+</dd>
+<dt><strong>valfunc</strong><span class="classifier">dict</span></dt><dd><p>Constant or dictionary that maps column names to lambdas based on elapsed time from the starts of the series. An example would be {“value”: lambda x: np.nan}</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>result</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></span></dt><dd><p>A regular time series with the <cite>freq</cite> attribute set</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.timeseries.time_overlap">
+<code class="sig-name descname">time_overlap</code><span class="sig-paren">(</span><em class="sig-param">ts0</em>, <em class="sig-param">ts1</em>, <em class="sig-param">valid=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#time_overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.time_overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check for overlapping time coverage between series
+Returns a tuple of start and end of overlapping periods. Only considers
+the time stamps of the start/end, possibly ignoring NaNs at the beginning
+if valid=True, does not check for actual time stamp alignment</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-vtools.data.vtime">
 <span id="vtools-data-vtime-module"></span><h2>vtools.data.vtime module<a class="headerlink" href="#module-vtools.data.vtime" title="Permalink to this headline">¶</a></h2>
 <p>Basic ops for creating, testing and manipulating times and time intervals.
 This module contains factory and helper functions for working with
 times and time intervals.</p>
-<p>The module will import the name datetime and is
-designed to work exclusively with python datetimes. In addition, datetimes
-are convertible to long integer timestamps called ticks. The resolution
-of 1 tick in ticks per second may be obtained using the resolution()
-function or certain utility constants such as ticks_per_day. Never
-code with hard wired numbers.</p>
-<p>For time intervals (or deltas), VTools requires a time and time
+<p>For time intervals (or deltas), VTools uses classes that are compatible
+with the “freq” argument of</p>
+<p>requires a time and time
 interval system that is consistent (e.g. time+n*interval makes sense)
 and that can be applied to both calendar dependent
 and calendar-independent intervals. Because this requirement
@@ -161,73 +481,25 @@ and the latter should be GMT-8. In a sense, this function is included before the
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">vtools.data package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-vtools.data.sample_series">vtools.data.sample_series module</a></li>
-<li><a class="reference internal" href="#module-vtools.data.vtime">vtools.data.vtime module</a></li>
-<li><a class="reference internal" href="#module-vtools.data">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="vtools.html"
-                        title="previous chapter">vtools package</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="vtools.datastore.html"
-                        title="next chapter">vtools.datastore package</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/vtools.data.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+          
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="vtools.datastore.html" title="vtools.datastore package"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="vtools.html" title="vtools package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">vtools 3.0.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >vtools</a> &#187;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/vtools.data.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2019, California Department of Water Resources.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

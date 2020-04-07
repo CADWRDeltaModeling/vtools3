@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vtools.datastore.read_usbr &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.datastore.read_usbr</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+
+<div class="viewcode-block" id="read_usgs"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_usbr.read_usgs">[docs]</a><span class="k">def</span> <span class="nf">read_usgs</span><span class="p">():</span>
+
+
+
+    <span class="n">tndx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">&quot;2016-11-06 01:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2016-11-06 02:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2016-11-06 03:00&quot;</span><span class="p">])</span>
+    <span class="n">tndx</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s1">&#39;US/Pacific&#39;</span><span class="p">,</span> <span class="n">ambiguous</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Etc/GMT+8&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">tndx</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dropna</span><span class="p">()]])</span>
+
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;WQ_Hourly_2016-05-01 to 2019-06-30.txt&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;test.txt&quot;</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span>
+                     <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]],</span> <span class="n">skiprows</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;shef&quot;</span><span class="p">,</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">])</span>
+
+    <span class="n">ts2</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;shef == &#39;WC&#39; and site==&#39;RPN&#39;&quot;</span><span class="p">)</span>
+    <span class="c1"># ts2 = ts.query(&quot;site == &#39;RPN&#39;&quot;)</span>
+    <span class="n">ts2</span> <span class="o">=</span> <span class="n">ts2</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">ts2</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">))</span>
+    <span class="c1"># ts2 = ts2.set_index(ts2.index.droplevel(&quot;shef&quot;))</span>
+
+    <span class="c1"># ts2 = ts2.xs(&quot;WC&quot;,level=&quot;shef&quot;,drop_level=True)</span>
+
+
+    <span class="c1"># ts2 = ts2.set_index(ts2.index.droplevel(&quot;shef&quot;).droplevel(&quot;site&quot;))</span>
+
+    <span class="c1"># ts2 = ts2.pivot(index = &quot;date_time&quot;, columns = &quot;shef&quot;, values = &quot;values&quot;)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts2</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+    <span class="n">ts2</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="n">ts2</span> <span class="o">=</span> <span class="n">ts2</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="s2">&quot;shef&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts2</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cols&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts2</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts2</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;WC&quot;</span><span class="p">)])</span>
+
+    <span class="n">ts2</span> <span class="o">=</span> <span class="n">ts2</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts2</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;20161104&quot;</span><span class="p">:</span><span class="s2">&quot;20161105&quot;</span><span class="p">,</span> <span class="p">:])</span>
+
+    <span class="n">ts2</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;out.csv&quot;</span><span class="p">)</span>
+
+
+    <span class="n">ts3</span> <span class="o">=</span> <span class="n">ts2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># .tz_localize(None,ambiguous=&quot;infer&quot;)</span>
+    <span class="n">convert_index</span> <span class="o">=</span> <span class="n">ts3</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span>
+        <span class="s1">&#39;US/Pacific&#39;</span><span class="p">,</span> <span class="n">ambiguous</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">,</span> <span class="n">nonexistent</span><span class="o">=</span><span class="s2">&quot;shift_backward&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Etc/GMT+8&#39;</span><span class="p">)</span>
+    <span class="n">ts3</span> <span class="o">=</span> <span class="n">ts3</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">convert_index</span><span class="p">)</span>
+    <span class="n">ts3</span> <span class="o">=</span> <span class="n">ts3</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ts3</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dropna</span><span class="p">()]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;blah&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts3</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;20161104&quot;</span><span class="p">:</span><span class="s2">&quot;20161105&quot;</span><span class="p">,</span> <span class="p">:])</span></div>
+
+
+    <span class="c1"># df.loc[:, (slice(None), &#39;A&#39;)]</span>
+
+
+    <span class="c1"># print ts.loc[pd.IndexSlice[&quot;WC&quot;,&quot;SAL&quot;,:],:]</span>
+    <span class="c1"># ts.plot()</span>
+    <span class="c1"># plt.show()</span>
+    <span class="c1"># .loc[(slice(None), &#39;one&#39;), :]</span>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

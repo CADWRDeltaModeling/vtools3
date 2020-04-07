@@ -4,45 +4,114 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions package &#8212; vtools 3.0.0 documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <title>vtools.functions package &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Contributing" href="contributing.html" />
-    <link rel="prev" title="vtools.datastore package" href="vtools.datastore.html" /> 
+    <link rel="prev" title="vtools.datastore package" href="vtools.datastore.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="contributing.html" title="Contributing"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="vtools.datastore.html" title="vtools.datastore package"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">vtools 3.0.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">vtools</a> &#187;</li> 
-      </ul>
-    </div>  
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="index.html"><img src="_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">#API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="vtools.html">vtools package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">vtools</a><ul>
+  <li><a href="vtools.html">vtools package</a><ul>
+      <li>Previous: <a href="vtools.datastore.html" title="previous chapter">vtools.datastore package</a></li>
+      <li>Next: <a href="contributing.html" title="next chapter">Contributing</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="vtools-functions-package">
@@ -50,8 +119,59 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="vtools-functions-error-detect-module">
-<h2>vtools.functions.error_detect module<a class="headerlink" href="#vtools-functions-error-detect-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-vtools.functions.error_detect">
+<span id="vtools-functions-error-detect-module"></span><h2>vtools.functions.error_detect module<a class="headerlink" href="#module-vtools.functions.error_detect" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.functions.error_detect.despike">
+<code class="sig-name descname">despike</code><span class="sig-paren">(</span><em class="sig-param">arr</em>, <em class="sig-param">n1=2</em>, <em class="sig-param">n2=20</em>, <em class="sig-param">block=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/error_detect.html#despike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.error_detect.despike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.error_detect.med_outliers">
+<code class="sig-name descname">med_outliers</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">level=4.0</em>, <em class="sig-param">scale=None</em>, <em class="sig-param">filt_len=7</em>, <em class="sig-param">range=(None</em>, <em class="sig-param">None)</em>, <em class="sig-param">quantiles=(0.1</em>, <em class="sig-param">0.9)</em>, <em class="sig-param">copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/error_detect.html#med_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.error_detect.med_outliers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect outliers by running a median filter, subtracting it
+from the original series and comparing the resulting residuals
+to a global robust range of scale (the interquartile range).
+Individual time points are rejected if the residual at that time point is more than level times the range of scale.</p>
+<p>The original concept comes from Basu &amp; Meckesheimer (2007)
+although they didn’t use the interquartile range but rather
+expert judgment. To use this function effectively, you need to
+be thoughtful about what the interquartile range will be. For instance,
+for a strongly tidal flow station it is likely to</p>
+<dl class="simple">
+<dt>level: Number of times the scale or interquantile range the data has to be</dt><dd><p>to be rejected.d</p>
+</dd>
+<dt>scale: Expert judgment of the scale of maximum variation over a time step.</dt><dd><p>If None, the interquartile range will be used. Note that for a 
+strongly tidal station the interquartile range may substantially overestimate the reasonable variation over a single time step, in which case the filter will work fine, but level should be set to 
+a number (less than one) accordingly.</p>
+</dd>
+</dl>
+<p>filt_len: length of median filter, default is 5</p>
+<dl class="simple">
+<dt>quantiles<span class="classifier">tuple of quantiles defining the measure of scale. Ignored</span></dt><dd><p>if scale is given directly. Default is interquartile range, and
+this is almost always a reasonable choice.</p>
+</dd>
+</dl>
+<p>copy: if True, a copy is made leaving original series intact</p>
+<p>You can also specify rejection of  values based on a simple range</p>
+<p>Returns: copy of series with outliers replaced by nan</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.error_detect.med_outliers2">
+<code class="sig-name descname">med_outliers2</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">secfilt=True</em>, <em class="sig-param">level=3.0</em>, <em class="sig-param">scale=None</em>, <em class="sig-param">filt_len=7</em>, <em class="sig-param">quantiles=(25</em>, <em class="sig-param">75)</em>, <em class="sig-param">seclevel=3.0</em>, <em class="sig-param">secscale=None</em>, <em class="sig-param">secfilt_len=241</em>, <em class="sig-param">secquantiles=(25</em>, <em class="sig-param">75)</em>, <em class="sig-param">copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/error_detect.html#med_outliers2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.error_detect.med_outliers2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.error_detect.norepeats">
+<code class="sig-name descname">norepeats</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">threshold=20</em>, <em class="sig-param">copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/error_detect.html#norepeats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.error_detect.norepeats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.error_detect.rolling_window">
+<code class="sig-name descname">rolling_window</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">block</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/error_detect.html#rolling_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.error_detect.rolling_window" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-vtools.functions.example">
 <span id="vtools-functions-example-module"></span><h2>vtools.functions.example module<a class="headerlink" href="#module-vtools.functions.example" title="Permalink to this headline">¶</a></h2>
@@ -94,7 +214,7 @@
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<dt><strong>ts</strong><span class="classifier">Pandas series or DataFrame, or xarray object</span></dt><dd><p>Must be one or two dimensional, and regular.</p>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>Must be one or two dimensional, and regular.</p>
 </dd>
 <dt><strong>order: int ,optional</strong></dt><dd><p>The default is 4.</p>
 </dd>
@@ -129,7 +249,7 @@ cutoff_frequency and cutoff_period can’t be specified at the same time.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<dt><strong>ts</strong><span class="classifier">Pandas or XArray time series</span></dt><dd></dd>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd></dd>
 <dt><strong>filter_len</strong><span class="classifier">int, time_interval</span></dt><dd><p>Size of lanczos window, default is to number of samples within filter_period*1.25.</p>
 </dd>
 <dt><strong>cutoff_frequency: float,optional</strong></dt><dd><p>Cutoff frequency expressed as a ratio of a Nyquist frequency,
@@ -181,10 +301,33 @@ timeinterval could be anything that pd.Timedelta can accept</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.functions.filter.godin_filter">
-<code class="sig-name descname">godin_filter</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">timeinterval='15min'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/filter.html#godin_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.filter.godin_filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uses FIR filter and convolves with the data frame values
-return godin filtered values for data frame values</p>
+<dt id="vtools.functions.filter.godin">
+<code class="sig-name descname">godin</code><span class="sig-paren">(</span><em class="sig-param">ts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/filter.html#godin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.filter.godin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Low-pass Godin filter a regular time series.
+Applies the <span class="math notranslate nohighlight">\(\mathcal{A_{24}^{2}A_{25}}\)</span> Godin filter <a class="reference internal" href="#r1d48320053b8-1" id="id1">[1]</a>
+The filter is generalized to be the equivalent of one
+boxcar of the length of the lunar diurnal (~25 hours)
+constituent and two of the solar diurnal (~24 hours), though the
+implementation combines these steps.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>result</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>A new regular time series with the same interval of ts.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r1d48320053b8-1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Godin (1972) Analysis of Tides</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -216,59 +359,43 @@ return godin filtered values for data frame values</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="vtools-functions-interpolate-module">
-<h2>vtools.functions.interpolate module<a class="headerlink" href="#vtools-functions-interpolate-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-vtools.functions.merge">
-<span id="vtools-functions-merge-module"></span><h2>vtools.functions.merge module<a class="headerlink" href="#module-vtools.functions.merge" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-vtools.functions.interpolate">
+<span id="vtools-functions-interpolate-module"></span><h2>vtools.functions.interpolate module<a class="headerlink" href="#module-vtools.functions.interpolate" title="Permalink to this headline">¶</a></h2>
+<p>Module for data interpolation using splines or interfaces unavailable in Pandas.</p>
 <dl class="function">
-<dt id="vtools.functions.merge.ts_merge">
-<code class="sig-name descname">ts_merge</code><span class="sig-paren">(</span><em class="sig-param">series</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/merge.html#ts_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.merge.ts_merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>merge a number of timeseries together and return a new ts.
-Similar to concatenate, but provides more control over order in cases of overlap</p>
+<dt id="vtools.functions.interpolate.example">
+<code class="sig-name descname">example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.interpolate.monotonic_spline">
+<code class="sig-name descname">monotonic_spline</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">dest</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#monotonic_spline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.monotonic_spline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolating a regular time series (rts) to a finer rts by rational histospline.</p>
+<p>The rational histospline preserves area under the curve. This is a good choice of spline for period averaged data where an interpolant is desired
+that is ‘conservative’. Note that it is the underlying continuous interpolant
+that will be ‘conservative though, not the returned discrete time series which
+merely samples the underlying interpolant.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>series</strong><span class="classifier">tuple(time series)`</span></dt><dd><p>Series ranked from hight to low priority</p>
+<dd class="field-odd"><dl>
+<dt><strong>ts</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></span></dt><dd><p>Series to be interpolated, typically with DatetimeIndex</p>
 </dd>
+<dt><strong>dest</strong><span class="classifier">a pandas freq code (e.g. ‘16min’ or ‘D’) or a DateTimeIndex</span></dt><dd></dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl>
-<dt><strong>merged</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeSeries</span></code></span></dt><dd><p>A new time series with time interval same as the inputs, time extent
-the union of the inputs, and filled first with ts1, then with remaining
-gaps filled with ts2, then ts3….</p>
+<dt><strong>result</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></dt><dd><p>A regular time series with same columns as ts, populated with instantaneous values and with
+an index of type DateTimeIndex</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="vtools-functions-mspline-module">
-<h2>vtools.functions.mspline module<a class="headerlink" href="#vtools-functions-mspline-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="vtools-functions-period-op-module">
-<h2>vtools.functions.period_op module<a class="headerlink" href="#vtools-functions-period-op-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="vtools-functions-regression-test-module">
-<h2>vtools.functions.regression_test module<a class="headerlink" href="#vtools-functions-regression-test-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-vtools.functions.rhist">
-<span id="vtools-functions-rhist-module"></span><h2>vtools.functions.rhist module<a class="headerlink" href="#module-vtools.functions.rhist" title="Permalink to this headline">¶</a></h2>
-<p>Module for data interpolation using rational histosplines.
-The main algorithm is a numpy re-implementation of rhist2 in</p>
-<blockquote>
-<div><p>One Dimensional Spline Interpolation Algorithms
-by Helmuth Spath (1995).</p>
-</div></blockquote>
-<p>The benefit of histosplines is that they are designed to
-conserve the integral under the curve, and so they are good
-for period averaged data when you want the
-interpolator to conserve mass.</p>
 <dl class="function">
-<dt id="vtools.functions.rhist.rhist">
-<code class="sig-name descname">rhist</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">xnew</em>, <em class="sig-param">y0</em>, <em class="sig-param">yn</em>, <em class="sig-param">p</em>, <em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/rhist.html#rhist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.rhist.rhist" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.functions.interpolate.rhist">
+<code class="sig-name descname">rhist</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">xnew</em>, <em class="sig-param">y0</em>, <em class="sig-param">yn</em>, <em class="sig-param">p</em>, <em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#rhist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.rhist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Histopline for arrays with tension.
 Based by an algorithm rhist2 in 
 One Dimensional Spline Interpolation Algorithms
@@ -300,8 +427,8 @@ than zero.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.functions.rhist.rhist_bound">
-<code class="sig-name descname">rhist_bound</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">xnew</em>, <em class="sig-param">y0</em>, <em class="sig-param">yn</em>, <em class="sig-param">p</em>, <em class="sig-param">lbound=None</em>, <em class="sig-param">maxiter=5</em>, <em class="sig-param">pfactor=2</em>, <em class="sig-param">floor_eps=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/rhist.html#rhist_bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.rhist.rhist_bound" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.functions.interpolate.rhist_bound">
+<code class="sig-name descname">rhist_bound</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">xnew</em>, <em class="sig-param">y0</em>, <em class="sig-param">yn</em>, <em class="sig-param">p</em>, <em class="sig-param">lbound=None</em>, <em class="sig-param">maxiter=5</em>, <em class="sig-param">pfactor=2</em>, <em class="sig-param">floor_eps=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#rhist_bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.rhist_bound" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy implementation of histospline with bounds
 Histopline for arrays with lower bound enforcement.
 This routine drives rhist() but tests that the output
@@ -349,21 +476,21 @@ and once the values reach that tolerance they are floored. If lbound = None, thi
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.functions.rhist.rhist_coef">
-<code class="sig-name descname">rhist_coef</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">y0</em>, <em class="sig-param">yn</em>, <em class="sig-param">p</em>, <em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/rhist.html#rhist_coef"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.rhist.rhist_coef" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.functions.interpolate.rhist_coef">
+<code class="sig-name descname">rhist_coef</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">y0</em>, <em class="sig-param">yn</em>, <em class="sig-param">p</em>, <em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#rhist_coef"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.rhist_coef" title="Permalink to this definition">¶</a></dt>
 <dd><p>Routine that produces coefficients for the histospline</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.functions.rhist.rhist_val">
-<code class="sig-name descname">rhist_val</code><span class="sig-paren">(</span><em class="sig-param">xnew</em>, <em class="sig-param">x</em>, <em class="sig-param">p</em>, <em class="sig-param">q</em>, <em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">c</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/rhist.html#rhist_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.rhist.rhist_val" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.functions.interpolate.rhist_val">
+<code class="sig-name descname">rhist_val</code><span class="sig-paren">(</span><em class="sig-param">xnew</em>, <em class="sig-param">x</em>, <em class="sig-param">p</em>, <em class="sig-param">q</em>, <em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">c</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#rhist_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.rhist_val" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a histospline at new x points</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.functions.rhist.rhistinterp">
-<code class="sig-name descname">rhistinterp</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">dest</em>, <em class="sig-param">p</em>, <em class="sig-param">lowbound</em>, <em class="sig-param">tolbound=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/rhist.html#rhistinterp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.rhist.rhistinterp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Interpolating a regular time series (rts) to a finer rts by rational histospline.</p>
+<dt id="vtools.functions.interpolate.rhistinterp">
+<code class="sig-name descname">rhistinterp</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">dest</em>, <em class="sig-param">p=2.0</em>, <em class="sig-param">lowbound=None</em>, <em class="sig-param">tolbound=0.001</em>, <em class="sig-param">maxiter=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#rhistinterp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.rhistinterp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate a regular time series (rts) to a finer rts by rational histospline.</p>
 <p>The rational histospline preserves area under the curve. This is a good choice of spline for period averaged data where an interpolant is desired
 that is ‘conservative’. Note that it is the underlying continuous interpolant
 that will be ‘conservative though, not the returned discrete time series which
@@ -374,7 +501,8 @@ merely samples the underlying interpolant.</p>
 <dt><strong>ts</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></span></dt><dd><p>Series to be interpolated, typically with period index and assuming time stamps at beginning
 of the period</p>
 </dd>
-<dt><strong>dest</strong><span class="classifier">a pandas freq code (e.g. ‘16min’ or ‘D’) or a DateTimeIndex</span></dt><dd></dd>
+<dt><strong>dest</strong><span class="classifier">string or <code class="xref py py-class docutils literal notranslate"><span class="pre">DateTimeIndex</span></code></span></dt><dd><p>A pandas freq code (e.g. ‘16min’ or ‘D’) or a DateTimeIndex</p>
+</dd>
 <dt><strong>p</strong><span class="classifier">float, optional</span></dt><dd><p>Spline tension, usually between 0 and 20. Must &gt;-1. For a ‘sufficiently large’ value of p, the interpolant will be monotonicity-preserving and will maintain strict positivity (always being strictly &gt; <cite>lowbound</cite>.</p>
 </dd>
 <dt><strong>lowbound</strong><span class="classifier">float, optional</span></dt><dd><p>Lower bound of interpolated values.</p>
@@ -385,7 +513,7 @@ of the period</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl>
-<dt><strong>result</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></dt><dd><p>A regular time series with same columns as ts, populated with instantaneous values and with
+<dt><strong>result</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a></span></dt><dd><p>A regular time series with same columns as ts, populated with instantaneous values and with
 an index of type DateTimeIndex</p>
 </dd>
 </dl>
@@ -394,8 +522,8 @@ an index of type DateTimeIndex</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.functions.rhist.tridiagonal">
-<code class="sig-name descname">tridiagonal</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">c</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/rhist.html#tridiagonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.rhist.tridiagonal" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.functions.interpolate.tridiagonal">
+<code class="sig-name descname">tridiagonal</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">c</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#tridiagonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.tridiagonal" title="Permalink to this definition">¶</a></dt>
 <dd><p>a is the lower band (with leading zero)
 b is the center diagonal (length == nrow)
 c is upper band (trailing zero)
@@ -403,14 +531,243 @@ d is right hand side</p>
 </dd></dl>
 
 </div>
-<div class="section" id="vtools-functions-skill-metrics-module">
-<h2>vtools.functions.skill_metrics module<a class="headerlink" href="#vtools-functions-skill-metrics-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-vtools.functions.lag_cross_correlation">
+<span id="vtools-functions-lag-cross-correlation-module"></span><h2>vtools.functions.lag_cross_correlation module<a class="headerlink" href="#module-vtools.functions.lag_cross_correlation" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.functions.lag_cross_correlation.calculate_lag">
+<code class="sig-name descname">calculate_lag</code><span class="sig-paren">(</span><em class="sig-param">lagged</em>, <em class="sig-param">base</em>, <em class="sig-param">max_lag</em>, <em class="sig-param">res</em>, <em class="sig-param">interpolate_method='linear'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/lag_cross_correlation.html#calculate_lag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.lag_cross_correlation.calculate_lag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate shift in lagged, that maximizes cross-correlation with base.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>base,lagged: :class:`Pandas.Series`</strong></dt><dd><p>time series to compare. The result is relative to base</p>
+</dd>
+<dt><strong>max_lag: interval</strong></dt><dd><p>Maximum pos/negative time shift to consider in cross-correlation 
+(ie, from -max_lag to +max_lag). Required windows in lagged will
+account for this bracket. For series dominated by a single 
+frequency (eg 1c/12.5 hours for tides), the algorithm can tolerate
+a range of 180 degrees (6 hours)</p>
+</dd>
+<dt><strong>res: interval</strong></dt><dd><p>Resolution of analysis. The series lagged will
+be interpolated to this resolution using interpolate_method. Unit
+used here will determine the type of the output. See documentation
+of the interval concept which is most compatible with 
+pandas.tseries.offsets, not timeDelta, because of better math
+properties in things like division – vtime helpers like minutes(1) 
+may be helpful</p>
+</dd>
+<dt><strong>interpolate_method: str, optional</strong></dt><dd><p>Interpolate method to refine lagged to res. Must be compatible with 
+pandas interpolation method names (and hence scipy)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>lag</strong><span class="classifier">interval</span></dt><dd><p>Shift as a pandas.tseries.offsets subtype that matches units with res
+This shift is the apparent lateness (pos) or earliness (neg). It must be
+applied to base or removed to lagged to align the features.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.lag_cross_correlation.icrosscorr">
+<code class="sig-name descname">icrosscorr</code><span class="sig-paren">(</span><em class="sig-param">lag</em>, <em class="sig-param">ts0</em>, <em class="sig-param">ts1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/lag_cross_correlation.html#icrosscorr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.lag_cross_correlation.icrosscorr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lag-N cross correlation. 
+Shifted data filled with NaNs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lag</strong><span class="classifier">int, default 0</span></dt><dd></dd>
+<dt><strong>ts0, ts1</strong><span class="classifier">pandas.Series objects of equal length</span></dt><dd></dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>———-</strong></dt><dd></dd>
+<dt><strong>crosscorr</strong><span class="classifier">float</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.lag_cross_correlation.mincrosscorr">
+<code class="sig-name descname">mincrosscorr</code><span class="sig-paren">(</span><em class="sig-param">lag</em>, <em class="sig-param">ts0</em>, <em class="sig-param">ts1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/lag_cross_correlation.html#mincrosscorr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.lag_cross_correlation.mincrosscorr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-vtools.functions.merge">
+<span id="vtools-functions-merge-module"></span><h2>vtools.functions.merge module<a class="headerlink" href="#module-vtools.functions.merge" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.functions.merge.ts_merge">
+<code class="sig-name descname">ts_merge</code><span class="sig-paren">(</span><em class="sig-param">series</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/merge.html#ts_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.merge.ts_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>merge a number of timeseries together and return a new ts.
+Similar to concatenate, but provides more control over order in cases of overlap</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>series</strong><span class="classifier">tuple(<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a>) or tuple(<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.15.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataArray)</span></code></a></span></dt><dd><p>Series ranked from hight to low priority</p>
+</dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>merged</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>A new time series with time interval same as the inputs, time extent
+the union of the inputs, and filled first with ts1, then with remaining
+gaps filled with ts2, then ts3….</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="vtools-functions-period-op-module">
+<h2>vtools.functions.period_op module<a class="headerlink" href="#vtools-functions-period-op-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="vtools-functions-regression-test-module">
+<h2>vtools.functions.regression_test module<a class="headerlink" href="#vtools-functions-regression-test-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-vtools.functions.skill_metrics">
+<span id="vtools-functions-skill-metrics-module"></span><h2>vtools.functions.skill_metrics module<a class="headerlink" href="#module-vtools.functions.skill_metrics" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.functions.skill_metrics.corr_coefficient">
+<code class="sig-name descname">corr_coefficient</code><span class="sig-paren">(</span><em class="sig-param">predictions</em>, <em class="sig-param">targets</em>, <em class="sig-param">method='pearson'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/skill_metrics.html#corr_coefficient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.skill_metrics.corr_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the correlation coefficient (the ‘r’ in ‘-squared’ between two series.</p>
+<p>For time series where the targets are serially correlated and may span only a fraction
+of the natural variability, this statistic may not be appropriate and Murphy (1988) explains
+why caution should be exercised in using this statistic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>predictions, targets</strong><span class="classifier">array_like</span></dt><dd><p>Time series to analyze</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">pearson’, ‘kendall’, ‘spearman’</span></dt><dd><p>Method compatilble with pandasa</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>r</strong><span class="classifier">float</span></dt><dd><p>Correlation coefficient</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.skill_metrics.median_error">
+<code class="sig-name descname">median_error</code><span class="sig-paren">(</span><em class="sig-param">predictions</em>, <em class="sig-param">targets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/skill_metrics.html#median_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.skill_metrics.median_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the median error, discounting nan values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>predictions, targets</strong><span class="classifier">array_like</span></dt><dd><p>Time series or arrays to be analyzed</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>med</strong><span class="classifier">float</span></dt><dd><p>Median error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.skill_metrics.mse">
+<code class="sig-name descname">mse</code><span class="sig-paren">(</span><em class="sig-param">predictions</em>, <em class="sig-param">targets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/skill_metrics.html#mse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.skill_metrics.mse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean squared error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>predictions, targets</strong><span class="classifier">array_like</span></dt><dd><p>Time series or arrays to analyze</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mse</strong><span class="classifier">vtools.data.timeseries.TimeSeries</span></dt><dd><p>Mean squared error between predictions and targets</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.skill_metrics.rmse">
+<code class="sig-name descname">rmse</code><span class="sig-paren">(</span><em class="sig-param">predictions</em>, <em class="sig-param">targets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/skill_metrics.html#rmse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.skill_metrics.rmse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Root mean squared error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>predictions, targets</strong><span class="classifier">array_like</span></dt><dd><p>Time series or arrays to analyze</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mse</strong><span class="classifier">float</span></dt><dd><p>Mean squared error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.skill_metrics.skill_score">
+<code class="sig-name descname">skill_score</code><span class="sig-paren">(</span><em class="sig-param">predictions</em>, <em class="sig-param">targets</em>, <em class="sig-param">ref=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/skill_metrics.html#skill_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.skill_metrics.skill_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a Nash-Sutcliffe-like skill score based on mean squared error</p>
+<p>As per the discussion in Murphy (1988) other reference forecasts (climatology, 
+harmonic tide, etc.) are possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>predictions, targets</strong><span class="classifier">array_like</span></dt><dd><p>Time series or arrays to be analyzed</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>rmse</strong><span class="classifier">float</span></dt><dd><p>Root mean squared error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.skill_metrics.tmean_error">
+<code class="sig-name descname">tmean_error</code><span class="sig-paren">(</span><em class="sig-param">predictions, targets, limits=None, inclusive=[True, True]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/skill_metrics.html#tmean_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.skill_metrics.tmean_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the (possibly trimmed) mean error, discounting nan values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>predictions, targets</strong><span class="classifier">array_like</span></dt><dd><p>Time series or arrays to be analyzed</p>
+</dd>
+<dt><strong>limits</strong><span class="classifier">tuple(float)</span></dt><dd><p>Low and high limits for trimming</p>
+</dd>
+<dt><strong>inclusive</strong><span class="classifier">[boolean, boolean]</span></dt><dd><p>True if clipping is inclusive on the low/high end</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mean</strong><span class="classifier">float</span></dt><dd><p>Trimmed mean error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="vtools-functions-test-error-detect-module">
 <h2>vtools.functions.test_error_detect module<a class="headerlink" href="#vtools-functions-test-error-detect-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="vtools-functions-test-filter-module">
 <h2>vtools.functions.test_filter module<a class="headerlink" href="#vtools-functions-test-filter-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="vtools-functions-test-lag-module">
+<h2>vtools.functions.test_lag module<a class="headerlink" href="#vtools-functions-test-lag-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-vtools.functions">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vtools.functions" title="Permalink to this headline">¶</a></h2>
@@ -419,84 +776,25 @@ d is right hand side</p>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">vtools.functions package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#vtools-functions-error-detect-module">vtools.functions.error_detect module</a></li>
-<li><a class="reference internal" href="#module-vtools.functions.example">vtools.functions.example module</a></li>
-<li><a class="reference internal" href="#module-vtools.functions.example2">vtools.functions.example2 module</a></li>
-<li><a class="reference internal" href="#module-vtools.functions.filter">vtools.functions.filter module</a></li>
-<li><a class="reference internal" href="#vtools-functions-interpolate-module">vtools.functions.interpolate module</a></li>
-<li><a class="reference internal" href="#module-vtools.functions.merge">vtools.functions.merge module</a></li>
-<li><a class="reference internal" href="#vtools-functions-mspline-module">vtools.functions.mspline module</a></li>
-<li><a class="reference internal" href="#vtools-functions-period-op-module">vtools.functions.period_op module</a></li>
-<li><a class="reference internal" href="#vtools-functions-regression-test-module">vtools.functions.regression_test module</a></li>
-<li><a class="reference internal" href="#module-vtools.functions.rhist">vtools.functions.rhist module</a></li>
-<li><a class="reference internal" href="#vtools-functions-skill-metrics-module">vtools.functions.skill_metrics module</a></li>
-<li><a class="reference internal" href="#vtools-functions-test-error-detect-module">vtools.functions.test_error_detect module</a></li>
-<li><a class="reference internal" href="#vtools-functions-test-filter-module">vtools.functions.test_filter module</a></li>
-<li><a class="reference internal" href="#module-vtools.functions">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="vtools.datastore.html"
-                        title="previous chapter">vtools.datastore package</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="contributing.html"
-                        title="next chapter">Contributing</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/vtools.functions.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+          
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="contributing.html" title="Contributing"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="vtools.datastore.html" title="vtools.datastore package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">vtools 3.0.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >vtools</a> &#187;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/vtools.functions.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2019, California Department of Water Resources.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

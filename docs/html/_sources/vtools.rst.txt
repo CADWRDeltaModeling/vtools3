@@ -1,16 +1,14 @@
 vtools package
-================
+==============
 
-Submodules
-----------
+Subpackages
+-----------
 
-vtools module
-------------------------
+.. toctree::
 
-.. automodule:: vtools
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   vtools.data
+   vtools.datastore
+   vtools.functions
 
 Module contents
 ---------------
