@@ -59,18 +59,24 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
     xnew = (dest-strt).total_seconds().to_numpy()
     
     
-    cols = ts.columns
-    result = pd.DataFrame([],index=dest)
-    for col in cols:
-        y = ts[col].to_numpy()
-        try:
-            out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
-        except:
-            #import matplotlib.pyplot as plt
-            #ts[col].plot()
-            #plt.show()
-            raise ValueError("In rhist_bound, could not meet lower bound in column {}".format(col))
-        result[col] = out
+    try:
+        cols = ts.columns
+        result = pd.DataFrame([],index=dest)
+        for col in cols:
+            y = ts[col].to_numpy()
+            try:
+                out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
+            except:
+                #import matplotlib.pyplot as plt
+                #ts[col].plot()
+                #plt.show()
+                raise ValueError("In rhist_bound, error could not meet lower bound in column {}".format(col))
+            result[col] = out
+    except:
+        y = ts.to_numpy()
+        out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
+        result = pd.Series(data=out,index = dest)
+        #result = type(ts)(y,index=ts.index)        
     return result    
 
 
