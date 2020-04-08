@@ -82,7 +82,7 @@ def norepeats(ts, threshold = 20, copy = True):
 
 def med_outliers(ts,level=4.,scale = None,\
                  filt_len=7,range=(None,None),
-                 quantiles = (0.1,0.9),
+                 quantiles = (0.01,0.99),
                  copy = True):
     """
     Detect outliers by running a median filter, subtracting it
@@ -132,9 +132,7 @@ def med_outliers(ts,level=4.,scale = None,\
 
     if scale is None:
         qq = res.quantile( q=quantiles)
-        print(qq)
         scale = qq[quantiles[1]] - qq[quantiles[0]]  
-        print("scale=",scale)
 
     outlier = (np.absolute(res) > level*scale) | (np.absolute(res) < -level*scale)
     values = np.where(outlier,np.nan,ts_out.values)
