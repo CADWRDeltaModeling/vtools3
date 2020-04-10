@@ -16,7 +16,7 @@ def test_godin():
     ts = pd.read_csv(fname_input, parse_dates=True, index_col=0)
     # FIXME: better way to do this on parse?
     ts.index.freq = ts.index.inferred_freq
-    tsg = filter.godin_filter(ts)
+    tsg = filter.godin(ts)
     fname_expected = os.path.join(os.path.dirname(__file__),
                                   'test_data/godintest-vtools.csv')
     tsg_vtools = pd.read_csv(fname_expected, parse_dates=True, index_col=0)
