@@ -38,6 +38,14 @@ requirements:
   test:
     imports:
       - vtools
+    source_files:
+      - tests
+    requires:
+      - pytest
+      - pytest-cov
+    commands:
+      - (setlocal && cd tests && pytest && endlocal) # [win]
+      - (cd tests; pytest) # [unix]
 
 about:
   home: https://github.com/CADWRDeltaModeling/vtools3
