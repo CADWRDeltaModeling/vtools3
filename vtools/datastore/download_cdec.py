@@ -21,21 +21,8 @@ import numpy as np
 params={"ec":[100],"ec_bot":[101,102],
         "flow":[20,21,23,70,75,110],
         "stage":[1],"temp":[4,25,258389,2741],"wind_speed":[9,134],"wind_dir":[10]}
-
       
-def ping(host):
-    """
-    Returns True if host (str) responds to a ping request.
-    Remember that some hosts may not respond to a ping request even if the host name is valid.
-    """
-    from platform import system as system_name # Returns the system/OS name
-    import subprocess as sp       # Execute a shell command  
-    # Ping parameters as function of OS
-    parameters = ["ping","-n","1",host] if system_name().lower()=="windows" else ["ping","-c","1",host]
-    # Pinging
-    with open(os.devnull, 'w') as devnull:
-        return sp.call(parameters,stdout=devnull) == 0        
-cdec_base_url = "cdec4gov.water.ca.gov" if ping("cdec4gov.water.ca.gov") else "cdec.water.ca.gov"        
+cdec_base_url = "cdec.water.ca.gov"        
        
         
 def create_arg_parser():
@@ -81,10 +68,9 @@ def cdec_download(stations,dest_dir,start,end="Now",param="ec",overwrite=False):
         stime=start.strftime("%m-%d-%Y")
         etime=end if end == "Now" else end.strftime("%m-%d-%Y")
         found = False
-       
+        
         for code in z:
-            station_query_base = "http://%s/dynamicapp/req/CSVDataServlet?Stations=%s&SensorNums=%s&dur_code=%s&Start=%s&End=%s"
-            #station_query_base = "http://%s/cgi-progs/queryCSV?station_id=%s&sensor_num=%s&dur_code=%s&start_date=%s&end_date=%s"
+            station_query_base = "http://%s/dynamicapp/req/CSVDataServletPST?Stations=%s&SensorNums=%s&dur_code=%s&Start=%s&End=%s"
             dur_codes = ["E","H","D"]
             for dur in dur_codes:
                 station_query = station_query_base % (cdec_base_url,station,code,dur,stime,etime)
