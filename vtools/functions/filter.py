@@ -122,7 +122,8 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     if m is None:
         m = int(1.25 * 2. /cf)
     elif type(m) != int:
-        raise NotImplementedError("Filter lengths specified in time not ready")
+        m = int(m/freq)
+        #raise NotImplementedError("Only integer length filter lengths or supported currently. Received: ".format(type(m)))
 
     ##find out nan location and fill with 0.0. This way we can use the
     ## signal processing filtrations out-of-the box without nans causing trouble,
@@ -251,7 +252,7 @@ def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
     [b,a]=butter(order/2,cf)
     d2=filtfilt(b,a,ts.values,axis=0,padlen=90)
     out = ts.copy(deep=True)
-    out.values=d2
+    out[:]=d2
 
 #    prop={}
 #    for key,val in ts.props.items():
@@ -295,8 +296,8 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
 def generate_godin_fir(timeinterval):
     '''
     generate godin filter impulse response for given timeinterval
-    timeinterval could be anything that pd.Timedelta can accept
-    '''
+    timeinterval is a pandas freq
+    '''   
     mins=pd.Timedelta(timeinterval).seconds/60
     wts24=np.zeros(round(24*60/mins))
     wts24[:]=1/wts24.size
@@ -339,7 +340,7 @@ def godin(ts):
     if freqstr == None:
         freqstr=pd.infer_freq(ts.index)
     if freqstr == None:
-        raise Exception("""No regular frequency could be determined from the index of the data frame or from infer_freq method. Try on smaller slice of dataframe index""")
+        raise ValueException("Series must be regular (have freq set)")
     godin_ir=generate_godin_fir(freqstr)
     if not (len(ts.columns) == 1):
         raise ValueError("Godin Filter not functional for multivariate series yet")
