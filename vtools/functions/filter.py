@@ -97,8 +97,7 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
         
     """
     
-    #if not ts.is_regular():
-    #    raise ValueError("Only regular time series are supported.")
+    
         
     
     freq=ts.index.freq
@@ -263,20 +262,20 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
     Parameters
     -----------
     
-    Cf: float
+    cf: float
       Cutoff frequency expressed as a ratio of a Nyquist frequency.
                   
-    M: int
+    m: int
       Size of filtering window size.
         
     Returns
     --------
-    pdb.set_trace()
     Results: list
            Coefficients of filtering window.
     
     """
-    
+    if (cf,m) in _cached_filt_info:
+        return _cached_filt_info[(cf,m)]
     coscoef=[cf*np.sin(np.pi*k*cf)/(np.pi*k*cf) for k in np.arange(1,m+1,1,dtype='d')]
     sigma=[np.sin(np.pi*k/m)/(np.pi*k/m) for k in np.arange(1,m+1,1,dtype='float')]
     prod= [c*s for c,s in zip(coscoef,sigma)]
@@ -284,6 +283,7 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
     res=np.array(temp)
     if normalize:
         res = res/res.sum()
+    _cached_filt_info[(cf,m)] = res
     return res    
 
 
