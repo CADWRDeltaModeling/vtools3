@@ -1,6 +1,6 @@
 
 import os
-import unittest,random,pdb
+import unittest,random,pdb,pytest
 
 ## Datetime import
 import datetime
@@ -101,7 +101,7 @@ class TestFilter(unittest.TestCase):
         
         # ## besides the leading and trailing nan, there will be
         # ## 24 nan in the middle 
-        # self.assertTrue(np.alltrue(np.isnan(nt.to_numpy()[190:213])))
+        # self.assertTrue(np.all(np.isnan(nt.to_numpy()[190:213])))
         
         
     # def test_boxcar(self):
@@ -117,39 +117,39 @@ class TestFilter(unittest.TestCase):
         
         # ## first round of boxcar in 24 (11,12).
         # nt=boxcar(test_ts,11,12)
-        # self.assertTrue(np.alltrue(np.isnan(nt.to_numpy()[0:11])))
+        # self.assertTrue(np.all(np.isnan(nt.to_numpy()[0:11])))
         # assert_array_almost_equal(nt.to_numpy()[11:188],[1]*177,12)
-        # self.assertTrue(np.alltrue(np.greater(nt.to_numpy()[188:211],1)))
+        # self.assertTrue(np.all(np.greater(nt.to_numpy()[188:211],1)))
         # self.assertAlmostEqual(nt.to_numpy()[196],1.375)
         # assert_array_almost_equal(nt.to_numpy()[211:288],[2]*77,12)
-        # self.assertTrue(np.alltrue(np.greater(nt.to_numpy()[288:311],1)))
+        # self.assertTrue(np.all(np.greater(nt.to_numpy()[288:311],1)))
         # self.assertAlmostEqual(nt.to_numpy()[301],1.4166666667)
         # assert_array_almost_equal(nt.to_numpy()[311:388],[1]*77,12)
-        # self.assertTrue(np.alltrue(np.isnan(nt.to_numpy()[388:400])))
+        # self.assertTrue(np.all(np.isnan(nt.to_numpy()[388:400])))
     
         # ## second round of boxcar in 24 (12,11)
         # nt2=boxcar(nt,12,11)
-        # self.assertTrue(np.alltrue(np.isnan(nt2.to_numpy()[0:23])))
+        # self.assertTrue(np.all(np.isnan(nt2.to_numpy()[0:23])))
         # assert_array_almost_equal(nt2.to_numpy()[23:177],[1]*154,12)
-        # self.assertTrue(np.alltrue(np.greater(nt2.to_numpy()[177:223],1)))
+        # self.assertTrue(np.all(np.greater(nt2.to_numpy()[177:223],1)))
         # self.assertAlmostEqual(nt2.to_numpy()[196],1.364583333)
         # assert_array_almost_equal(nt2.to_numpy()[223:277],[2]*54,12)
-        # self.assertTrue(np.alltrue(np.greater(nt2.to_numpy()[277:323],1)))
+        # self.assertTrue(np.all(np.greater(nt2.to_numpy()[277:323],1)))
         # self.assertAlmostEqual(nt2.to_numpy()[301],1.439236111)
         # assert_array_almost_equal(nt2.to_numpy()[323:377],[1]*54,12)
-        # self.assertTrue(np.alltrue(np.isnan(nt2.to_numpy()[377:400])))
+        # self.assertTrue(np.all(np.isnan(nt2.to_numpy()[377:400])))
         
         # ## third round of boxcar.   
         # nt3=boxcar(nt2,12,12)
-        # self.assertTrue(np.alltrue(np.isnan(nt3.to_numpy()[0:35])))
+        # self.assertTrue(np.all(np.isnan(nt3.to_numpy()[0:35])))
         # assert_array_almost_equal(nt3.to_numpy()[35:165],[1]*130,12)
-        # self.assertTrue(np.alltrue(np.greater(nt3.to_numpy()[165:235],1)))
+        # self.assertTrue(np.all(np.greater(nt3.to_numpy()[165:235],1)))
         # self.assertAlmostEqual(nt3.to_numpy()[196],1.393055556)
         # assert_array_almost_equal(nt3.to_numpy()[235:265],[2]*30,12)
-        # self.assertTrue(np.alltrue(np.greater(nt3.to_numpy()[265:335],1)))
+        # self.assertTrue(np.all(np.greater(nt3.to_numpy()[265:335],1)))
         # self.assertAlmostEqual(nt3.to_numpy()[301],1.453819444)
         # assert_array_almost_equal(nt3.to_numpy()[335:365],[1]*30,12)
-        # self.assertTrue(np.alltrue(np.isnan(nt3.to_numpy()[365:400])))
+        # self.assertTrue(np.all(np.isnan(nt3.to_numpy()[365:400])))
 
     # Daily ave not implemented. Very similar to df.resample('D").mean()
     # def test_daily_average(self):
@@ -205,58 +205,56 @@ class TestFilter(unittest.TestCase):
         delta=minutes(15)
         test_ts=rts(data,st,delta)
         nt3=godin(test_ts)
-        nt3.to_csv("godin.csv")
-        self.assertTrue(np.all(np.isnan(nt3.to_numpy()[0:144])))
-        assert_array_almost_equal(nt3.to_numpy()[144:192],[1]*48,12)
-        self.assertTrue(np.all(np.isnan(nt3.to_numpy()[192:481])))
-        assert_array_almost_equal(nt3.to_numpy()[481:656],[1]*175,12)
+        npout = nt3.to_numpy().ravel()
+        self.assertTrue(np.all(np.isnan(npout[0:144])))
+        assert_array_almost_equal(npout[144:192],[1]*48,12)
+        self.assertTrue(np.all(np.isnan(npout[192:481])))
+        assert_array_almost_equal(npout[481:656],[1.]*175,12)
         self.assertTrue(np.all(np.greater(nt3.to_numpy()[656:944],1)))
-        self.assertAlmostEqual(nt3.to_numpy()[868],1.916618441)
-        assert_array_almost_equal(nt3.to_numpy()[944:1056],[2]*112,12)
-        self.assertTrue(np.all(np.greater(nt3.to_numpy()[1056:1344],1)))
-        self.assertAlmostEqual(nt3.to_numpy()[1284],1.041451845)
-        assert_array_almost_equal(nt3.to_numpy()[1344:1456],[1]*112,12)
-        self.assertTrue(np.all(np.isnan(nt3.to_numpy()[1456:1600])))   
+        self.assertAlmostEqual(npout[868],1.916618441)
+        assert_array_almost_equal(npout[944:1056],[2.]*112,12)
+        self.assertTrue(np.all(np.greater(npout[1056:1344],1)))
+        self.assertAlmostEqual(npout[1284],1.041451845)
+        assert_array_almost_equal(npout[1344:1456],[1.]*112,12)
+        self.assertTrue(np.all(np.isnan(npout[1456:1600])))   
                                    
     def test_godin_2d(self):
         
         """ Test godin filter on 2-dimensional data set."""
-        
+        st=pd.Timestamp(1990,2,3,11, 15)
+
+        ndx = pd.date_range(start = st,freq='15min',periods= 1600)
         d1=[1.0]*800+[2.0]*400+[1.0]*400
         d2=[1.0]*800+[2.0]*400+[1.0]*400
-        data=np.array([d1,d2])
-        data=data.T
-        data[336,:]=np.nan
-        st=pd.Timestamp(1990,2,3,11, 15)
-        delta=minutes(15)
-        test_ts=rts(data,st,delta)
+        df = pd.DataFrame({"x":d1,"y":d2},index=ndx)
+        df.iloc[336,:]=np.nan
         
-        nt3=godin(test_ts)
+        nt3=godin(df)
         d1=nt3.to_numpy()[:,0]
         d2=nt3.to_numpy()[:,1]
-        self.assertTrue(np.alltrue(np.isnan(d1[0:144])))
+        #self.assertTrue(np.all(np.isnan(d1[0:144])))
         assert_array_almost_equal(d1[144:192],[1]*48,12)
-        self.assertTrue(np.alltrue(np.isnan(d1[192:481])))
+        self.assertTrue(np.all(np.isnan(d1[192:481])))
         assert_array_almost_equal(d1[481:656],[1]*175,12)
-        self.assertTrue(np.alltrue(np.greater(d1[656:944],1)))
+        self.assertTrue(np.all(np.greater(d1[656:944],1)))
         self.assertAlmostEqual(d1[868],1.916618441)
         assert_array_almost_equal(d1[944:1056],[2]*112,12)
-        self.assertTrue(np.alltrue(np.greater(d1[1056:1344],1)))
+        self.assertTrue(np.all(np.greater(d1[1056:1344],1)))
         self.assertAlmostEqual(d1[1284],1.041451845)
         assert_array_almost_equal(d1[1344:1456],[1]*112,12)
-        self.assertTrue(np.alltrue(np.isnan(d1[1456:1600]))) 
+        self.assertTrue(np.all(np.isnan(d1[1456:1600]))) 
         
-        self.assertTrue(np.alltrue(np.isnan(d2[0:144])))
+        self.assertTrue(np.all(np.isnan(d2[0:144])))
         assert_array_almost_equal(d2[144:192],[1]*48,12)
-        self.assertTrue(np.alltrue(np.isnan(d2[192:481])))
+        self.assertTrue(np.all(np.isnan(d2[192:481])))
         assert_array_almost_equal(d2[481:656],[1]*175,12)
-        self.assertTrue(np.alltrue(np.greater(d2[656:944],1)))
+        self.assertTrue(np.all(np.greater(d2[656:944],1)))
         self.assertAlmostEqual(d2[868],1.916618441)
         assert_array_almost_equal(d2[944:1056],[2]*112,12)
-        self.assertTrue(np.alltrue(np.greater(d2[1056:1344],1)))
+        self.assertTrue(np.all(np.greater(d2[1056:1344],1)))
         self.assertAlmostEqual(d2[1284],1.041451845)
         assert_array_almost_equal(d2[1344:1456],[1]*112,12)
-        self.assertTrue(np.alltrue(np.isnan(d2[1456:1600]))) 
+        self.assertTrue(np.all(np.isnan(d2[1456:1600]))) 
     
     def test_lanczos_cos_filter_coef(self):
         """ Test the sum of lanczos filter coefficients"""    
@@ -285,7 +283,6 @@ class TestFilter(unittest.TestCase):
         st=pd.Timestamp(1990,2,3,11, 15)
         delta=hours(1)
         ts=rts(x,st,delta)
-        print(ts.head(25))
         ## cutoff period is 30 hours, filterd result should be xlow
         ## approximately
         nt1=cosine_lanczos(ts,cutoff_period=hours(30),filter_len=200)
@@ -397,7 +394,7 @@ class TestFilter(unittest.TestCase):
         ts = pd.read_csv(fname_input, parse_dates=True, index_col=0)
         # FIXME: better way to do this on parse?
         ts.index.freq = ts.index.inferred_freq
-        tsg = filter.godin(ts)
+        tsg = godin(ts)
         fname_expected = os.path.join(os.path.dirname(__file__),
                                       'test_data/godintest-vtools.csv')
         tsg_vtools = pd.read_csv(fname_expected, parse_dates=True, index_col=0)

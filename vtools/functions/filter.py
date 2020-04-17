@@ -5,29 +5,19 @@
 from numpy import abs
 import pandas as pd
 import numpy as np
+from vtools.data.vtime import seconds, minutes, hours
 from scipy import array as sciarray
 from scipy.signal import lfilter,firwin,filtfilt
 from scipy.signal.filter_design import butter
-
+from scipy.ndimage import gaussian_filter1d
 
 #__all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
 #         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
 
 
 
+_cached_filt_info = {}
 
-## This dic saves the missing points for different intervals. 
-#first_point={time_interval(minutes=15):48,time_interval(hours=1):36}
-
-## This dic store tide butterworth filter' cut-off frequencies for 
-## tide time series analysis, here set cutoff frequency at 0.8 cycle/day
-## ,but it is represented as a ratio to Nyquist frequency for two
-## sample intervals.
-#butterworth_cutoff_frequencies={time_interval(minutes=15):0.8/(48),\
-#                               time_interval(hours=1):0.8/12}
-
-## supported interval
-#_butterworth_interval=[time_interval(minutes=15),time_interval(hours=1)]
 
 ########################################################################### 
 ## Public interface.
@@ -122,7 +112,10 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
     if m is None:
         m = int(1.25 * 2. /cf)
     elif type(m) != int:
-        m = int(m/freq)
+        try:
+            m = int(m/freq)
+        except: 
+            raise TypeError("filter_len was not an int or divisible by filter_len (probably a type incompatiblity)")
         #raise NotImplementedError("Only integer length filter lengths or supported currently. Received: ".format(type(m)))
 
     ##find out nan location and fill with 0.0. This way we can use the
@@ -292,20 +285,31 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
     if normalize:
         res = res/res.sum()
     return res    
-    
-def generate_godin_fir(timeinterval):
+
+
+def generate_godin_fir(freq):
     '''
-    generate godin filter impulse response for given timeinterval
-    timeinterval is a pandas freq
-    '''   
-    mins=pd.Timedelta(timeinterval).seconds/60
-    wts24=np.zeros(round(24*60/mins))
-    wts24[:]=1/wts24.size
-    tidal_period=round(24.75*60/mins)
-    if tidal_period%2==0: tidal_period=tidal_period+1
-    wts25=np.zeros(tidal_period)
-    wts25[:]=1.0/wts25.size
-    return np.convolve(wts25,np.convolve(wts24,wts24))
+    generate godin filter impulse response for given freq
+    freq is a pandas freq
+    '''
+    if freq in _cached_filt_info:
+        return _cached_filt_info[freq]
+    dt_sec = int(freq/seconds(1))
+    nsample24 = int(86400//dt_sec)  # 24 hours by dt (24 for hour, 96 for 15min)
+    wts24=np.zeros(nsample24,dtype='d')  
+    wts24[:]=1./nsample24
+    nsample25=(1490*60)//dt_sec  # 24 hr 50min in seconds by dt
+    if nsample25%2==0: 
+        # ensure odd
+        nsample+=1
+    wts25=np.zeros(nsample25,dtype='d')
+    wts25[:]=1.0/nsample25
+    wts24=np.zeros(nsample24,dtype='d')
+    wts24[:]=1./nsample24
+    v = np.convolve(wts25,np.convolve(wts24,wts24))
+    _cached_filt_info[freq] = v
+    return v
+    
     
 def godin(ts):
     """ Low-pass Godin filter a regular time series.
@@ -328,7 +332,7 @@ def godin(ts):
         
     Raise
     --------
-    ValueError
+    NotImplementedError
         If input time series is not univariate
         
     References
@@ -336,16 +340,58 @@ def godin(ts):
     .. [1] Godin (1972) Analysis of Tides
         
     """
-    freqstr=ts.index.freqstr
-    if freqstr == None:
-        freqstr=pd.infer_freq(ts.index)
-    if freqstr == None:
+    freq=ts.index.freq
+    if freq is None:
         raise ValueException("Series must be regular (have freq set)")
-    godin_ir=generate_godin_fir(freqstr)
-    if not (len(ts.columns) == 1):
-        raise ValueError("Godin Filter not functional for multivariate series yet")
-    dfg=pd.DataFrame(np.convolve(ts.iloc[:,0].values,godin_ir,mode='same'), 
-        columns=ts.columns, index = ts.index)
+    godin_ir=generate_godin_fir(freq)
+    nfilt = len(godin_ir)
+    nhalffilt = nfilt//2
+    #if not (len(ts.columns) == 1):
+    #    raise NotImplementedError("Godin Filter not functional for multivariate series yet")
+    dfg = ts.apply(np.convolve,axis=0,v=godin_ir,mode='same')
+    dfg.columns=ts.columns
+    dfg.iloc[0:nhalffilt,:] = np.nan
+    dfg.iloc[-nhalffilt:,:] = np.nan
 
     return dfg
-#
+
+def convert_span_to_nstep(freq,span):
+    if type(span) == int: return span
+    span = pd.tseries.frequencies.to_offset(span)
+    freq = pd.tseries.frequencies.to_offset(freq)
+    return span//freq
+
+def ts_gaussian_filter(ts,sigma,order=0,mode='reflect', cval=0.0, truncate=4.0):
+    """ Column-wise Gaussian smoothing of regular time series. 
+    Missing/irregular values are not handled, which means this function is not much different from
+    a rolling window gaussian average in pandas which may be preferable in the case of 
+    missing data (ts.rolling(window=5,win_type='gaussian').mean. 
+    This function has been kept around awaiting irreg as an aspiration but yet to be implemented.
+    
+    Parameters
+    -----------
+    
+    ts : :class:`DataFrame <pandas:pandas.DataFrame>`
+        The series to be smoothed
+        
+    sigma : int or freq
+        The sigma scale of the smoothing (analogous to std. deviation), given as a number of steps 
+        or freq
+  
+  
+    Returns
+    -------
+    result : :class:`DataFrame <pandas:pandas.DataFrame>`
+        A new regular time series with the same interval of ts. 
+    
+    """
+    freq = ts.index.freq
+    if type(sigma) != int: sigma = convert_span_to_nstep(freq,sigma)
+    tsout = ts.apply(gaussian_filter1d,sigma=sigma,axis=0,order=order,mode=mode,cval=cval,truncate=truncate)
+    return tsout
+        
+    
+    
+    
+    
+    
