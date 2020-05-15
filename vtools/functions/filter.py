@@ -295,13 +295,15 @@ def generate_godin_fir(freq):
     if freq in _cached_filt_info:
         return _cached_filt_info[freq]
     dt_sec = int(freq/seconds(1))
+    print(dt_sec)    
+    assert 1==0
     nsample24 = int(86400//dt_sec)  # 24 hours by dt (24 for hour, 96 for 15min)
     wts24=np.zeros(nsample24,dtype='d')  
     wts24[:]=1./nsample24
     nsample25=(1490*60)//dt_sec  # 24 hr 50min in seconds by dt
     if nsample25%2==0: 
         # ensure odd
-        nsample+=1
+        nsample25+=1
     wts25=np.zeros(nsample25,dtype='d')
     wts25[:]=1.0/nsample25
     wts24=np.zeros(nsample24,dtype='d')
@@ -338,7 +340,7 @@ def godin(ts):
     References
     ----------
     .. [1] Godin (1972) Analysis of Tides
-        
+
     """
     freq=ts.index.freq
     if freq is None:

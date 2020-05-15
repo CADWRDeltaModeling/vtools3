@@ -256,6 +256,13 @@ class TestFilter(unittest.TestCase):
         assert_array_almost_equal(d2[1344:1456],[1]*112,12)
         self.assertTrue(np.all(np.isnan(d2[1456:1600]))) 
     
+    def test_godin_fir(self):
+        fir0 = generate_godin_fir('60T')
+        fir1 = generate_godin_fir('1H')
+        fir2 = generate_godin_fir('1H')
+        assert_array_equal(fir0,fir1)
+        assert_array_equal(fir0,fir2)
+    
     def test_lanczos_cos_filter_coef(self):
         """ Test the sum of lanczos filter coefficients"""    
         cf=0.2
