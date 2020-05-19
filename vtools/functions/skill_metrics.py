@@ -1,5 +1,6 @@
 import vtools
 from vtools.data.timeseries import *
+from scipy.stats import trim_mean
 import numpy as np
 
 
@@ -49,6 +50,25 @@ def median_error(predictions, targets):
             Median error
     """
     return (predictions - targets).median()
+
+
+
+def mean_error(predictions, targets,proportiontocut):
+    """ Calculate the untrimmed mean error, discounting nan values
+    
+        Parameters
+        ----------
+        predictions, targets : array_like
+        
+            Time series or arrays to be analyzed
+        
+        Returns
+        -------
+        med : float
+            Median error
+    """
+    trim = (predictions - targets).mean()
+    return trim
     
   
 def skill_score(predictions,targets,ref=None):

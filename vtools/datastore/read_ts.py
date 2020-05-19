@@ -200,7 +200,7 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          selector=selector,
                          format_compatible_fn = is_usgs1,
                          qaqc_selector=qaselect,
-                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]'],
+                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:R','Approved'],
                          extra_cols="tz_cd",
                          parsedates=["datetime"],
                          indexcol="datetime",
@@ -257,7 +257,7 @@ def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          selector=selector,
                          format_compatible_fn = is_usgs2,
                          qaqc_selector=qaselect,
-                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]'],
+                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:R','Approved'],
                          parsedates=[["DATE","TIME"]],
                          indexcol="DATE_TIME",
                          header=0,
@@ -306,21 +306,28 @@ def read_usgs_csv1(fpath_pattern,start=None,end=None,selector=None,force_regular
         selector = "Value"
     qaselect = ["Approval Level"]
         
-    # Now tack on time zone at the end
-    ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular, 
-                         selector=selector,
-                         format_compatible_fn = is_usgs_csv1,
-                         qaqc_selector=qaselect,
-                         qaqc_accept=['', ' ', ' ', 'A','P','Approved','Working'],
-                         parsedates=[0,1],
-                         indexcol=1,
-                         header=0,
-                         sep=", ",
-                         engine="python",
-                         skiprows="count",
-                         comment="#",
-                         dtypes={"Value":float,"Approval Level":str})
-    return ts
+    # Extra
+    sep_eng=[(',','c'),(', ','python')]
+    ts = None
+    for sep,eng in sep_eng:
+        try:
+            ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular, 
+                                 selector=selector,
+                                 format_compatible_fn = is_usgs_csv1,
+                                 qaqc_selector=qaselect,
+                                 qaqc_accept=['', ' ', ' ', 'A','P','Approved','Working','A:[99]','A:R'],
+                                 parsedates=[1],
+                                 indexcol=1,
+                                 header=0,
+                                 sep=sep,    # used to be sep=", " which broke one file
+                                 engine=eng,
+                                 skiprows=0,
+                                 comment="#",
+                                 dtypes={"Value":float,"Approval Level":str})
+            return ts
+        except IndexError as e:
+            if sep == ', ': raise
+    return None   # should not actually get this far
     
 
 ##############################################
