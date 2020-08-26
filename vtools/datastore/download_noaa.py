@@ -12,6 +12,8 @@ import datetime as dtm
 import re
 
 
+
+
 stationlist = {"9414290":"San Francisco",
                "9414750":"Alameda",
                "9414523":"Redwood City",
@@ -83,7 +85,7 @@ def write_header(fname, headers):
     f.close()
 
 
-def retrieve_data(station_id, start, end, product=None):
+def retrieve_data(station_id, start, end, product='water_level'):
     """ Download stage data from NOAA tidesandcurrents, and save it to
         NOAA CSV format.
 
@@ -110,6 +112,7 @@ def retrieve_data(station_id, start, end, product=None):
             station_id = name_to_id[station_id]
     print("Station: {}".format(strstation))
 
+
     product_info = {"water_level" :      { "agency": "noaa",
                                            "unit": "meters",
                                            "datum": "NAVD",
@@ -121,7 +124,7 @@ def retrieve_data(station_id, start, end, product=None):
                                             "unit": "meters",
                                             "datum": "NAVD",
                                             "station_id": "{}".format(station_id),
-                                            "item": "predicted_elev",
+                                            "item": "predictions",
                                             "timezone": "LST",
                                             "source": "http://tidesandcurrents.noaa.gov/"},
                     "water_temperature" : { "agency": "noaa",
@@ -138,13 +141,15 @@ def retrieve_data(station_id, start, end, product=None):
                                             "source": "http://tidesandcurrents.noaa.gov/"}
                     }                                                      
 
-    if product is None:
-        product = 'water_level'
+
+
     fname = "{}_{}.txt".format(station_id,product)    
     if not product in product_info:
         raise ValueError("Product not supported: {}".format(product))
     first = True
     headers = product_info[product]
+    app = "NOS.COOPS.TAC.PHYSOCEAN" if product in ("conductivity","temperature") else "NOS.COOPS.TAC.WL"
+    
     for year in range(start.year, end.year + 1):
         month_start = start.month if year == start.year else 1
         month_end = end.month if year == end.year else 12
@@ -153,17 +158,21 @@ def retrieve_data(station_id, start, end, product=None):
             day_end = end.day if year == end.year and month == end.month else calendar.monthrange(year, month)[1]
             date_start = "{:4d}{:02d}{:02d}".format(year, month, day_start)
             date_end = "{:4d}{:02d}{:02d}".format(year, month,day_end)
-            #https://tidesandcurrents.noaa.gov/api/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=20120101&end_date=20120905&station=9414290&time_zone=lst&units=metric&interval=6&format=csv
+            base_url = headers["source"]
 
             datum = "NAVD"
-            url ="http://tidesandcurrents.noaa.gov/api/datagetter?product={}&application=NOS.COOPS.TAC.PHYSOCEANL&station={}&begin_date={}&end_date={}&datum={}&units=metric&time_zone=LST&format=csv".format(product, station_id, date_start, date_end, datum)
-            print("Retrieving {}, {}, {}...".format(station_id, date_start, date_end))
+            datum_str = f"&datum={datum}" if product in ("water_level","predictions") else ""
+            url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={date_start}&time_zone=LST&units=metric{datum_str}&format=CSV"
+
+
+            print("Retrieving {}, {}, {}...".format(url,station_id, date_start, date_end))
             print("URL: {}".format(url))
             
             raw_table = retrieve_csv(url).decode()
             if raw_table[0] == '\n':
                 datum = "STND"
-                url = "http://tidesandcurrents.noaa.gov/api/datagetter?product={}&application=NOS.COOPS.TAC.PHYSOCEANL&station={}&begin_date={}&end_date={}&datum={}&units=metric&time_zone=LST&format=csv".format(product, station_id, date_start, date_end, datum)
+                datum_str = f"&datum={datum}" if product in ("water_level","predictions") else ""
+                url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={date_start}&time_zone=LST&units=metric&{datum_str}&format=CSV"
                 print("Retrieving Station {}, from {} to {}...".format(station_id, date_start, date_end))
                 print("URL: {}".format(url))
                 # raw_table = retrieve_table(url)
