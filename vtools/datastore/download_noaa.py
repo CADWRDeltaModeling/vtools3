@@ -162,7 +162,7 @@ def retrieve_data(station_id, start, end, product='water_level'):
 
             datum = "NAVD"
             datum_str = f"&datum={datum}" if product in ("water_level","predictions") else ""
-            url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={date_start}&time_zone=LST&units=metric{datum_str}&format=CSV"
+            url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={station_id}&time_zone=LST&units=metric{datum_str}&format=csv"
 
 
             print("Retrieving {}, {}, {}...".format(url,station_id, date_start, date_end))
@@ -172,7 +172,7 @@ def retrieve_data(station_id, start, end, product='water_level'):
             if raw_table[0] == '\n':
                 datum = "STND"
                 datum_str = f"&datum={datum}" if product in ("water_level","predictions") else ""
-                url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={date_start}&time_zone=LST&units=metric&{datum_str}&format=CSV"
+                url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={station_id}&time_zone=LST&units=metric&{datum_str}&format=csv"
                 print("Retrieving Station {}, from {} to {}...".format(station_id, date_start, date_end))
                 print("URL: {}".format(url))
                 # raw_table = retrieve_table(url)
