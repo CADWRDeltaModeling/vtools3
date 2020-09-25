@@ -1,3 +1,4 @@
+code,name,station_id,alias
 ANH,San Joaquin at Antioch,B95020,ANH
 BAC,Bacon Island at Old River,B95250,BAC
 BEN,Mokelumne River at Benson's Ferry,B94175,BEN

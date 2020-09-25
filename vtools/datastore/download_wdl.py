@@ -44,12 +44,12 @@ def create_arg_parser():
     paramhelp = 'Variable to download, should be in list:\n%s' % list(items.keys())
     
     parser.add_argument('--dest', dest = "dest_dir", default="wdl_download", help = 'Destination directory for downloaded files.')
-    parser.add_argument('--id_col',default = None, help = 'Column in station file representing station. IDs not matched will trigger failure. If id_col or param_col is given, a header is assumed')
-    parser.add_argument('--param_col',default = None, help = 'Column representing the parameter to download.')
+    parser.add_argument('--id_col',default = None, help = 'Column in station file representing station. IDs not matched will trigger failure. Header is assumed to represent column names')
+    parser.add_argument('--param_col',default = None, help = 'Column representing the parameter to download. Parameter can be ommitted if it is all the same and given in the --param argument')
     #parser.add_argument('--start',required=True,help = 'Start time, format 2009-03-31 14:00')    
     #parser.add_argument('--end',default = None,help = 'Start time, format 2009-03-31 14:00')    
-    parser.add_argument('--syear',required=True,help = 'Start year')    
-    parser.add_argument('--eyear',default = None,help = 'End year, if blank current year')
+    parser.add_argument('--syear',required=True,help = 'Start year (these are water years starting previous October')    
+    parser.add_argument('--eyear',default = None,help = 'End year, if blank current year (water year)')
     parser.add_argument('--param',help=paramhelp)
     parser.add_argument('--overwrite',  action="store_true", help = 'Overwrite existing files (if False they will be skipped)')
     parser.add_argument('stationfile', help = 'CSV-format station file.')    
@@ -71,8 +71,7 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     id_column = args.id_col
-    #param_column = args.param_col
-    param_column = 'param'
+    param_column = args.param_col
     destdir = args.dest_dir
     stationfile = args.stationfile
     overwrite = args.overwrite
