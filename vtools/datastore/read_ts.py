@@ -141,6 +141,36 @@ def read_wdl(fpath_pattern,start=None,end=None,selector=None,force_regular=True)
                          comment=None)    
     return ts
 
+
+def is_wdl2(fname):
+    with open(fname,"r") as f:
+        first_line = f.readline()
+        second_line = f.readline()
+        return "\"Date" in first_line and "Site" in second_line
+
+
+def read_wdl2(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+    if selector is not None:
+        raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
+    
+    ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular,
+                         selector="value",
+                         format_compatible_fn=is_wdl2,
+                         qaqc_selector="qaqc_flag",
+                         qaqc_accept=['', ' ', ' ', 'e',"1"],
+                         parsedates=["datetime"],
+                         indexcol="datetime",
+                         sep=',',
+                         skiprows=0,
+                         column_names=["datetime","value","qaqc_flag","comment"],
+                         header=0,
+                         dateparser=None,
+                         comment=None)    
+    return ts
+
+
+
+
 ############################################################
 def is_usgs1(fname):
     MAX_SCAN_LINE = 20
@@ -434,7 +464,7 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
     from os.path import split as op_split
     readers = [read_usgs1,read_usgs2,read_usgs_csv1,
                read_noaa,read_des,
-               read_cdec1,read_cdec2,read_wdl]
+               read_cdec1,read_cdec2,read_wdl2,read_wdl]
     ts = None
     reader_count = 0
     for reader in readers:
