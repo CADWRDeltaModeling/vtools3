@@ -117,7 +117,7 @@ def main1():
     wdl_download(stations,years,destdir,overwrite)
 
 aliases = None
-alias_path = 'C:/Delta/vtools3/vtools/datastore/wdl_continuous_files_alias.csv'
+alias_path = os.path.join(os.path.split(__file__)[0],'wdl_continuous_files_alias.csv')
 
 def wdl_download(station_list,years,dest_dir,syear,eyear,overwrite=False):
     """ Download robot for Water Data Library
