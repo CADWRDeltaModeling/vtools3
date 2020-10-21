@@ -114,7 +114,8 @@ def is_wdl(fname):
     with open(fname,"r") as f:
         first_line = f.readline()
         parts = first_line.split(",")
-        if not len(parts) == 3: return False
+        if not len(parts) in (3,4): 
+            return False
         try:
             pd.to_datetime(parts[0])
             return True
@@ -130,12 +131,12 @@ def read_wdl(fpath_pattern,start=None,end=None,selector=None,force_regular=True)
                          selector="value",
                          format_compatible_fn=is_wdl,
                          qaqc_selector="qaqc_flag",
-                         qaqc_accept=['', ' ', ' ', 'e',"1"],
+                         qaqc_accept=['', ' ', ' ', 'e',"1","2"],
                          parsedates=["datetime"],
                          indexcol="datetime",
                          sep=',',
                          skiprows=0,
-                         column_names=["datetime","value","qaqc_flag"],
+                         column_names=["datetime","value","qaqc_flag","comment"],
                          header=None,
                          dateparser=None,
                          comment=None)    
@@ -224,7 +225,7 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
         qaselect = [x+"_cd" for x in selector]
 
     dtypes = {TZCOL : str}
-        
+
     # Now tack on time zone at the end
     ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular, 
                          selector=selector,
