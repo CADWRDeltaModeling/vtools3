@@ -8,6 +8,10 @@ from vtools.functions._monotonic_spline import *
 
 
 
+def interpolate_to_index(df,dest):
+    return df.reindex(df.index.union(dest)).interpolate(method='time').reindex(dest)
+
+    
 def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
     """ Interpolate a regular time series (rts) to a finer rts by rational histospline.
 
