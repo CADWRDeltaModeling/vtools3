@@ -292,8 +292,9 @@ def generate_godin_fir(freq):
     generate godin filter impulse response for given freq
     freq is a pandas freq
     '''
-    if freq in _cached_filt_info:
-        return _cached_filt_info[freq]
+    freqstr=str(freq)
+    if freqstr in _cached_filt_info:
+        return _cached_filt_info[freqstr]
     dt_sec = int(freq/seconds(1))
     nsample24 = int(86400//dt_sec)  # 24 hours by dt (24 for hour, 96 for 15min)
     wts24=np.zeros(nsample24,dtype='d')  
@@ -307,7 +308,7 @@ def generate_godin_fir(freq):
     wts24=np.zeros(nsample24,dtype='d')
     wts24[:]=1./nsample24
     v = np.convolve(wts25,np.convolve(wts24,wts24))
-    _cached_filt_info[freq] = v
+    _cached_filt_info[freqstr] = v
     return v
     
     
