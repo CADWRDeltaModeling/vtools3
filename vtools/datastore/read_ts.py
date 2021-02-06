@@ -8,12 +8,78 @@ from vtools.functions.merge import *
 from vtools.data.vtime import minutes
 
 
-def is_des(fname):
+
+
+def is_ncro_std(fname):
+    import re
+    pattern = re.compile("#\s?provider\s?=\s?dwr-ncro")
     with open(fname,"r") as f:
         for i,line in enumerate(f):
             if i > 6: return False
-            if "result_id" in line.lower(): 
+            if pattern.match(line.lower()):
                 return True 
+
+def read_ncro_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+
+    if selector is not None:
+        raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
+    ts = csv_retrieve_ts(fpath_pattern, 
+                         start, end, force_regular,
+                         format_compatible_fn=is_ncro_std,
+                         selector="value",
+                         qaqc_selector="qaqc_code",
+                         qaqc_accept=['', ' ', ' ', 'e',"1","2"],
+                         parsedates=["datetime"],
+                         indexcol="datetime",
+                         sep=',',
+                         skiprows=0,
+                         column_names=["datetime","value","qaqc_code","qaqc_description","status"],
+                         header=0,
+                         dateparser=None,
+                         comment="#")
+    return ts
+
+def is_des_std(fname):
+    import re
+    pattern = re.compile("#\s?provider\s?=\s?dwr-des")
+    with open(fname,"r") as f:
+        for i,line in enumerate(f):
+            if i > 6: return False
+            if pattern.match(line.lower()):
+                return True 
+
+def read_des_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+
+    if selector is not None:
+        raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
+    ts = csv_retrieve_ts(fpath_pattern, 
+                         start, end, force_regular,
+                         format_compatible_fn=is_des_std,
+                         selector="value",
+                         qaqc_selector="qaqc_flag_id",
+                         qaqc_accept=["U","G","A"],
+                         parsedates=["time"],
+                         indexcol="time",
+                         sep=",",
+                         header=0,
+                         dateparser=None,
+                         comment="#",
+                         extra_na=[""],
+                         prefer_age="new")
+    return ts
+    
+
+def is_des(fname):
+    with open(fname,"r") as f:
+        count = 0
+        for i,line in enumerate(f):
+            if i > 7: return False
+            linelow = line.lower()
+            if "result_id" in linelow: 
+                count +=1
+            if "Row#" in linelow:
+                count +=1
+        return count == 2
     
 
 
@@ -464,8 +530,9 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
     """
     from os.path import split as op_split
     readers = [read_usgs1,read_usgs2,read_usgs_csv1,
-               read_noaa,read_des,
-               read_cdec1,read_cdec2,read_wdl2,read_wdl]
+               read_noaa,read_des,read_des_std,
+               read_cdec1,read_cdec2,
+               read_ncro_std,read_wdl2,read_wdl]
     ts = None
     reader_count = 0
     for reader in readers:
