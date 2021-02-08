@@ -77,9 +77,9 @@ def is_des(fname):
             linelow = line.lower()
             if "result_id" in linelow: 
                 count +=1
-            if "Row#" in linelow:
+            if "row#" in linelow or "row #" in linelow:
                 count +=1
-        return count == 2
+            if count >= 2: return True
     
 
 
