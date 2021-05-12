@@ -52,7 +52,7 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     skips = []
     for station in stations:
         print("Downloading station: %s" % (station))
-        path = os.path.join(dest_dir,"%s.rdb"% (station))
+        path = os.path.join(dest_dir,"%s_%s.rdb"% (station,param))
         if os.path.exists(path) and not overwrite:
             print("Skipping existing station because file exists: %s" % station)
             skips.append(path)
