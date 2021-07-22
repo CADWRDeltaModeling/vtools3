@@ -66,8 +66,8 @@ sham,s08010,Southampton Shoal Channel LB 6,37.91625,-122.4223333,550775.4,419668
 tibc1,tibc1,Tiburon Pier,37.89117018,-122.4461449,548699,4193884.8,,,,noaa,,,x,
 scqc1,scqc1,China Camp,38.00117026,-122.4591436,547485.2,4206082.9,,,,noaa,,,x,
 sffpx,9414290,San Francisco,37.8067,-122.465,547094.8,4184503.1,,,,noaa,x,,,
-pryc1,9415020,Point Reyes,37.996,-122.977,,,,noaa,x,,,,,
-mtyc1,9413450,Monterey,36.605,-121.889,,,,noaa,x,,,,,
+pryc1,9415020,Point Reyes,37.996,-122.977,502341.4,4205260.6,,,,noaa,x,,,,,
+mtyc1,9413450,Monterey,36.605,-121.889,599422.8,4051630.4,,,,noaa,x,,,,,
 aamc1,9414750,Alameda,37.77161379,-122.2993982,561701.6,4180706.7,,,,noaa,x,,,
 afo,11446500,American River at Fair Oaks,38.63546,-121.22773,654346.1435,4277827,,,AFO,usgs,,,,
 smbr,9414458,San Mateo Bridge,37.58,-122.253,565957.4,4159479,,,,noaa,xx,,,
@@ -129,7 +129,7 @@ mare,9415218,Mare Island,38.07,-122.25,565785.8,4213847.2,,,,noaa,x,,,
 crock,9415143,Crockett,38.0583,-122.223,568165,4212568.5,,,,noaa,x,,,
 ptchi,9415144,Port Chicago,38.056,-122.0395,584266.1,4212463.8,,,,noaa,x,,,
 brad,9414811,Bradmoor Island,38.18285942,-121.9247926,594166.8,4226650.2,,,,noaa,x,,,"Rogers Duck Club, pier behind shack. Discontinued 2006"
-bts,S40,Boynton Slough,38.20528,-122.06111,582201.4519,4228997,,,,dwr_des,,,,
+bts,40,Boynton Slough,38.20528,-122.06111,582201.4519,4228997,,,,dwr_des,,,,
 mifw,9415112,Mallard Island Ferry Wharf,38.0433,-121.918,594942.2,4211171.8,,,,noaa,x,,,
 antn,9415064,Antioch,38.02,-121.815,604013.4,4208696.6,,,,noaa,x,,,
 rvno,9415316,Rio Vista,38.145,-121.692,614614.8,4222711.4,,,,noaa,x,,,
@@ -185,7 +185,7 @@ smr,11336680,S Mokelumne R at New Hope BR near Walnut Grove,38.2255556,-121.4911
 mkn,11336685,N Mokelumne R near Walnut Grove,38.223333,-121.5072222,630666.9,4231648.1,,,MKN,usgs,,x,x,"flow and velocity available since 12/13/2010, turbidity and suspended since 8/14/2012"
 sxs,B91450Q,Steamboat Slough near Sacramento River,38.191267,-121.637881,619281.8,4227913.6,,B91450Q,SXS,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/12/2015"
 fct,B95050,Fisherman's Cut,38.06782222,-121.6488389,618521.7,4214201.8,,B95050Q,FCT,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/5/2015"
-flt,S96,Goodyear Slough at Fleet,38.08083,-122.09972,579121.895,4214883,,,FLT,dwr_des,,,,
+flt,96,Goodyear Slough at Fleet,38.08083,-122.09972,579121.895,4214883,,,FLT,dwr_des,,,,
 soi,B91250Q,Sacramento River Downstream of Isleton,38.17548,-121.656863,617644.9,4226137.5,,B91250Q,SOI,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/29/2015"
 mir,B91470Q,Miner Slough,38.23602683,-121.666055,616742.9,4232844.4,,B91470Q,MIR,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/12/2015"
 twi,405,San Joaquin River at Twitchell Island,38.09746,-121.66872,616731,4217465,,,TWI,dwr_des,,,,"data available on cdec since 6/19/2015, doesn't exist on wdl as of 10/6/2015"
