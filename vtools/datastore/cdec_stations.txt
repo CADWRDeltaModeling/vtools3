@@ -1,0 +1,5 @@
+id,subloc,param
+JER,,ec
+FAL,,ec
+EMM,upper,ec
+EMM,lower,ec

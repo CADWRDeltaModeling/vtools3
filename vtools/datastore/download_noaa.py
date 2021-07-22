@@ -10,11 +10,12 @@ import bs4
 import calendar
 import datetime as dtm
 import re
+import os
+from vtools.datastore.process_station_variable import process_station_list
+from vtools.datastore import station_config
 
 
-
-
-stationlist = {"9414290":"San Francisco",
+default_stationlist = {"9414290":"San Francisco",
                "9414750":"Alameda",
                "9414523":"Redwood City",
                "9414575":"Coyote Creek",
@@ -25,7 +26,7 @@ stationlist = {"9414290":"San Francisco",
                "9415102":"Martinez-Amorco Pier"}
 
 
-name_to_id = dict((stationlist[k], k) for k in stationlist)
+name_to_id = dict((default_stationlist[k], k) for k in default_stationlist)
 
 
 def retrieve_csv(url):
@@ -85,7 +86,7 @@ def write_header(fname, headers):
     f.close()
 
 
-def retrieve_data(station_id, start, end, product='water_level'):
+def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     """ Download stage data from NOAA tidesandcurrents, and save it to
         NOAA CSV format.
 
@@ -93,6 +94,9 @@ def retrieve_data(station_id, start, end, product='water_level'):
         ----------
         station_id : int or str
             station id
+            
+        dest_dir : str
+        Destination directory for download
 
         start : datetime.datetime
             first date to download
@@ -100,90 +104,117 @@ def retrieve_data(station_id, start, end, product='water_level'):
         end : datetime.datetime
             last date to download, inclusive of the date
 
-        product : str
+        param : str
             production, it is either water_level or predictions.
 
     """
-    if station_id in stationlist:
-        strstation = stationlist[station_id]
-    else:
-        strstation = station_id
-        if station_id in name_to_id:
-            station_id = name_to_id[station_id]
-    print("Station: {}".format(strstation))
-
-
-    product_info = {"water_level" :      { "agency": "noaa",
-                                           "unit": "meters",
-                                           "datum": "NAVD",
-                                           "station_id": "{}".format(station_id),
-                                           "item": "elev",
-                                           "timezone": "LST",
-                                           "source": "http://tidesandcurrents.noaa.gov/"},
-                    "predictions" :      { "agency": "noaa",
-                                            "unit": "meters",
-                                            "datum": "NAVD",
-                                            "station_id": "{}".format(station_id),
-                                            "item": "predictions",
-                                            "timezone": "LST",
-                                            "source": "http://tidesandcurrents.noaa.gov/"},
-                    "water_temperature" : { "agency": "noaa",
-                                            "unit": "Celcius",
-                                            "station_id": "{}".format(station_id),
-                                            "item": "temperature",
-                                            "timezone": "LST",
-                                            "source": "http://tidesandcurrents.noaa.gov/"},
-                    "conductivity"      : { "agency": "noaa",
-                                            "unit": "microS/cm",
-                                            "station_id": "{}".format(station_id),
-                                            "item": "conductivity",
-                                            "timezone": "LST",
-                                            "source": "http://tidesandcurrents.noaa.gov/"}
-                    }                                                      
 
 
 
-    fname = "{}_{}.txt".format(station_id,product)    
-    if not product in product_info:
-        raise ValueError("Product not supported: {}".format(product))
-    first = True
-    headers = product_info[product]
-    app = "NOS.COOPS.TAC.PHYSOCEAN" if product in ("conductivity","temperature") else "NOS.COOPS.TAC.WL"
-    
-    for year in range(start.year, end.year + 1):
-        month_start = start.month if year == start.year else 1
-        month_end = end.month if year == end.year else 12
-        for month in range(month_start, month_end + 1):
-            day_start = start.day if year == start.year and month == start.month else 1
-            day_end = end.day if year == end.year and month == end.month else calendar.monthrange(year, month)[1]
-            date_start = "{:4d}{:02d}{:02d}".format(year, month, day_start)
-            date_end = "{:4d}{:02d}{:02d}".format(year, month,day_end)
-            base_url = headers["source"]
-
-            datum = "NAVD"
-            datum_str = f"&datum={datum}" if product in ("water_level","predictions") else ""
-            url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={station_id}&time_zone=LST&units=metric{datum_str}&format=csv"
+    #if station_id in default_stationlist:
+    #    strstation = default_stationlist[station_id]
+    #else:
+    #    strstation = station_id
+    #    if station_id in name_to_id:
+    #        station_id = name_to_id[station_id]
+    #print("Station: {}".format(strstation))
+    print(dest_dir)
+    skips = []
+                                                    
+    print(stations)
+    for ndx,row in stations.iterrows():
+        agency_id = row.agency_id
+        station = row.station_id
+        param = row.src_var_id
+        station_name=row.name
+        paramname = row.param
+        subloc = row.subloc
 
 
-            print("Retrieving {}, {}, {}...".format(url,station_id, date_start, date_end))
-            print("URL: {}".format(url))
-            
-            raw_table = retrieve_csv(url).decode()
-            if raw_table[0] == '\n':
-                datum = "STND"
-                datum_str = f"&datum={datum}" if product in ("water_level","predictions") else ""
-                url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={product}&application={app}&begin_date={date_start}&end_date={date_end}&datum=NAVD&station={station_id}&time_zone=LST&units=metric&{datum_str}&format=csv"
-                print("Retrieving Station {}, from {} to {}...".format(station_id, date_start, date_end))
-                print("URL: {}".format(url))
-                # raw_table = retrieve_table(url)
+        product_info = {"water_level" :      { "agency": "noaa",
+                                               "unit": "meters",
+                                               "datum": "NAVD",
+                                               "station_id": f"{agency_id}",
+                                                "station_name": f"{station_name}", 
+                                               "item": "elev",
+                                               "timezone": "LST",
+                                               "source": "http://tidesandcurrents.noaa.gov/"},
+                        "predictions" :      { "agency": "noaa",
+                                                "unit": "meters",
+                                                "datum": "NAVD",
+                                                "station_id": "{}".format(agency_id),
+                                                "station_name": f"{station_name}", 
+                                                "item": "predictions",
+                                                "timezone": "LST",
+                                                "source": "http://tidesandcurrents.noaa.gov/"},
+                        "water_temperature" : { "agency": "noaa",
+                                                "unit": "Celcius",
+                                                "station_id": "{}".format(agency_id),
+                                                "station_id": f"{agency_id}",
+                                                "station_name": f"{station_name}", 
+                                                "item": "temperature",
+                                                "timezone": "LST",
+                                                "source": "http://tidesandcurrents.noaa.gov/"},
+                        "conductivity"      : { "agency": "noaa",
+                                                "unit": "microS/cm",
+                                                "station_id": "{}".format(agency_id),
+                                                "station_name": f"{station_name}", 
+                                                "item": "conductivity",
+                                                "timezone": "LST",
+                                                "source": "http://tidesandcurrents.noaa.gov/"}
+                        }  
+
+
+
+        yearname = f"{start.year}_{end.year}" if start.year != end.year else f"{start.year}"
+        outfname = f"noaa_{station}_{agency_id}_{paramname}_{yearname}.csv"
+        outfname = outfname.lower()
+        path = os.path.join(dest_dir,outfname)
+        if os.path.exists(path) and not overwrite:
+            print(f"\nSkipping existing station because file exists: {station} variable {param}")
+            skips.append(path)
+            continue
+
+        if not param in product_info:
+            raise ValueError("Product not supported: {}".format(param))
+        first = True
+        headers = product_info[param]
+        app = "NOS.COOPS.TAC.PHYSOCEAN" if param in ("conductivity","temperature") else "NOS.COOPS.TAC.WL"
+        
+        for year in range(start.year, end.year + 1):
+            month_start = start.month if year == start.year else 1
+            month_end = end.month if year == end.year else 12
+            for month in range(month_start, month_end + 1):
+                day_start = start.day if year == start.year and month == start.month else 1
+                day_end = end.day if year == end.year and month == end.month else calendar.monthrange(year, month)[1]
+                date_start = "{:4d}{:02d}{:02d}".format(year, month, day_start)
+                date_end = "{:4d}{:02d}{:02d}".format(year, month,day_end)
+                base_url = headers["source"]
+
+                datum = "NAVD"
+                datum_str = f"&datum={datum}" if param in ("water_level","predictions") else ""
+                url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={param}&application={app}&begin_date={date_start}&end_date={date_end}&station={agency_id}&time_zone=LST&units=metric{datum_str}&format=csv"
+
+
+                print(f"Retrieving {url}\n station {agency_id} from {date_start} to {date_end}".format(url,agency_id, date_start, date_end))
+                #print("URL: {}".format(url))
+                
                 raw_table = retrieve_csv(url).decode()
-            print("Done retrieving.")
+                if raw_table[0] == '\n':
+                    datum = "STND"
+                    datum_str = f"&datum={datum}" if param in ("water_level","predictions") else ""
+                    url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={param}&application={app}&begin_date={date_start}&end_date={date_end}&station={agency_id}&time_zone=LST&units=metric&{datum_str}&format=csv"
+                    print("Retrieving Station {}, from {} to {}...".format(agency_id, date_start, date_end))
+                    print("URL: {}".format(url))
+                    # raw_table = retrieve_table(url)
+                    raw_table = retrieve_csv(url).decode()
+                print("Done retrieving.")
 
-            if first:
-                headers["datum"] = datum
-                write_header(fname, headers)
-            write_table(raw_table, fname, first)
-            first = False
+                if first:
+                    headers["datum"] = datum
+                    write_header(path, headers)
+                write_table(raw_table, path, first)
+                first = False
 
 def create_arg_parser():
     """ Create an ArgumentParser
@@ -200,18 +231,18 @@ def create_arg_parser():
     parser.add_argument('--eyear', default=None, required=False, type=int,
                         help='Last year to download, inclusive to end'
                              ' of the year.')
-    parser.add_argument('--product', default='water_level', required=False,
+    parser.add_argument('--param', default=None, required=False,
                         type=str,
                         help='Product to download: water_level, predictions, water_temperature, conductivity.')
 
     parser.add_argument('--stations', default=None, nargs="*", required=False,
                         help='Id or name of one or more stations.')
-    parser.add_argument('--stationfile', default=None, required=False,
-                        type=argparse.FileType('r'),
-                        help='File listing stations in which the first column'
-                             ' is ID number. Must be followed by space')
+    parser.add_argument('stationfile', help = 'CSV-format station file.')
+                             
+    parser.add_argument('--dest', dest = "dest_dir", default="noaa_download", help = 'Destination directory for downloaded files.')                             
     parser.add_argument('--list', default=False, action='store_true',
                         help='List known station ids.')
+    parser.add_argument('--overwrite',  action="store_true", help = 'Overwrite existing files (if False they will be skipped, presumably for speed')                      
     return parser
 
 
@@ -219,8 +250,8 @@ def list_stations():
     """ Show NOAA station ID's in our study area.
     """
     print("Available stations:")
-    for key in stationlist.keys():
-        print("{}: {}".format(key, stationlist[key]))
+    for key in default_stationlist.keys():
+        print("{}: {}".format(key, default_stationlist[key]))
 
 
 def assure_datetime(dtime, isend = False):
@@ -237,25 +268,29 @@ def assure_datetime(dtime, isend = False):
         return dtm.datetime(dtime,12,31,23,59) if isend else dtm.datetime(dtime,1,1)
         
  
-        
-def noaa_download(stations,product,start,end):
-    start = assure_datetime(start)
-    end = assure_datetime(end,isend=True)
-        
-    for id_ in stations:
-        retrieve_data(id_, start, end, product=product)
+
         
 def main():
     """ Main function
     """
     parser = create_arg_parser()
     args = parser.parse_args()
+    dest_dir = args.dest_dir
+    overwrite = args.overwrite    
     if args.list:
         list_stations()
         return
     else:
         if args.stations and args.stationfile:
             raise ValueError("Station and stationfile inputs are mutually exclusive")
+        stationfile = args.stationfile
+
+        param=args.param
+        if os.path.exists(stationfile):
+            slookup = station_config.config_file("station_dbase")
+            vlookup = station_config.config_file("variable_mappings")
+            df = process_station_list(stationfile,param=param,station_lookup=slookup,
+                                      agency_id_col="agency_id",param_lookup=vlookup,source='noaa')
 
         if not (args.stations or args.stationfile):
             raise ValueError("Either station or stationfile required")
@@ -287,6 +322,8 @@ def main():
             if start > end:
                 raise ValueError("start {} is after end {}".format(start.strftime("%Y-%m-%d"),end.strftime("%Y-%m-%d")))
 
+
+
         if args.stations:
             # stations explicitly input
             stage_stations = args.stations
@@ -299,7 +336,8 @@ def main():
                     print("station id={}".format(sid))
                     stage_stations.append(sid)
 
-        return noaa_download(stage_stations,args.product,start,end)
+
+        return noaa_download(df,dest_dir,start,end,param,overwrite)
 
 
 if __name__ == "__main__":

@@ -21,6 +21,8 @@ import os
 import string
 import datetime as dt
 import numpy as np
+from vtools.datastore.process_station_variable import process_station_list
+from vtools.datastore import station_config
 
 def create_arg_parser():
     parser = argparse.ArgumentParser()
@@ -47,25 +49,37 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     if end == None: end = dt.datetime.now()
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir) 
-        
+    
+    
     failures = []
     skips = []
-    for station in stations:
-        print("Downloading station: %s" % (station))
-        path = os.path.join(dest_dir,"%s_%s.rdb"% (station,param))
+    print(stations)
+    for ndx,row in stations.iterrows():
+        agency_id = row.agency_id
+        station = row.station_id
+        param = row.src_var_id
+        paramname = row.param
+        subloc = row.subloc
+
+        yearname = f"{start.year}_{end.year}" if start.year != end.year else f"{start.year}"
+        outfname = f"usgs_{station}_{agency_id}_{paramname}_{yearname}.rdb"
+        outfname = outfname.lower()
+        path = os.path.join(dest_dir,outfname)
         if os.path.exists(path) and not overwrite:
-            print("Skipping existing station because file exists: %s" % station)
+            print("\nSkipping existing station because file exists: %s" % station)
             skips.append(path)
             continue
+        else:
+            print(f"\nAttempting to download station: {station} variable {param}")        
         stime=start.strftime("%Y-%m-%d")
         etime=end.strftime("%Y-%m-%d")
         found = False
-        station_query_base = "http://nwis.waterservices.usgs.gov/nwis/iv/?sites=%s&startDT=%s&endDT=%s&format=rdb"
+        station_query_base = f"http://nwis.waterservices.usgs.gov/nwis/iv/?sites={agency_id}&startDT={stime}&endDT={etime}&format=rdb"
         if param:
-            station_query_base = station_query_base + '&variable=%s'
-            station_query = station_query_base % (station,stime,etime,param)
+            station_query = station_query_base + f'&variable={int(param):05}'
+            #station_query = station_query_base % (station,stime,etime,param)
         else:
-            station_query = station_query_base % (station,stime,etime)
+            station_query = station_query_base
         print(station_query)
         try: 
             if sys.version_info[0] == 2:
@@ -91,7 +105,7 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         for failure in failures:
             print(failure)
 
-def process_station_list(file):
+def process_station_list2(file):
     stations = []
     f = open(file,'r')
     all_lines = f.readlines()
@@ -116,8 +130,11 @@ def main():
         etime = dt.datetime.now()
     
     if os.path.exists(stationfile):
-        stations = process_station_list(stationfile)
-        nwis_download(stations,destdir,stime,etime, param)  
+        slookup = station_config.config_file("station_dbase")
+        vlookup = station_config.config_file("variable_mappings")
+        df = process_station_list(stationfile,param=param,station_lookup=slookup,
+                                  agency_id_col="agency_id",param_lookup=vlookup,source='usgs')
+        nwis_download(df,destdir,stime,etime)  
     else:
         print("Station list does not exist")
         

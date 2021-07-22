@@ -230,6 +230,7 @@ def read_wdl2(fpath_pattern,start=None,end=None,selector=None,force_regular=True
                          sep=',',
                          skiprows=0,
                          column_names=["datetime","value","qaqc_flag","comment"],
+                         dtypes={"comment" : str},
                          header=0,
                          dateparser=None,
                          comment=None)    
@@ -240,17 +241,23 @@ def read_wdl2(fpath_pattern,start=None,end=None,selector=None,force_regular=True
 
 ############################################################
 def is_usgs1(fname):
-    MAX_SCAN_LINE = 20
+    MAX_SCAN_LINE = 220
+    tzline = False
+    usgsline = False
     with open(fname,"r") as f:
         for i,line in enumerate(f):
             if i >MAX_SCAN_LINE: return False
             linelower = line.lower()
             if "waterdata.usgs.gov" in linelower: 
-                return True 
+                usgsline = True 
             if "nwisweb" in linelower:
-                return True
+                usgsline = True
             if linelower.startswith("usgs"):
+                usgsline = True
+            if "tz_cd" in linelower: tzline = True
+            if tzline and usgsline: 
                 return True
+    
     return False
 
 def usgs_data_columns1(fname):
@@ -327,15 +334,19 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
 
 ################################################################
 def is_usgs2(fname):
-    MAX_SCAN_LINE = 20
+    MAX_SCAN_LINE = 210
+    tzline = False
+    usgsline = False
     with open(fname,"r") as f:
         for i,line in enumerate(f):
             if i > MAX_SCAN_LINE: return False
             linelower = line.lower()
             if "# //united states geological survey" in linelower: 
-                return True 
+                usgsline = True 
             if "nwis-i unit-values" in linelower:
-                return True
+                usgsline = True
+            if 'tzcd' in linelower: tzline = True
+            if tzline and usgsline: return True
     return False
 
 def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
@@ -368,7 +379,7 @@ def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
     dst = ts[tzcol] == "PDT"
     if dst.any():
         #todo: hardwire
-        ts.index = ts.index.tz_localize('US/Pacific',ambiguous=ts["tz_cd"]=="PDT" ).tz_convert('Etc/GMT+8')
+        ts.index = ts.index.tz_localize('US/Pacific',ambiguous=ts[tzcol]=="PDT" ).tz_convert('Etc/GMT+8')
         ts.index = ts.index.tz_localize(None)
     
     # Get rid of the time zone column
@@ -420,7 +431,7 @@ def read_usgs_csv1(fpath_pattern,start=None,end=None,selector=None,force_regular
                                  engine=eng,
                                  skiprows=0,
                                  comment="#",
-                                 dtypes={"Value":float,"Approval Level":str})
+                                 dtypes={"Value":float,"Approval Level":str,"Qualifiers":str})
             return ts
         except IndexError as e:
             if sep == ', ': raise
@@ -535,19 +546,26 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
                read_ncro_std,read_wdl2,read_wdl]
     ts = None
     reader_count = 0
+    last_reader_tried = None
     for reader in readers:
+        last_reader_tried = reader.__name__
         if hint is not None:
             if hint not in reader.__name__: continue
-        try:
-            ts = reader(fpath,start=None,end=None,selector=None,force_regular=force_regular)
+        try:            
+            ts = reader(fpath,start,end,selector,force_regular=force_regular)
             return ts
         except IOError as e:
+            if str(e).startswith("No match"): 
+                print(e)
+                break
             continue
         except Exception as e0:
             raise
 
     if ts is None:
-        raise ValueError("File format not supported or error during read: {}\n" .format(fpath))
+        if last_reader_tried == readers[-1].__name__:
+            last_reader_tried = last_reader_tried + " (this is the last on the list, so it may not be meaningful)"
+        raise ValueError("File not found, format not supported or error during read: {}. Last reader tried = {}\n" .format(fpath,last_reader_tried))
 
 
 
@@ -694,6 +712,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                            keep_default_na=True, dtype=dtypes,
                            infer_datetime_format=True,
                            **dargs)
+
             
             if header is None:
                 # This is essentially a fixup for vtide, which I'm not

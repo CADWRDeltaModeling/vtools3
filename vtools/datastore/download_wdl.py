@@ -126,6 +126,9 @@ def wdl_download(station_list,years,dest_dir,syear,eyear,overwrite=False):
     Then it downloads all the years from years that are available for 
     those variables and adds the data to txt files one per station-variable. 
     """
+    #station_list = list(station_list)
+    print(station_list)
+    
     global aliases
     # prior url
     #base_url = "http://wdl.water.ca.gov/waterdatalibrary/docs/Hydstra/docs"
