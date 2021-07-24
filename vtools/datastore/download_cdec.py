@@ -20,17 +20,13 @@ import datetime as dt
 import numpy as np
 from vtools.datastore.process_station_variable import process_station_list
 from vtools.datastore import station_config
-
-params={"ec":[100],"ec_bot":[101,102],
-        "flow":[20,21,23,70,75,110],
-        "stage":[1],"temp":[4,25,258389,2741],"wind_speed":[9,134],"wind_dir":[10]}
       
 cdec_base_url = "cdec.water.ca.gov"        
        
         
 def create_arg_parser():
     parser = argparse.ArgumentParser()
-    paramhelp = 'Variable to download, should be in list:\n%s' % list(params.keys())
+    paramhelp = 'Variable to download'
     
     parser.add_argument('--dest', dest = "dest_dir", default="cdec_download", help = 'Destination directory for downloaded files.')
     parser.add_argument('--cdec_col', default = 0, type = int, help = 'Column in station file representing CDEC ID. IDs with > 3 characters will be ignored.')

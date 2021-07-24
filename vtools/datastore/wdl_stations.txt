@@ -1,5 +1,6 @@
-code,name,station_id,alias
-ANH,San Joaquin at Antioch,B95020,ANH
+id,name,station_ids,alias
+BLP,San Joaquin River at Blind Point,B9502900,B95029
+ANH2,San Joaquin at Antioch,B95020,ANH
 BAC,Bacon Island at Old River,B95250,BAC
 BEN,Mokelumne River at Benson's Ferry,B94175,BEN
 CIS,Old River at Coney Island,B95290,CIS
@@ -50,7 +51,7 @@ OAD,Old River near DMC above Dam,B9536600,B9536600   # also B95366
 OBD,Old River Barrier near DMC below Dam,B9536500,B9536500 
 MFV,Miner Slough at Five Points,B91475,B91475
 DGL,Doughty Cut above Grantline Canal,B9532500,B9532500 
-B9529500 Grant Line Canal near Clifton Court Forebay,B9529500,B9529500 
+B9529500,Grant Line Canal near Clifton Court Forebay,B9529500,B9529500 
 B95378,Old River at Tracy Wildlife Association,B95378,B95378
 B9539000,Old River above Doughty Cut,B9539000,B9539000
 B94150,South Fork Mokelumne at New Hope Bridge,B94150,B94150
