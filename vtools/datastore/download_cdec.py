@@ -18,6 +18,7 @@ import os
 import string
 import datetime as dt
 import numpy as np
+import pandas as pd
 from vtools.datastore.process_station_variable import process_station_list
 from vtools.datastore import station_config
       
@@ -70,6 +71,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         z = row.src_var_id
         subloc = row.subloc
         print("Processing station: %s sublocation/program: %s param: %s" % (station,subloc,p))
+        if end == "Now": end = pd.Timestamp.now()
         yearname = f"{start.year}_{end.year}" if start.year != end.year else f"{start.year}"
 
         if (subloc == "default"):
@@ -142,10 +144,10 @@ def main():
     start = args.start
     end = args.end
     stime = dt.datetime(*list(map(int, re.split(r'[^\d]', start))))
-    if end:
+    if end is not None:
         etime = dt.datetime(*list(map(int, re.split(r'[^\d]', end))))
     else:
-        etime = "Now"
+        etime = pd.Timestamp.now()
     if param_column and param:
         raise ValueError("param_col and param cannot both be specified")
     if not (param_column or param):

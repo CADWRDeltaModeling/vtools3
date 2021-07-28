@@ -1,10 +1,10 @@
 id,param,comment
-SFFPX,elev,San Francisco
-AAMC1,elev,Alameda
-MRZ2,elev,Martinez-Amorco Pier
-PRYC1,elev,Point Reyes
-MTYC1,elev,Monterey
-SFFPX,predictions,San Francisco
-MRZ2,predictions,Martinez-Amorco Pier
-PRYC1,predictions,Point Reyes
-MTYC1,predictions,Monterey
+sffpx,elev,San Francisco
+aamc1,elev,Alameda
+mrz2,elev,Martinez-Amorco Pier
+pryc1,elev,Point Reyes
+mtyc1,elev,Monterey
+sffpx,predictions,San Francisco
+mrz2,predictions,Martinez-Amorco Pier
+pryc1,predictions,Point Reyes
+mtyc1,predictions,Monterey

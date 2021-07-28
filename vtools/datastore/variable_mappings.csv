@@ -12,8 +12,19 @@
 # var_name: the dwr/vtools code
 # comment: additional notes
 src_var_name,src_name,src_var_id,var_name,comment
+Specific Conductance,des,Specific Conductance,ec,Marsh version of variable
+SpC,des,SpC,ec,EMP version of variable
+Water Temperature,des,Water Temperature,temp,
+Wind direction,des,Wind velocity,wind_dir
+Wind velocity,des,Wind velocity,wind_speed
+Stage,des,Stage,elev
+Turbidity,des,Turbidity,turbidity
+pH,des,pH,ph
+Stage,des,Stage,elev
+Dissolved Oxygen,des,Dissolved Oxygen,do
+Chlorophyll,des,676,chl
 Temperature; water,usgs,10,temp,
-Discharge,usgs,61,flow,"SRS_Name for ID 60 is ""Stream flow, mean. Daily"", while that for ID 61 is ""Stream flow, instantaneous"""
+Discharge,usgs,61,flow,"SRS_Name for ID 60 is Stream flow, mean. Daily, while that for ID 61 is Stream flow, instantaneous. Eli: should investigate this, we don't want daily"
 stage,usgs,65,elev,
 Specific cond at 25C,usgs,95,ec,
 stage_c,source,233,elev,
@@ -66,7 +77,7 @@ PH VAL,cdec,62,ph,
 CHLORPH,cdec,28,chl,Is this code chl correct?
 RIV STG,cdec,1,elev,
 WIND SP,cdec,9,wind_speed,
-WIND DIR,cdec,10,wind_speed,
+WIND DIR,cdec,10,wind_dir,
 VLOCITY,cdec,21,velocity,is velocity in table yet?
 SOLAR R,cdec,26,solar_radiation,
 TEMP,cdec,4,air_temp,
