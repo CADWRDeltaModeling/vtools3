@@ -30,8 +30,8 @@ def create_arg_parser():
     paramhelp = 'Variable to download'
     
     parser.add_argument('--dest', dest = "dest_dir", default="cdec_download", help = 'Destination directory for downloaded files.')
-    parser.add_argument('--cdec_col', default = 0, type = int, help = 'Column in station file representing CDEC ID. IDs with > 3 characters will be ignored.')
-    parser.add_argument('--param_col', type = int, help = 'Column in station file representing the parameter to download.')
+    parser.add_argument('--id_col', default = "id", type = str, help = 'Column in station file representing CDEC ID. IDs with > 3 characters will be ignored.')
+    parser.add_argument('--param_col', type = str, default="param", help = 'Column in station file representing the parameter to download.')
     parser.add_argument('--start',required=True,help = 'Start time, format 2009-03-31 14:00')    
     parser.add_argument('--end',default = None,help = 'Start time, format 2009-03-31 14:00')    
 
