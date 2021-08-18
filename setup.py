@@ -6,9 +6,15 @@ import versioneer
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ["numpy>=1.16,<2", "pandas>=0.23","matplotlib","pytest",
-                "unittest","sklearn","urllib",
-                "scipy>=1.2", "beautifulsoup4>=4.8"]
+requirements = ["numpy>=1.16,<2", 
+                "pandas>=0.23",
+                "matplotlib",
+                "scikit-learn",
+                "scipy>=1.2", 
+                "beautifulsoup4>=4.8"]
+
+extras = {"tests":"pytest",
+          "docs": ["nbsphinx","sphinx-argparse","numpydoc"]}
 
 setup(
     name='vtools3',
@@ -18,6 +24,7 @@ setup(
     license="Apache",
     long_description=readme,
     install_requires=requirements,
+    extras_require=extras,
     include_package_data=True,
     keywords='vtools',
     packages=find_packages(),
@@ -31,5 +38,6 @@ setup(
     entry_points = { 'console_scripts' : ['download_noaa=vtools.datastore.download_noaa:main',
                                           'download_cdec=vtools.datastore.download_cdec:main',
                                           'download_wdl=vtools.datastore.download_wdl:main',
-                                          'download_nwis=vtools.datastore.download_nwis:main'] }
+                                          'download_nwis=vtools.datastore.download_nwis:main',
+                                          'station_info=vtools.datastore.station_info:main'] }
 )
