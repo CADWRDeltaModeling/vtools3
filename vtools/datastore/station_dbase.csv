@@ -182,7 +182,8 @@ lib,11455315,Cache Slough at Liberty Island,38.2431666,-121.6845667,615115,42336
 liy,B91510,Yolo Bypass at Liberty Island ,38.32916667,-121.6938889,614160.9,4243144.8,,B91510,LIY,dwr_ncro,x,,,An additional station (B91510B) records water levels in drainage canal on Liberty Island side of levee
 lir,B91511,Yolo Bypass at Liberty Island (Canal),38.32611111,-121.6938889,614165.7,4242805.8,,B91511,LIR,dwr_ncro,x,,,An additional station (B91510) records water levels on Yolo Bypass side of levee
 smr,11336680,S Mokelumne R at New Hope BR near Walnut Grove,38.2255556,-121.4911111,632073.2,4231917.6,,,SMR,usgs,x,x,x,"flow, stage, velocity available since 1/1/2011, turbidity since 4/16/2015, suspended sediment since 8/4/2012"
-mkn,11336685,N Mokelumne R near Walnut Grove,38.223333,-121.5072222,630666.9,4231648.1,,,MKN,usgs,,x,x,"flow and velocity available since 12/13/2010, turbidity and suspended since 8/14/2012"
+mkn2,11336685,N Mokelumne R near Walnut Grove,38.223333,-121.5072222,630666.9,4231648.1,,,MKN,usgs,,x,x,"flow and velocity available since 12/13/2010, turbidity and suspended since 8/14/2012"
+mkn,b94133,N Mokelumne R below Snodgrass Slough,38.223333,-121.506667,630666.9,4231648.1,,,MKN,dwr_ncro,,x,x,
 sxs,B91450Q,Steamboat Slough near Sacramento River,38.191267,-121.637881,619281.8,4227913.6,,B91450Q,SXS,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/12/2015"
 fct,B95050,Fisherman's Cut,38.06782222,-121.6488389,618521.7,4214201.8,,B95050Q,FCT,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/5/2015"
 flt,96,Goodyear Slough at Fleet,38.08083,-122.09972,579121.895,4214883,,,FLT,dwr_des,,,,
@@ -257,3 +258,6 @@ lhtse,11455167,Prospect Slough at Toe Drain Near Courtland,38.33541,-121.6582,61
 cbs,'381502121411201,Cache Slough below Shag Slough,38.25069,-121.68669,614881,4234438,,,,usgs,x,x,x,
 lcts,'381749121400201,Liberty Cut at Five Points,38.296844,-121.667086,616555,4239591,,,,usgs,x,x,x,
 lct,11455146,Liberty Cut at Holland Tract,38.32885,-121.6675306,616465,4243143,,,,usgs,x,x,x,
+mhb,11335000,Cosumnes River at Michigan Bar,38.50028,-121.04417,670551.,4263137.,,,,usgs,x,x,x,Used for Cosumnes boundary
+wbr,11325500,Mokelumne River at Woodbridge,38.15861,-121.30250,648720.,4224775.,,,,usgs,x,x,x,,Used for Moke boundary
+awb,11446980,American River below Watt Ave Bridge,38.56722,-121.38722,640504.,4269986.,,,,usgs,x,x,x,Used for American temp boundary
