@@ -151,7 +151,7 @@ def med_outliers(ts,level=4.,scale = None,\
 
     if scale is None:
         qq = res.quantile( q=quantiles)
-        scale = qq[quantiles[1]] - qq[quantiles[0]]  
+        scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
 
     outlier = (np.absolute(res) > level*scale) | (np.absolute(res) < -level*scale)
     values = np.where(outlier,np.nan,ts_out.values)
