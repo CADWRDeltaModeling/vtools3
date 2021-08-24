@@ -4,7 +4,7 @@ Module for data interpolation using splines or interfaces unavailable in Pandas.
 
 import numpy as np
 import pandas as pd
-from vtools.functions._monotonic_spline import *
+from vtools.functions._monotonic_spline import _monotonic_spline
 
 
 
