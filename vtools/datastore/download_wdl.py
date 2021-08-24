@@ -156,7 +156,7 @@ def wdl_download(station_list,years,dest_dir,syear,eyear,overwrite=False,expand_
         else:
             station_candidates = [agency_id]
         for agency_id in station_candidates:
-            outfname = f"ncro_{station}_{agency_id}_{paramname}_{yearname}.rdb"
+            outfname = f"ncro_{station}_{agency_id}_{paramname}_{yearname}.csv"
             outfname = outfname.lower()
             path = os.path.join(dest_dir,outfname)
             if os.path.exists(path):
