@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
+import pandas as pd
 import sys
 from scipy.signal import medfilt
 from scipy.stats.mstats import mquantiles
@@ -59,25 +60,28 @@ from scipy.stats import iqr as scipy_iqr
             Output:         time series object with outliers replaced by NaNs
 '''
 
-def norepeats(ts, threshold = 20, copy = True):
+def _nrepeat(ts):
+    """ Series-only version"""
+    mask = ts.ne(ts.shift())
+    counts = ts.groupby(mask.cumsum()).transform('count')
+    return counts
 
-    import warnings
-    ts_out = ts.copy() if copy else ts
-    warnings.filterwarnings("ignore")
-    a = list(ts.data[0:threshold])
 
-    for k in range(len(ts.data)):
-        del a[0]
-        a.append(ts.data[k])
+def nrepeat(ts):
+    """ Return the length of consecutive runs of repeated values
+    
+    Parameters
+    ----------
+   
+    ts:  DataFrame or series 
 
-        if a[1:] == a[:-1]:
-            b = k - (threshold - 1)
-            while a[0] == ts.data[k]:
-                k += 1
-            ts_out.data[b:k] = np.NaN
-            a.append(ts.data[k])
-
-    return ts_out    
+    Returns
+    -------
+    Like-indexed series with lengths of runs. Nans will be mapped to 0    
+    
+    """
+    if isinstance(ts,pd.Series): return _nrepeat(ts)
+    return ts.apply(_nrepeat,axis=0)
 
 
 def med_outliers(ts,level=4.,scale = None,\
