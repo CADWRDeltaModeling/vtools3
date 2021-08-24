@@ -198,6 +198,7 @@ ryc,403,Suisun Bay Cutoff Near Ryer,38.083971,-121.995878,588041.6,4215616.3,,,R
 gzl,368,Grizzly Bay,38.12425,-122.038117,584309.0232,4220037.891,,,GZL,dwr_des,,,,"data available on cdec since 6/19/2015, doesn't exist on wdl as of 10/6/2015"
 sga,B95415,Sugar Cut at Golden Anchor,37.7928598,-121.421495,638981.8,4184006.2,,B95415Q,SGA,dwr_ncro,,x,,"same as B9541400 ar wdl, flow data available since 3/18/2014, water temp & EC since 4/30/2014"
 von,11425500,Sacramento River at Verona,38.774444,-121.597222,621783.2,4292647.4,,,VON,usgs,x,x,,"NWIS: Latitude 38deg46'28"",   Longitude 121deg35'50""   NAD27 (38.77444,-121.597222); Datum of gage: -3.00 feet above   NGVD29; CDEC: 38.77415,-121.59807"
+von2,a0215000,Sacramento River at Verona,38.774444,-121.597222,621783.2,4292647.4,,,VON,dwr_ncro,x,x,,"Need to confirm this is same place as USGS" 
 smr2,B94150,S.F. Mokelumne River at New Hope Bridge,38.22527778,-121.4908333,632098.1,4231887.1,,B94150,SMR,dwr_ncro,x,,,
 mfv,B91475,Miner Slough at Five Points ,38.29,-121.6447222,618522.3,4238860.6,,B91475,MFV,,x,,,
 toen,11455139,Toe Drain at Mallard Road,38.36513889,-121.6377417,619009.8,4247207.4,,,,usgs,,x,x,moved from Toe South
