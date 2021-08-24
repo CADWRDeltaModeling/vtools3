@@ -8,6 +8,9 @@ from scipy.signal import medfilt
 from scipy.stats.mstats import mquantiles
 from scipy.stats import iqr as scipy_iqr
 
+
+
+
 '''
     Functions to detect (and replace with NaN) any outliers or bad data
     
@@ -95,7 +98,7 @@ def threshold(ts,bounds,copy=True):
     return ts_out
 
 def med_outliers(ts,level=4.,scale = None,\
-                 filt_len=7,bounds=(None,None),
+                 filt_len=7,range=(None,None),
                  quantiles = (0.01,0.99),
                  copy = True):
     """
@@ -134,7 +137,7 @@ def med_outliers(ts,level=4.,scale = None,\
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
     
-    threshold(ts_out,bounds,copy=False)
+    threshold(ts_out,range,copy=False)
 
     vals = ts_out.to_numpy()
     if ts_out.ndim == 1:
@@ -256,7 +259,6 @@ def despike(arr, n1=2, n2=20, block=10):
             std.filled(fill_value=np.NaN))
     arr[mask] = np.NaN
     return arr + offset
-
 
 if __name__ == '__main__':
     # Just an example
