@@ -3,6 +3,7 @@ import numpy as np
 import numpy.ma as ma
 import pandas as pd
 import sys
+import warnings
 from scipy.signal import medfilt
 from scipy.stats.mstats import mquantiles
 from scipy.stats import iqr as scipy_iqr
@@ -83,9 +84,18 @@ def nrepeat(ts):
     if isinstance(ts,pd.Series): return _nrepeat(ts)
     return ts.apply(_nrepeat,axis=0)
 
+def threshold(ts,bounds,copy=True):
+    ts_out = ts.copy() if copy else ts
+    warnings.filterwarnings("ignore")
+    
+    if bounds[0] is not None:
+        ts_out.mask(ts_out < bounds[0],inplace=True)
+    if bounds[1] is not None:
+        ts_out.mask(ts_out > bounds[1],inplace=True)  
+    return ts_out
 
 def med_outliers(ts,level=4.,scale = None,\
-                 filt_len=7,range=(None,None),
+                 filt_len=7,bounds=(None,None),
                  quantiles = (0.01,0.99),
                  copy = True):
     """
@@ -123,6 +133,8 @@ def med_outliers(ts,level=4.,scale = None,\
     import warnings
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
+    
+    threshold(ts_out,bounds,copy=False)
 
     vals = ts_out.to_numpy()
     if ts_out.ndim == 1:
