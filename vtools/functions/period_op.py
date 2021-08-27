@@ -8,9 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 from scipy.signal import boxcar
-from read_scalar import *
-from vtools3.functions.filter import cosine_lanczos
-from vtools3.data.vtime import hours,minutes,days
+from vtools.data.vtime import hours,minutes,days
 
 def period_op(ts,period = "D",agg="mean",max_absent_frac=0.):
     

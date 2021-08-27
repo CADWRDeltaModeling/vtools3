@@ -1,10 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
+import pandas as pd
 import sys
+import warnings
 from scipy.signal import medfilt
 from scipy.stats.mstats import mquantiles
 from scipy.stats import iqr as scipy_iqr
+
+
+
 
 '''
     Functions to detect (and replace with NaN) any outliers or bad data
@@ -59,26 +64,38 @@ from scipy.stats import iqr as scipy_iqr
             Output:         time series object with outliers replaced by NaNs
 '''
 
-def norepeats(ts, threshold = 20, copy = True):
+def _nrepeat(ts):
+    """ Series-only version"""
+    mask = ts.ne(ts.shift())
+    counts = ts.groupby(mask.cumsum()).transform('count')
+    return counts
 
-    import warnings
+
+def nrepeat(ts):
+    """ Return the length of consecutive runs of repeated values
+    
+    Parameters
+    ----------
+   
+    ts:  DataFrame or series 
+
+    Returns
+    -------
+    Like-indexed series with lengths of runs. Nans will be mapped to 0    
+    
+    """
+    if isinstance(ts,pd.Series): return _nrepeat(ts)
+    return ts.apply(_nrepeat,axis=0)
+
+def threshold(ts,bounds,copy=True):
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
-    a = list(ts.data[0:threshold])
-
-    for k in range(len(ts.data)):
-        del a[0]
-        a.append(ts.data[k])
-
-        if a[1:] == a[:-1]:
-            b = k - (threshold - 1)
-            while a[0] == ts.data[k]:
-                k += 1
-            ts_out.data[b:k] = np.NaN
-            a.append(ts.data[k])
-
-    return ts_out    
-
+    
+    if bounds[0] is not None:
+        ts_out.mask(ts_out < bounds[0],inplace=True)
+    if bounds[1] is not None:
+        ts_out.mask(ts_out > bounds[1],inplace=True)  
+    return ts_out
 
 def med_outliers(ts,level=4.,scale = None,\
                  filt_len=7,range=(None,None),
@@ -119,6 +136,8 @@ def med_outliers(ts,level=4.,scale = None,\
     import warnings
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
+    
+    threshold(ts_out,range,copy=False)
 
     vals = ts_out.to_numpy()
     if ts_out.ndim == 1:
@@ -132,7 +151,7 @@ def med_outliers(ts,level=4.,scale = None,\
 
     if scale is None:
         qq = res.quantile( q=quantiles)
-        scale = qq[quantiles[1]] - qq[quantiles[0]]  
+        scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
 
     outlier = (np.absolute(res) > level*scale) | (np.absolute(res) < -level*scale)
     values = np.where(outlier,np.nan,ts_out.values)
@@ -240,7 +259,6 @@ def despike(arr, n1=2, n2=20, block=10):
             std.filled(fill_value=np.NaN))
     arr[mask] = np.NaN
     return arr + offset
-
 
 if __name__ == '__main__':
     # Just an example

@@ -156,7 +156,7 @@ def wdl_download(station_list,years,dest_dir,syear,eyear,overwrite=False,expand_
         else:
             station_candidates = [agency_id]
         for agency_id in station_candidates:
-            outfname = f"ncro_{station}_{agency_id}_{paramname}_{yearname}.rdb"
+            outfname = f"ncro_{station}_{agency_id}_{paramname}_{yearname}.csv"
             outfname = outfname.lower()
             path = os.path.join(dest_dir,outfname)
             if os.path.exists(path):
@@ -209,7 +209,11 @@ def wdl_download(station_list,years,dest_dir,syear,eyear,overwrite=False,expand_
                 for iline,line in enumerate(f.readlines()[3:]):
                     if line and len(line) > 5:
                         ndata=ndata+1
-                        stampstr0,val,flag,comment = line.strip().split(",")[:4]
+                        try:
+                            stampstr0,val,flag,comment = line.strip().split(",")[:4]
+                        except:
+                            comment = None
+                            stampstr0,val,flag = line.strip().split(",")[:3]                         
                         # This is here for adding more exact start time 
                         # stamp = dtm.datetime.strptime(stampstr0,"%m/%d/%Y %H:%M:%S")
                         if val and not "\"" in val:

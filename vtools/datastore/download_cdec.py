@@ -135,7 +135,7 @@ def process_station_list2(file,cdec_ndx,param_ndx=None):
 def main():
     parser = create_arg_parser()
     args = parser.parse_args()
-    cdec_column = args.cdec_col
+    cdec_column = args.id_col
     param_column = args.param_col
     destdir = args.dest_dir
     stationfile = args.stationfile

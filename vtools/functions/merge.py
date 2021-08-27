@@ -1,6 +1,7 @@
 import pandas as pd
 
 
+
 def ts_merge(series):
     """ merge a number of timeseries together and return a new ts.
     Similar to concatenate, but provides more control over order in cases of overlap
@@ -19,11 +20,16 @@ def ts_merge(series):
     """
 
     # this concatenates, leaving redundant indices in df0, df1, df2
+    # we are not doing the real work yet, just getting the right indexes
+    # this doesn't seem super efficient, but good enough for a start     
     dfmerge = pd.concat(series, sort=True)
+    
+    # This populates with the values from the highest series
+    dfmerge = series[0].reindex(dfmerge.index)  
 
-    # finally, drop duplicate indices
+    # drop duplicate indices
     dfmerge = dfmerge.loc[~dfmerge.index.duplicated(keep='last')]
     # Now apply, in priority order, each of the original dataframes to fill the original
-    for ddf in series:
+    for ddf in series[1:]:
         dfmerge = dfmerge.combine_first(ddf)
     return dfmerge

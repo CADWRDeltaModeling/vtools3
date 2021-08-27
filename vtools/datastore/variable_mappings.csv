@@ -24,7 +24,8 @@ Stage,des,Stage,elev
 Dissolved Oxygen,des,Dissolved Oxygen,do
 Chlorophyll,des,676,chl
 Temperature; water,usgs,10,temp,
-Discharge,usgs,61,flow,"SRS_Name for ID 60 is Stream flow, mean. Daily, while that for ID 61 is Stream flow, instantaneous. Eli: should investigate this, we don't want daily"
+Stream flow mean,usgs,60,flow,See comment for 61
+Stream flow instantaneous,usgs,61,flow,SRS_Name for ID 60 is Stream flow, mean. Daily, while that for ID 61 is Stream flow, instantaneous. Eli: should investigate this, we don't want daily. However most Delta stationa are 60"
 stage,usgs,65,elev,
 Specific cond at 25C,usgs,95,ec,
 stage_c,source,233,elev,
