@@ -1,5 +1,5 @@
 import pandas as pd
-
+import numpy as np
 
 
 
@@ -138,7 +138,59 @@ def gap_size(ts):
 
 
 
+def gap_distance(ts, disttype="count", to = "good"):
+    
+    """
+    For each element of ts, count the distance to the nearest good data/or bad data.
+      
+    Parameters
+    -----------
+    
+    ts : :class:`DataFrame <pandas:pandas.DataFrame>`
+    
+    disttype : `str` one of 'bad'|'good'
+    If disttype = "count" this is the number of values. If dist_type="freq" it is in the units of ts.freq
+    (so if freq == "15T" it is in minutes")
+    
+    to : `str` one of 'bad'|'good'
+    
+    If to = "good" this is the distance to the nearest good data (which is 0 for good data).
+    If to = "bad", this is the distance to the nearest nan (which is 0 for nan). 
 
+    Returns
+    -------
+    result : :class:`DataFrame <pandas:pandas.DataFrame>`
+        A new regular time series with the same freq as the argument
+        holding the distance of good/bad data. 
+        
+    """
+    ts_out=ts.copy()        
+    si = ts.index.to_series()
+    for col in ts.columns:
+        id_key=True
+        if to=="good":
+            ts_out.at[~ts_out[col].isna(),col]=0
+        elif to=="bad":
+            ts_out.at[ts_out[col].isna(),col]=0
+            id_key=False
+        else:
+            raise ValueError("invalid input to, must be good or bad")
+        #test missing values
+        miss = ts[col].isna()
+      
+        if np.any(miss==(id_key)):
+            mm=si.groupby(miss).indices
+            for i in mm[id_key]:
+                #ts_out.iloc[i][col]=np.min(np.abs(i-mm[not(id_key)]))
+                ts_out.at[si[i],col]=np.min(np.abs(i-mm[not(id_key)]))
+                
+                
+    if disttype=="count":
+        return ts_out
+    elif disttype=="freq":
+        return ts_out*ts.index.freq
+    else:
+        raise ValueError("invalid input disttype, must be count or freq")
 
 
 
@@ -158,6 +210,8 @@ def example_gap():
     out = gap_count(df)
     print(df)
     print(out)
+    
+    out = gap_distance(df)
 
     
 if __name__=="__main__":
