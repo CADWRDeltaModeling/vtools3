@@ -35,7 +35,7 @@ def create_arg_parser():
     See "http://help.waterdata.usgs.gov/codes-and-parameters/parameters" for complete listing. \
     (if not specified, all the available parameters will be downloaded)')
     parser.add_argument('stationfile', help = 'CSV-format station file.')
-    parser.add_argument('--overwrite', type = bool, default = False, help =  
+    parser.add_argument('--overwrite', action="store_true", default = False, help =  
     'Overwrite existing files (if False they will be skipped, presumably for speed)')
     return parser
 
@@ -134,7 +134,7 @@ def main():
         vlookup = station_config.config_file("variable_mappings")
         df = process_station_list(stationfile,param=param,station_lookup=slookup,
                                   agency_id_col="agency_id",param_lookup=vlookup,source='usgs')
-        nwis_download(df,destdir,stime,etime)  
+        nwis_download(df,destdir,stime,etime,param,overwrite)  
     else:
         print("Station list does not exist")
         
