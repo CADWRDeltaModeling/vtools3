@@ -31,13 +31,13 @@ def create_arg_parser():
     
     parser.add_argument('--dest', dest = "dest_dir", default="cdec_download", help = 'Destination directory for downloaded files.')
     parser.add_argument('--id_col', default = "id", type = str, help = 'Column in station file representing CDEC ID. IDs with > 3 characters will be ignored.')
-    parser.add_argument('--param_col', type = str, default="param", help = 'Column in station file representing the parameter to download.')
+    parser.add_argument('--param_col', type = str, default=None, help = 'Column in station file representing the parameter to download.')
     parser.add_argument('--start',required=True,help = 'Start time, format 2009-03-31 14:00')    
     parser.add_argument('--end',default = None,help = 'Start time, format 2009-03-31 14:00')    
 
     parser.add_argument('--param',help=paramhelp)
     parser.add_argument('stationfile', help = 'CSV-format station file.')
-    parser.add_argument('--overwrite',  action="store_true", help = 'Overwrite existing files (if False they will be skipped, presumably for speed')
+    parser.add_argument('--overwrite', action='store_true',default=False,help = 'Overwrite existing files (if False they will be skipped, presumably for speed')
     return parser
 
 
@@ -47,7 +47,6 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     These dates are passed on to CDEC ... actual return dates can be
     slightly different
     """
-    
     
     if end == None: end = "Now"
 
@@ -79,7 +78,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         else:
             path = os.path.join(dest_dir,f"cdec_{station}@{subloc}_{p}_{yearname}.csv").lower()
                 
-        if os.path.exists(path) and not overwrite:
+        if os.path.exists(path) and overwrite is False:
             print("Skipping existing station because file exists: %s" % path)
             skips.append(path)
             continue
@@ -148,21 +147,23 @@ def main():
         etime = dt.datetime(*list(map(int, re.split(r'[^\d]', end))))
     else:
         etime = pd.Timestamp.now()
-    if param_column and param:
+    if param_column is not None and param is not None:
         raise ValueError("param_col and param cannot both be specified")
-    if not (param_column or param):
-        raise ValueError("Either param_col or param must be specified")
+    if param_column is None and param is None:
+        param_column = 'param'
     
     if os.path.exists(stationfile):
         slookup = station_config.config_file("station_dbase")
         vlookup = station_config.config_file("variable_mappings")
-        df = process_station_list(stationfile,param=param,station_lookup=slookup,
+        df = process_station_list(stationfile,param_col=param_column,param=param,
+                                  station_lookup=slookup,
                                   agency_id_col="cdec_id",param_lookup=vlookup,source='cdec')
         #stations,variables = process_station_list(stationfile,cdec_column,param_column)
         #if not variables: variables = [param]*len(stations)
         cdec_download(df,destdir,
                       stime,
                       etime,
+                      param,
                       overwrite)
     else:
         raise ValueError("Station list does not exist")

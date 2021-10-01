@@ -137,7 +137,8 @@ def med_outliers(ts,level=4.,scale = None,\
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
     
-    threshold(ts_out,range,copy=False)
+    if range is not None:
+        threshold(ts_out,range,copy=False)
 
     vals = ts_out.to_numpy()
     if ts_out.ndim == 1:

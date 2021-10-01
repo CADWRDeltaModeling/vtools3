@@ -3,12 +3,18 @@
 
 import sys
 import pandas as pd
+import argparse
 from vtools.datastore import station_config
 
 def station_info(search):
     station_lookup = station_config.config_file("station_dbase")
+    if search == "config":
+        print(station_config.configuration())
+        return
     #vlookup = station_config.config_file("variable_mappings")
-    slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,usecols=["id","agency","agency_id","name","x","y"]).squeeze()
+    slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,usecols=["id","agency",
+                                                                               "agency_id","name",
+                                                                               "x","y"]).squeeze()
     slookup["id"] = slookup.id.str.lower()
     lsearch = search.lower()
     match_id = slookup["id"].str.lower().str.contains(lsearch)
@@ -23,9 +29,22 @@ def station_info(search):
         print(mlook)
     return mlook
     
+    
+def create_arg_parser():
+    parser = argparse.ArgumentParser("Lookup station metadata by partial string match on id or name")
+    parser.add_argument('--config',default=False,action ="store_true",help="Print configuration and location of lookup files")
+    parser.add_argument('searchphrase',nargs='?',default="",help = 'Search phrase which can be blank if using --config')
+
+    return parser    
+
+
 
 def main():
-    searchphrase = sys.argv[1]
-    if searchphrase is None:
-        raise ValueError("Usage 'station_info searchphrase'")
+    parser = create_arg_parser()
+    args = parser.parse_args()
+    searchphrase = args.searchphrase
+    if args.config:
+        searchphrase = "config"
+    if searchphrase is None and not args.config:
+        raise ValueError("searchphrase required")
     station_info(searchphrase)

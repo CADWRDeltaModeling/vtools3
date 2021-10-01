@@ -161,7 +161,7 @@ def wdl_download(station_list,years,dest_dir,syear,eyear,overwrite=False,expand_
             path = os.path.join(dest_dir,outfname)
             if os.path.exists(path):
                 if overwrite:
-                    os.remove(dest_path)           
+                    os.remove(path)           
                 else:
                     print("\nSkipping existing station because file exists: %s" % outfname)
                     skips.append(path)
