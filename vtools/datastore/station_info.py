@@ -20,13 +20,14 @@ def station_info(search):
     match_id = slookup["id"].str.lower().str.contains(lsearch)
     match_name = slookup.name.str.lower().str.contains(lsearch)
     match_agency_id = slookup.agency_id.str.lower().str.contains(lsearch)
-    matches = match_id | match_name | match_agency_id 
+    match_agency = slookup.agency.str.lower().str.contains(lsearch)
+    matches = match_id | match_name | match_agency_id | match_agency
     print("Matches:")
     mlook =slookup.loc[matches,["id","agency","agency_id","name","x","y"]].sort_values(axis=0,by='id').set_index("id") 
     if mlook.shape[0] == 0: 
         print("None")
     else:
-        print(mlook)
+        print(mlook.to_string())
     return mlook
     
     

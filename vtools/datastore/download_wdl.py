@@ -17,7 +17,7 @@ import datetime as dtm
 import numpy as np
 import argparse
 import pandas as pd
-from vtools.datastore.process_station_variable import process_station_list
+from vtools.datastore.process_station_variable import process_station_list,stationfile_or_stations
 from vtools.datastore import station_config
 
 
@@ -51,7 +51,9 @@ def create_arg_parser():
     parser.add_argument('--eyear',default = None,help = 'End year, if blank current year (water year)')
     parser.add_argument('--param',help=paramhelp)
     parser.add_argument('--overwrite',  action="store_true", help = 'Overwrite existing files (if False they will be skipped)')
-    parser.add_argument('stationfile', help = 'CSV-format station file.')    
+    parser.add_argument('--stations', default=None, nargs="*", required=False,
+                        help='Id or name of one or more stations.')
+    parser.add_argument('stationfile',nargs="*", help = 'CSV-format station file.') 
     return parser
 
 
@@ -72,7 +74,6 @@ def main():
     id_column = args.id_col
     param_column = args.param_col
     destdir = args.dest_dir
-    stationfile = args.stationfile
     overwrite = args.overwrite
     param = args.param
     expand_id = args.expand_id
@@ -86,18 +87,19 @@ def main():
     if param_column and param:
         raise ValueError("param_col and param cannot both be specified")
     if not (param_column or param):
-        raise ValueError("Either param_col or param must be specified")
-    if os.path.exists(stationfile):
-        slookup = station_config.config_file("station_dbase")
-        vlookup = station_config.config_file("variable_mappings")
-        df = process_station_list(stationfile,param=param,station_lookup=slookup,
-                                  agency_id_col="agency_id",param_lookup=vlookup,source='wdl')
-        wdl_download(df,destdir,
-                      destdir,syear,
-                      eyear,
-                      overwrite,expand_id)
-    else:
-        print("Station list does not exist")
+        param_column = 'param'
+        
+
+    stationfile=stationfile_or_stations(args.stationfile,args.stations)
+    slookup = station_config.config_file("station_dbase")
+    vlookup = station_config.config_file("variable_mappings")            
+    df = process_station_list(stationfile,param=param,station_lookup=slookup,
+                                  agency_id_col="agency_id",param_lookup=vlookup,source='wdl') 
+    wdl_download(df,destdir,
+                  destdir,syear,
+                  eyear,
+                  overwrite,expand_id)
+
 
 
 def candidate_id(orig,param):

@@ -19,7 +19,7 @@ import string
 import datetime as dt
 import numpy as np
 import pandas as pd
-from vtools.datastore.process_station_variable import process_station_list
+from vtools.datastore.process_station_variable import process_station_list,stationfile_or_stations
 from vtools.datastore import station_config
       
 cdec_base_url = "cdec.water.ca.gov"        
@@ -36,7 +36,9 @@ def create_arg_parser():
     parser.add_argument('--end',default = None,help = 'Start time, format 2009-03-31 14:00')    
 
     parser.add_argument('--param',help=paramhelp)
-    parser.add_argument('stationfile', help = 'CSV-format station file.')
+    parser.add_argument('--stations', default=None, nargs="*", required=False,
+                        help='Id or name of one or more stations.')
+    parser.add_argument('stationfile',nargs="*", help = 'CSV-format station file.')
     parser.add_argument('--overwrite', action='store_true',default=False,help = 'Overwrite existing files (if False they will be skipped, presumably for speed')
     return parser
 
@@ -151,22 +153,20 @@ def main():
         raise ValueError("param_col and param cannot both be specified")
     if param_column is None and param is None:
         param_column = 'param'
+ 
+    stationfile=stationfile_or_stations(args.stationfile,args.stations)
+    slookup = station_config.config_file("station_dbase")
+    vlookup = station_config.config_file("variable_mappings")            
+    df = process_station_list(stationfile,param=param,station_lookup=slookup,
+                                  agency_id_col="agency_id",param_lookup=vlookup,source='cdec') 
     
-    if os.path.exists(stationfile):
-        slookup = station_config.config_file("station_dbase")
-        vlookup = station_config.config_file("variable_mappings")
-        df = process_station_list(stationfile,param_col=param_column,param=param,
-                                  station_lookup=slookup,
-                                  agency_id_col="cdec_id",param_lookup=vlookup,source='cdec')
-        #stations,variables = process_station_list(stationfile,cdec_column,param_column)
-        #if not variables: variables = [param]*len(stations)
-        cdec_download(df,destdir,
-                      stime,
-                      etime,
-                      param,
-                      overwrite)
-    else:
-        raise ValueError("Station list does not exist")
+    #stations,variables = process_station_list(stationfile,cdec_column,param_column)
+    #if not variables: variables = [param]*len(stations)
+    cdec_download(df,destdir,
+                  stime,
+                  etime,
+                  param,
+                  overwrite)
 
 if __name__ == '__main__':
     main()

@@ -21,7 +21,7 @@ import os
 import string
 import datetime as dt
 import numpy as np
-from vtools.datastore.process_station_variable import process_station_list
+from vtools.datastore.process_station_variable import process_station_list,stationfile_or_stations
 from vtools.datastore import station_config
 
 def create_arg_parser():
@@ -34,7 +34,9 @@ def create_arg_parser():
     00065 = gage height (ft.), 00060 = streamflow (cu ft/sec) and 00010 = water temperature in degrees Celsius. \
     See "http://help.waterdata.usgs.gov/codes-and-parameters/parameters" for complete listing. \
     (if not specified, all the available parameters will be downloaded)')
-    parser.add_argument('stationfile', help = 'CSV-format station file.')
+    parser.add_argument('--stations', default=None, nargs="*", required=False,
+                        help='Id or name of one or more stations.')
+    parser.add_argument('stationfile',nargs="*", help = 'CSV-format station file.') 
     parser.add_argument('--overwrite', action="store_true", default = False, help =  
     'Overwrite existing files (if False they will be skipped, presumably for speed)')
     return parser
@@ -129,14 +131,12 @@ def main():
     else:
         etime = dt.datetime.now()
     
-    if os.path.exists(stationfile):
-        slookup = station_config.config_file("station_dbase")
-        vlookup = station_config.config_file("variable_mappings")
-        df = process_station_list(stationfile,param=param,station_lookup=slookup,
-                                  agency_id_col="agency_id",param_lookup=vlookup,source='usgs')
-        nwis_download(df,destdir,stime,etime,param,overwrite)  
-    else:
-        print("Station list does not exist")
+    stationfile=stationfile_or_stations(args.stationfile,args.stations)
+    slookup = station_config.config_file("station_dbase")
+    vlookup = station_config.config_file("variable_mappings")            
+    df = process_station_list(stationfile,param=param,station_lookup=slookup,
+                                  agency_id_col="agency_id",param_lookup=vlookup,source='usgs') 
+    nwis_download(df,destdir,stime,etime,param,overwrite)  
         
 
 if __name__ == '__main__':

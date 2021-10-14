@@ -11,7 +11,7 @@ import calendar
 import datetime as dtm
 import re
 import os
-from vtools.datastore.process_station_variable import process_station_list
+from vtools.datastore.process_station_variable import process_station_list,stationfile_or_stations
 from vtools.datastore import station_config
 
 
@@ -237,7 +237,7 @@ def create_arg_parser():
 
     parser.add_argument('--stations', default=None, nargs="*", required=False,
                         help='Id or name of one or more stations.')
-    parser.add_argument('stationfile', help = 'CSV-format station file.')
+    parser.add_argument('stationfile',nargs="*", help = 'CSV-format station file.')
                              
     parser.add_argument('--dest', dest = "dest_dir", default="noaa_download", help = 'Destination directory for downloaded files.')                             
     parser.add_argument('--list', default=False, action='store_true',
@@ -276,24 +276,17 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     dest_dir = args.dest_dir
-    overwrite = args.overwrite    
+    overwrite = args.overwrite
+    param = args.param
     if args.list:
-        list_stations()
+        print("listing is deprecated. Try 'station_info noaa' to get a list of noaa stations")
         return
     else:
-        if args.stations and args.stationfile:
-            raise ValueError("Station and stationfile inputs are mutually exclusive")
-        stationfile = args.stationfile
-
-        param=args.param
-        if os.path.exists(stationfile):
-            slookup = station_config.config_file("station_dbase")
-            vlookup = station_config.config_file("variable_mappings")
-            df = process_station_list(stationfile,param=param,station_lookup=slookup,
-                                      agency_id_col="agency_id",param_lookup=vlookup,source='noaa')
-
-        if not (args.stations or args.stationfile):
-            raise ValueError("Either station or stationfile required")
+        stationfile=stationfile_or_stations(args.stationfile,args.stations)
+        slookup = station_config.config_file("station_dbase")
+        vlookup = station_config.config_file("variable_mappings")            
+        df = process_station_list(stationfile,param=param,station_lookup=slookup,
+                                  agency_id_col="agency_id",param_lookup=vlookup,source='noaa')
 
         if args.start:
             start = dtm.datetime(*list(map(int, re.split(r'[^\d]', args.start))))

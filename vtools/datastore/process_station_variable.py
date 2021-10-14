@@ -2,17 +2,39 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
+import os
+
+def stationfile_or_stations(stationfile,stations):
+    """ Process stationfile arguments and station arguments 
+        Delivers the one that will be used in process_station_list 
+        including sanity checks both aren't given"""
+    
+    # this works for None or empty lists of strings
+    if not (stations or stationfile):
+        raise ValueError("Either station or stationfile required")
+    if stations and stationfile:
+        raise ValueError("Station and stationfile inputs are mutually exclusive")    
+    if stationfile:  # stationfile provided, stations not
+        if len(stationfile) > 1: 
+            raise ValueError("Only one stationfile may be input")
+        stationfile = stationfile[0]
+        if not os.path.exists(stationfile):
+            raise ValueError(f"File does not exist: {stationfile}")
+        return stationfile
+    else: 
+        return stations
 
 
-def process_station_list(fname,id_col="id",agency_id_col="agency_id",
+
+def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
                          param_col=None,param=None,
                          subloc_col=None,subloc_lookup=None,subloc="default",
                          station_lookup=None,param_lookup=None,source = 'cdec'):
     """Process a csv list of station
     
     Parameters
-    fname : str
-    File containing the list of requests
+    stationlist : str
+    List of strings of station ids or name of csv file containing the list of request info (id,subloc,param)
     
     id_col : str
     Name of column containing station id. This is expected to be the agency id unless station_lookup is provided
@@ -40,8 +62,10 @@ def process_station_list(fname,id_col="id",agency_id_col="agency_id",
         raise ValueError("Cannot use both param_col and param arguments")
     
     
-    
-    station_df = pd.read_csv(fname,sep=",",comment="#",header=0)
+    if isinstance(stationlist,str):
+        station_df = pd.read_csv(stationlist,sep=",",comment="#",header=0)
+    else:
+        station_df = pd.DataFrame(data={"id":stationlist})
     
     # Rename the parameter column as param to standardize
     # If there is no param column, create one and populate all its rows with param.
@@ -56,11 +80,23 @@ def process_station_list(fname,id_col="id",agency_id_col="agency_id",
     else:
         station_df["subloc"] = station_df.subloc.astype(str)
     if station_lookup:
-        slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,index_col=id_col,usecols=["id","agency_id","name"]).squeeze()
+        slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,index_col=id_col,usecols=["id","agency_id","name","agency"])
         station_df["id"] = station_df.id.str.lower()
+        station_df["station_id"] = station_df.id
+        station_df.set_index("id",drop=True,inplace=True)
+        print("slookup")
+        print(slookup)
+        print("station_df 1")
+        print(station_df)
+        
         station_df = station_df.merge(slookup,on="id",how="left")
+        print("2")
+        print(station_df)
+
+        print(station_df)        
         station_df.loc[station_df.subloc.isin(['nan','']),'subloc'] = "default"
-    else: station_df["agency_id"] = station_df.id
+    else: 
+        station_df["agency_id"] = station_df.id
 
     # Replace parameters with lookup values from station_lookup. Failure will leave as-is, in case of mix.
     if param_lookup:
