@@ -24,8 +24,8 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
     ----------
 
     ts : :class:`Pandas.DataFrame`
-        Series to be interpolated, typically with period index and assuming time stamps at beginning
-        of the period
+        Series to be interpolated, with period index and assuming time stamps at beginning
+        of the period and no missing data
 
     dest : string or :class:`DateTimeIndex <pandas:pandas.DateTimeIndex>`
         A pandas freq code (e.g. '16min' or 'D') or a DateTimeIndex
@@ -71,16 +71,13 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
             try:
                 out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
             except:
-                #import matplotlib.pyplot as plt
-                #ts[col].plot()
-                #plt.show()
-                raise ValueError("In rhist_bound, error could not meet lower bound in column {}".format(col))
+                raise ValueError("In rhist_bound, error or could not meet lower bound in column {}".format(col))
             result[col] = out
+        result = result[cols]
     except:
         y = ts.to_numpy()
         out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
-        result = pd.Series(data=out,index = dest)
-        #result = type(ts)(y,index=ts.index)        
+        result = pd.Series(data=out,index = dest)    
     return result    
 
 
@@ -216,7 +213,8 @@ def rhist_coef(x,y,y0,yn,p,q):
     # calculate cumulative sum of values of y
     xdiff=np.ediff1d(x,to_begin=[0.])    
     ycum= xdiff.copy()
-    ycum[1:] *= y
+    # todo: inefficient but need a better test that includes univariate and multivariate
+    ycum[1:]*=y
     ycum = np.cumsum(ycum)
     
     a,b,c,d = _ratsp1(x,ycum,p,q,y0,yn)
@@ -366,15 +364,13 @@ def monotonic_spline(ts,dest):
     end = ndx[-1]
     x = (ndx - strt).total_seconds().to_numpy()   
  
-    print(x)
-    print(strt)
-    print(end)
+
     if not isinstance(dest,pd.Index):
         end=ndx[-1].round(dest)
         dest = pd.date_range(start = strt, end = end, freq = dest)
         
     xnew = (dest-strt).total_seconds().to_numpy()
-    print(len(xnew))
+    #print(len(xnew))
     cols = ts.columns
     result = pd.DataFrame([],index=dest)
     for col in cols:
