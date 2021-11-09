@@ -55,7 +55,6 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     
     failures = []
     skips = []
-    print(stations)
     for ndx,row in stations.iterrows():
         agency_id = row.agency_id
         station = row.station_id
