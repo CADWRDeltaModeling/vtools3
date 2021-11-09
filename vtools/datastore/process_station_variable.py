@@ -84,16 +84,7 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
         station_df["id"] = station_df.id.str.lower()
         station_df["station_id"] = station_df.id
         station_df.set_index("id",drop=True,inplace=True)
-        print("slookup")
-        print(slookup)
-        print("station_df 1")
-        print(station_df)
-        
-        station_df = station_df.merge(slookup,on="id",how="left")
-        print("2")
-        print(station_df)
-
-        print(station_df)        
+        station_df = station_df.merge(slookup,on="id",how="left")       
         station_df.loc[station_df.subloc.isin(['nan','']),'subloc'] = "default"
     else: 
         station_df["agency_id"] = station_df.id
