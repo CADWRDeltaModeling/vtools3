@@ -1,2 +1,7 @@
 include versioneer.py
 include vtools/_version.py
+include vtools/datastore/station_dbase.csv
+include vtools/datastore/station_config.yaml
+include vtools/datastore/variable_mappings.csv
+include vtools/datastore/station_subloc_new.csv
+include vtools/datastore/wdl_continuous_files_alias.csv
