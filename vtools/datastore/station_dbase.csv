@@ -168,7 +168,7 @@ anh,50,San Joaquin at Antioch,38.01784713,-121.802883,605075.1,4208474.7,D12A,,A
 msd2,10,San Joaquin at Mossdale Bridge,37.78613049,-121.3064425,649126.1,4183436.8,C7A,B95820,MSD,dwr_des,x,x,x,"Flow transect is 0.25 miles ds from bridge. Was once at bridge, but ferrous metals interfered with"
 fre,A02170,Sacramento River at Fremont Weir (West End),38.75944444,-121.6663889,615789.9,4290918.9,,A02170,FRE,dwr_ncro,x,,,Only source is CDEC
 few,A02160,Sacramento River at Fremont Weir (East End),38.76527778,-121.6350833,618582,4291614,,A02160,FEW,dwr_ncro,,,,
-por,A02200,Sacramento River at Knights Landing,38.803348,-121.716391,611458.2,4295714.6,,A02200,POR,dwr_ncro,x,,,
+#por,A02200,Sacramento River at Knights Landing,38.803348,-121.716391,611458.2,4295714.6,,A02200,POR,dwr_ncro,x,,,
 dmc,DMC,DMC Headworks,37.78,-121.588,626882.7,4186454,,,DMC,usbr,,,x,Nudged to accommodate model domain
 sur,B95422,Sugar Cut,37.78836111,-121.4193889,639164.7,4183509.3,,B95422,SUR,dwr_ncro,,,x,
 gle,B95320,Grant Line Canal East,37.820258,-121.4348562,637754.4,4187026.5,,B95320,GLE,dwr_ncro,,x,x,"ADCP Flow Station, commence on 1/15/2013; WQ, commence on 2/15/2013"
@@ -182,13 +182,8 @@ lib,11455315,Cache Slough at Liberty Island,38.2431666,-121.6845667,615115,42336
 liy,B91510,Yolo Bypass at Liberty Island ,38.32916667,-121.6938889,614160.9,4243144.8,,B91510,LIY,dwr_ncro,x,,,An additional station (B91510B) records water levels in drainage canal on Liberty Island side of levee
 lir,B91511,Yolo Bypass at Liberty Island (Canal),38.32611111,-121.6938889,614165.7,4242805.8,,B91511,LIR,dwr_ncro,x,,,An additional station (B91510) records water levels on Yolo Bypass side of levee
 smr,11336680,S Mokelumne R at New Hope BR near Walnut Grove,38.2255556,-121.4911111,632073.2,4231917.6,,,SMR,usgs,x,x,x,"flow, stage, velocity available since 1/1/2011, turbidity since 4/16/2015, suspended sediment since 8/4/2012"
-<<<<<<< HEAD
 nmr,11336685,N Mokelumne R near Walnut Grove,38.223333,-121.5072222,630666.9,4231648.1,,,NMR,usgs,,x,x,"flow and velocity available since 12/13/2010, turbidity and suspended since 8/14/2012"
 mkn,B9413300,N Mokelumne R below Snodgrass Slough,38.223333,-121.506667,630666.9,4231648.1,,,MKN,dwr_ncro,,x,x,
-=======
-nmr,11336685,N Mokelumne R near Walnut Grove,38.223333,-121.5072222,630666.9,4231648.1,,,MKN,usgs,,x,x,"flow and velocity available since 12/13/2010, turbidity and suspended since 8/14/2012"
-mkn,b94133,N Mokelumne R below Snodgrass Slough,38.223333,-121.506667,630666.9,4231648.1,,,MKN,dwr_ncro,,x,x,
->>>>>>> 55a0ca0f20b4751b5b5b369c9fc1bda7dd37f29a
 sxs,B91450Q,Steamboat Slough near Sacramento River,38.191267,-121.637881,619281.8,4227913.6,,B91450Q,SXS,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/12/2015"
 fct,B95050,Fisherman's Cut,38.06782222,-121.6488389,618521.7,4214201.8,,B95050Q,FCT,dwr_ncro,,x,,"ADCP Flow Station, commence on 6/5/2015"
 flt,96,Goodyear Slough at Fleet,38.08083,-122.09972,579121.895,4214883,,,FLT,dwr_des,,,,
@@ -274,6 +269,7 @@ c24,'380318121571501,Suisun Bay at Channel Marker 24A Near Bay Point,38.05510,-1
 co5,11455498,Suisun Bay at Channel Marker 5 at Collinsville,38.06578,-121.83581,602123.11,4213753.24,,,C05,usgs,,,x,
 c10,11455495,Suisun Bay at Channel Marker 10 Near Collinsville,38.05983,-121.79989,605282.66,4213133.12,,,C10,usgs,,,x,
 m13,11455485,Sacramento R Below Toland Landing Near Rio Vista,38.07781,-121.76729,608116.21,4215165.61,,,M13,usgs,,,x,
-knl,A02200,Sacramento River at Knights Landing,38.803348,-121.716391,611458.99,4295736.72,,A02200,,KNL,dwr_ncro,,,x,
+knl,A02200,Sacramento River at Knights Landing,38.803348,-121.716391,611458.99,4295736.72,,A02200,KNL,dwr_ncro,,,x,
 klup,A0223002,Sacramento River above CBD,38.805210,-121.723720,610819.69,4295934.45,,A0223002,,dwr_ncro,,,x,
 wlk,11390500,Sacramento River below Wilkins Sl near Grimes,39.00990,-121.82469,601759.47,4318532.21,,,WLK,usgs,,,x,
+#id,agency_id,name,lat,lon,x,y,d1641_id,wdl_id,cdec_id,agency,stage,flow,quality,notes
