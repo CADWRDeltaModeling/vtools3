@@ -642,7 +642,6 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
         for filename in fnmatch.filter(filenames, fpat):
             matches.append(os.path.join(root, filename))
 
-
     if len(matches)==0:
         raise IOError("No matches found for pattern: {}".format(fpat))
 
@@ -710,7 +709,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                            skiprows=skiprows,sep=sep,
                            parse_dates=parsedates, na_values=extra_na,
                            keep_default_na=True, dtype=dtypes,
-                           infer_datetime_format=True,
+                           infer_datetime_format=True,skipinitialspace=True,
                            **dargs)
 
             
@@ -733,7 +732,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                            na_values=extra_na,
                            keep_default_na=True, dtype=dtypes,
                            names=column_names,
-                           infer_datetime_format=True,
+                           infer_datetime_format=True,skipinitialspace=True,
                            **dargs)
 
         if dset.shape[0] == 0:
