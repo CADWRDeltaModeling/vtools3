@@ -15,7 +15,8 @@ def station_dbase():
     dbase_fname=sconfig.config_file("station_dbase")
     dbase_df = pd.read_csv(dbase_fname,header=0,comment="#",index_col="id")
     is_ncro = dbase_df.agency.str.lower().str.contains("ncro")
-    return dbase_df.loc[dbase_df.agency.str.contains("ncro"),:]
+    print(is_ncro[is_ncro.isnull()])
+    return dbase_df.loc[is_ncro,:]
 
 
 def download_ncro_inventory(dest,cache=True):
@@ -100,15 +101,14 @@ def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev"]):
     for f in failures: 
         print(f)
 
-        
-     
-if __name__ == "__main__":
+
+def main():
     idf = download_ncro_inventory(".")
     dbase = station_dbase()
-    print(dbase.agency_id.str.upper()+"Q")
     is_in_dbase = idf.station_number.isin(dbase.agency_id) | idf.station_number.isin(dbase.agency_id+"00") | idf.station_number.isin(dbase.agency_id+"Q")
-    print(idf.loc[is_in_dbase,:])
-    dest = "C:/temp/test_ts_repo"
+    dest = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro"
     download_ncro_period_record(idf.loc[is_in_dbase,:],dbase,dest)
     
-    
+
+if __name__ == "__main__":
+    main()    
