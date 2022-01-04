@@ -24,7 +24,9 @@ def ts_merge(series):
     # this doesn't seem super efficient, but good enough for a start     
     dfmerge = pd.concat(series, sort=True)
     
-    # This populates with the values from the highest series
+    # This populates with the values from the highest series 
+    # It is a bug for the first series to have a duplicate index
+    series[0] =series[0][~series[0].index.duplicated(keep='first')]
     dfmerge = series[0].reindex(dfmerge.index)  
 
     # drop duplicate indices
