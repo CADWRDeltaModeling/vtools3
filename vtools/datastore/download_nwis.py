@@ -7,7 +7,7 @@
 """
 import argparse
 import sys
-
+import pandas as pd
 if sys.version_info[0] == 2:
     import urllib2
 elif sys.version_info[0] == 3:
@@ -48,7 +48,11 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     These dates are passed on to CDEC ... actual return dates can be
     slightly different
     """
-    if end == None: end = dt.datetime.now()
+    if end is None: 
+        end = dt.datetime.now()
+        endfile = 9999
+    else: 
+        endfile = end.year
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir) 
     
@@ -62,7 +66,7 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         paramname = row.param
         subloc = row.subloc
 
-        yearname = f"{start.year}_{end.year}" if start.year != end.year else f"{start.year}"
+        yearname = f"{start.year}_{endfile}" #if start.year != end.year else f"{start.year}"
         outfname = f"usgs_{station}_{agency_id}_{paramname}_{yearname}.rdb"
         outfname = outfname.lower()
         path = os.path.join(dest_dir,outfname)
@@ -106,14 +110,26 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         for failure in failures:
             print(failure)
 
-def process_station_list2(file):
-    stations = []
-    f = open(file,'r')
-    all_lines = f.readlines()
-    f.close()
-    stations = [x.strip().split(',')[0] for x in all_lines if not x.startswith("#")]
-    return stations
-                
+def parse_start_year(txt):
+    date_re = re.compile(r"(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])")
+    if os.path.exists(txt):
+        # assume file
+        for iline,line in enumerate(open(txt,'r')):
+            if iline > 1000: return None
+            if line.startswith("#"): continue
+            m = date_re.search(line)
+            if m is not None:
+                return int(m.group(0)[0:4])
+        return None
+    else:
+        for iline,line in enumerate(iter(txt.splitlines())):
+            if iline > 1000: return None
+            if line.startswith("#"): continue           
+            m = date_re.search(line)
+            if m is not None:
+                return int(m.group(0)[0:4])
+    return None
+
 
 def main():
     parser = create_arg_parser()
