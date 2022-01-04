@@ -50,7 +50,14 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     slightly different
     """
     
-    if end == None: end = "Now"
+    print(stations)
+    
+    
+    if end is None: 
+        end = dt.datetime.now()
+        endfile = 9999
+    else: 
+        endfile = end.year
 
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir)       
@@ -68,17 +75,23 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     
     for index,row in stations.iterrows():
         station = row.station_id
+        try: 
+            cdec_id = row.cdec_id.lower()
+        except:
+            cdec_id = station
+            
+        print("CDEC ID")
+        print(cdec_id)
+        agency_id = row.agency_id
         p = row.param
         z = row.src_var_id
         subloc = row.subloc
-        print("Processing station: %s sublocation/program: %s param: %s" % (station,subloc,p))
-        if end == "Now": end = pd.Timestamp.now()
-        yearname = f"{start.year}_{end.year}" if start.year != end.year else f"{start.year}"
+        yearname = f"{start.year}_{endfile}"  # if start.year != end.year else f"{start.year}"
 
         if (subloc == "default"):
-            path = os.path.join(dest_dir,f"cdec_{station}_{p}_{yearname}.csv").lower()
+            path = os.path.join(dest_dir,f"cdec_{station}_{agency_id}_{p}_{yearname}.csv").lower()
         else:
-            path = os.path.join(dest_dir,f"cdec_{station}@{subloc}_{p}_{yearname}.csv").lower()
+            path = os.path.join(dest_dir,f"cdec_{station}@{subloc}_{p}_{agency_id}_{yearname}.csv").lower()
                 
         if os.path.exists(path) and overwrite is False:
             print("Skipping existing station because file exists: %s" % path)
@@ -90,10 +103,9 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         
         zz = [z]
         for code in zz:
-            station_query_base = "http://%s/dynamicapp/req/CSVDataServletPST?Stations=%s&SensorNums=%s&dur_code=%s&Start=%s&End=%s"
             dur_codes = ["E","H","D"]
             for dur in dur_codes:
-                station_query = station_query_base % (cdec_base_url,station,code,dur,stime,etime)
+                station_query = f"http://{cdec_base_url}/dynamicapp/req/CSVDataServletPST?Stations={cdec_id}&SensorNums={code}&dur_code={dur}&Start={stime}&End={etime}"
                 if sys.version_info[0] == 2:
                     response = urllib2.urlopen(station_query)
                 else:
@@ -108,8 +120,8 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                     break
             if found: break
         if not found: 
-            print("Station %s query failed or produced no data" % station)
-            failures.append(station)
+            print(f"Station {station} parameter {p} query failed or produced no data")
+            failures.append((station,p))
     
     if len(failures) == 0:
         print("No failed stations")
