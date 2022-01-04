@@ -111,14 +111,13 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
 
 
 
-    #if station_id in default_stationlist:
-    #    strstation = default_stationlist[station_id]
-    #else:
-    #    strstation = station_id
-    #    if station_id in name_to_id:
-    #        station_id = name_to_id[station_id]
-    #print("Station: {}".format(strstation))
-    print(dest_dir)
+    if end is None: 
+        end = dt.datetime.now()
+        endfile = 9999
+    else: 
+        endfile = end.year
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir) 
     skips = []
                                                     
     print(stations)
@@ -166,7 +165,7 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
 
 
 
-        yearname = f"{start.year}_{end.year}" if start.year != end.year else f"{start.year}"
+        yearname = f"{start.year}_{endfile}"
         outfname = f"noaa_{station}_{agency_id}_{paramname}_{yearname}.csv"
         outfname = outfname.lower()
         path = os.path.join(dest_dir,outfname)
@@ -199,17 +198,23 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                 print(f"Retrieving {url}\n station {agency_id} from {date_start} to {date_end}".format(url,agency_id, date_start, date_end))
                 #print("URL: {}".format(url))
                 
-                raw_table = retrieve_csv(url).decode()
+                try:
+                    raw_table = retrieve_csv(url).decode()
+                except:
+                    print("Error reported in retrieval")
+                    raw_table = "\n" 
+                    
                 if raw_table[0] == '\n':
                     datum = "STND"
                     datum_str = f"&datum={datum}" if param in ("water_level","predictions") else ""
                     url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={param}&application={app}&begin_date={date_start}&end_date={date_end}&station={agency_id}&time_zone=LST&units=metric&{datum_str}&format=csv"
                     print("Retrieving Station {}, from {} to {}...".format(agency_id, date_start, date_end))
                     print("URL: {}".format(url))
-                    # raw_table = retrieve_table(url)
-                    raw_table = retrieve_csv(url).decode()
-                print("Done retrieving.")
-
+                    try:
+                        raw_table = retrieve_csv(url).decode()
+                    except:
+                        print("Error in second retrieval")
+                        continue
                 if first:
                     headers["datum"] = datum
                     write_header(path, headers)
