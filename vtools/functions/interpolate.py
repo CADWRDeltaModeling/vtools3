@@ -65,6 +65,14 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
     
     try:
         cols = ts.columns
+    except:
+        cols = None
+    
+    if cols is None:
+        y = ts.to_numpy()
+        out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
+        result = pd.Series(data=out,index = dest) 
+    else:
         result = pd.DataFrame([],index=dest)
         for col in cols:
             y = ts[col].to_numpy()
@@ -74,10 +82,7 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
                 raise ValueError("In rhist_bound, error or could not meet lower bound in column {}".format(col))
             result[col] = out
         result = result[cols]
-    except:
-        y = ts.to_numpy()
-        out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
-        result = pd.Series(data=out,index = dest)    
+   
     return result    
 
 
