@@ -39,4 +39,3 @@ quarterly_ticks = [(pd.Timestamp(2001,x,1).dayofyear-1)*86400 for x in [1,4,7,10
 quarterly_labels = ["Jan","Apr","Jul","Oct"]
 monthly_ticks = [(pd.Timestamp(2001,x,1).dayofyear-1)*86400 for x in range(1,13)]
 monthly_labels = [calendar.month_abbr[i] for i in range(1,13)]
-
