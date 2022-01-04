@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import urllib.request
 import pandas as pd
-import station_config as sconfig
 import re
 import zipfile
 import os
@@ -11,8 +10,10 @@ import numpy as np
 from vtools.datastore.process_station_variable import process_station_list,stationfile_or_stations
 from vtools.datastore import station_config
 
+ncro_inventory_file = "ncro_por_inventory.txt"
+
 def station_dbase():
-    dbase_fname=sconfig.config_file("station_dbase")
+    dbase_fname=station_config.config_file("station_dbase")
     dbase_df = pd.read_csv(dbase_fname,header=0,comment="#",index_col="id")
     is_ncro = dbase_df.agency.str.lower().str.contains("ncro")
     print(is_ncro[is_ncro.isnull()])
@@ -23,7 +24,7 @@ def download_ncro_inventory(dest,cache=True):
     url = "https://data.cnra.ca.gov/dataset/fcba3a88-a359-4a71-a58c-6b0ff8fdc53f/resource/cdb5dd35-c344-4969-8ab2-d0e2d6c00821/download/station-trace-download-links.csv"
     idf = pd.read_csv(url,header=0,parse_dates=["first_measurement_date","last_measurement_date"])
     idf = idf.loc[(idf.station_type != "Groundwater") & (idf.output_interval == "Raw"),:]
-    idf.to_csv(os.path.join(dest,"ncro_por_inventory.csv"),sep=",",index=False,date_format="%Y-%d%-mT%H:%M")    
+    idf.to_csv(os.path.join(dest,ncro_inventory_file),sep=",",index=False,date_format="%Y-%d%-mT%H:%M")    
     return idf
     
 def ncro_variable_map():
@@ -101,13 +102,16 @@ def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev"]):
     for f in failures: 
         print(f)
 
-
-def main():
-    idf = download_ncro_inventory(".")
+def ncro_download_por(dest):
+    idf = download_ncro_inventory(dest)
     dbase = station_dbase()
     is_in_dbase = idf.station_number.isin(dbase.agency_id) | idf.station_number.isin(dbase.agency_id+"00") | idf.station_number.isin(dbase.agency_id+"Q")
-    dest = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro"
     download_ncro_period_record(idf.loc[is_in_dbase,:],dbase,dest)
+
+
+def main():
+    dest = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro"
+    download_ncro_period_record(dest)
     
 
 if __name__ == "__main__":
