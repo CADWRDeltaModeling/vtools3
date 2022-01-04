@@ -64,8 +64,10 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
     
     if isinstance(stationlist,str):
         station_df = pd.read_csv(stationlist,sep=",",comment="#",header=0)
-    else:
+    elif isinstance(stationlist,list):
         station_df = pd.DataFrame(data={"id":stationlist})
+    else:
+        station_df = stationlist
     
     # Rename the parameter column as param to standardize
     # If there is no param column, create one and populate all its rows with param.
@@ -80,20 +82,23 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
     else:
         station_df["subloc"] = station_df.subloc.astype(str)
     if station_lookup:
-        slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,index_col=id_col,usecols=["id","agency_id","name","agency"])
-        station_df["id"] = station_df.id.str.lower()
-        station_df["station_id"] = station_df.id
-        station_df.set_index("id",drop=True,inplace=True)
+        slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,index_col=id_col)
+        station_df["station_id"] = station_df[id_col].str.lower()       
+        station_df.set_index(id_col,drop=True,inplace=True)
+
         station_df = station_df.merge(slookup,on="id",how="left")       
         station_df.loc[station_df.subloc.isin(['nan','']),'subloc'] = "default"
+        station_df["agency_id"] = station_df[agency_id_col]
     else: 
-        station_df["agency_id"] = station_df.id
+        station_df["agency_id"] = station_df["id"]
 
     # Replace parameters with lookup values from station_lookup. Failure will leave as-is, in case of mix.
     if param_lookup:
         vlookup = pd.read_csv(param_lookup,sep=",",comment="#",header=0,usecols=['var_name','src_var_id','src_name'],dtype=str)
         vlookup = vlookup.loc[vlookup.src_name == source,:]
         vlookup.rename(columns={"var_name":"param"},inplace=True)
+        print(vlookup)
+        print(station_df)        
         station_df = station_df.merge(vlookup,on="param",how="left")
         station_df = station_df.fillna(value={"src_var_id":station_df.param})
 
@@ -101,7 +106,7 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
     # Any nans in the agency_id indicate a lookup failure. As a backup assume the agency_id was already provided in the id column
     station_df["agency_id"].fillna(station_df.station_id,inplace=True)
     
-    return station_df[["station_id","agency_id","subloc","param","src_var_id"]]
+    return station_df   #[["station_id","agency_id","subloc","param","src_var_id"]]
             
 
         
