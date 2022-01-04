@@ -69,12 +69,11 @@ sffpx,9414290,San Francisco,37.8067,-122.465,547094.8,4184503.1,,,,noaa,x,,,
 pryc1,9415020,Point Reyes,37.996,-122.977,502341.4,4205260.6,,,,noaa,x,,,
 mtyc1,9413450,Monterey,36.605,-121.889,599422.8,4051630.4,,,,noaa,x,,,
 aamc1,9414750,Alameda,37.77161379,-122.2993982,561701.6,4180706.7,,,,noaa,x,,,
-afo,11446500,American River at Fair Oaks,38.63546,-121.22773,654346.1435,4277827,,,AFO,usgs,,,,
-smbr,9414458,San Mateo Bridge,37.58,-122.253,565957.4,4159479,,,,noaa,xx,,,
-rtyc1,9414523,Redwood City,37.506974,-122.2099047,569646.3,4151469.7,,,,noaa,x,,,Nudged
-dumbr2,9414509,Dumbarton Bridge,37.5067,-122.115,578219,4151452.5,,,,noaa,xx,,,
-coycr2,9414575,Coyote Creek,37.465,-122.023,586398.5,4146906.5,,,,noaa,xx,,,
+rtyc1,9414523,Redwood City,37.506974,-122.2099047,569646.3,4151469.7,,,,noaa,x,,,
 richm,9414863,Richmond,37.92820794,-122.3999317,552736,4198019.3,,,,noaa,xx,,,
+#smbr,9414458,San Mateo Bridge,37.58,-122.253,565957.4,4159479,,,,noaa,xx,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
+#dumbr2,9414509,Dumbarton Bridge,37.5067,-122.115,578219,4151452.5,,,,noaa,xx,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
+#coycr2,9414575,Coyote Creek,37.465,-122.023,586398.5,4146906.5,,,,noaa,xx,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
 anc,ANC,Antioch,38.01784713,-121.802883,605075.1,4208474.7,,,ANC,usbr,,,x,
 cll,CLL,Collinsville,38.07394957,-121.8500958,600858.7,4214644.1,,,CLL,usbr,,,x,
 cnt,CNT,Contra Costa,37.99587604,-121.7017029,613995.8,4206152.6,C5,,CNT,usbr,,,x,
@@ -82,6 +81,7 @@ pts,PTS,Pittsburg,38.04316356,-121.8918355,597238.3,4211183.7,,,PTS,usbr,,,x,
 riv,RIV,Rio Vista,38.15916838,-121.6844634,615252.9,4224292.9,D24A,,RIV,usbr,,,x,Under bridge tenders office almost in center of channel
 ver,VER,Vernalis,37.6791908,-121.2648837,653005.8,4171637.9,C10,,VER,usbr,,,x,Relocated from Durham Farry/Airoport Way Bridge to DWR pier where SJR is located
 pct,PCT,Port Chicago,38.05893797,-122.024823,585550.4,4212803.2,C14,,PCT,usbr,,,x,Pier 2 (1 mile upstream from NOAA site)
+afo,11446500,American River at Fair Oaks,38.63546,-121.22773,654346.1435,4277827,,,AFO,usgs,,,,
 mateo,11162765,"SF Bay at San Mateo Bridge Near Foster City, CA",37.58437876,-122.2508005,566147.7,4159966.4,,,,usgs,,,x,
 guad,11169025,"Guadalupe R above Hw 101 at San Jose, CA",37.37410337,-121.9329168,594479.1,4136908.3,,,,usgs,,,,
 coycr,11172175,Coyote Creek above HW 237,37.42243546,-121.9273615,594910,4142276.1,,,,usgs,,,,
@@ -126,13 +126,13 @@ petr,11459150,Petaluma R at Copland Pumping Station,38.23852452,-122.6401691,531
 dumbr,'373025122065901,San Francisco Bay at Old Dumbarton Bridge,37.50694444,-122.1163889,578096,4151478.4,,,,usgs,x,,,
 richb,'375607122264701,San Francisco Bay at Richmond-San Rafael Bridge,37.93527778,-122.4463889,548648.5,4198778.5,,,,usgs,,,x,
 mare,9415218,Mare Island,38.07,-122.25,565785.8,4213847.2,,,,noaa,x,,,
-crock,9415143,Crockett,38.0583,-122.223,568165,4212568.5,,,,noaa,x,,,
 ptchi,9415144,Port Chicago,38.056,-122.0395,584266.1,4212463.8,,,,noaa,x,,,
-brad,9414811,Bradmoor Island,38.18285942,-121.9247926,594166.8,4226650.2,,,,noaa,x,,,"Rogers Duck Club, pier behind shack. Discontinued 2006"
+#crock,9415143,Crockett,38.0583,-122.223,568165,4212568.5,,,,noaa,x,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
+#brad,9414811,Bradmoor Island,38.18285942,-121.9247926,594166.8,4226650.2,,,,noaa,x,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
+#mifw,9415112,Mallard Island Ferry Wharf,38.0433,-121.918,594942.2,4211171.8,,,,noaa,x,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
+#antn,9415064,Antioch,38.02,-121.815,604013.4,4208696.6,,,,noaa,x,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
+#rvno,9415316,Rio Vista,38.145,-121.692,614614.8,4222711.4,,,,noaa,x,,,Very brief and old. Please do not uncomment as it breaks downloaders and is not useful
 bts,40,Boynton Slough,38.20528,-122.06111,582201.4519,4228997,,,,dwr_des,,,,
-mifw,9415112,Mallard Island Ferry Wharf,38.0433,-121.918,594942.2,4211171.8,,,,noaa,x,,,
-antn,9415064,Antioch,38.02,-121.815,604013.4,4208696.6,,,,noaa,x,,,
-rvno,9415316,Rio Vista,38.145,-121.692,614614.8,4222711.4,,,,noaa,x,,,
 rindg,B95620,San Joaquin River at Rindge Pump,37.99721718,-121.4194314,638779.3,4206684.9,,B95620,,dwr_ncro,x,,,
 ist,A02100,Sacramento R at I Street,38.57164649,-121.5168395,630173.3,4272187.3,,A02100,IST,dwr_ncro,x,,,Not confirmed. This station is pegged to I Street bridge in photos based on description.
 gemok,B94100,Georgiana Slough at Mokelumne R,38.13,-121.5802778,624430.5,4221190.9,,B94100,,dwr_ncro,x,,,Not confirmed. Based on lat/long to 1 arc second from Central District
