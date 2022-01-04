@@ -19,7 +19,7 @@ def is_ncro_std(fname):
             if pattern.match(line.lower()):
                 return True 
 
-def read_ncro_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_ncro_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
 
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
@@ -36,7 +36,8 @@ def read_ncro_std(fpath_pattern,start=None,end=None,selector=None,force_regular=
                          column_names=["datetime","value","qaqc_code","qaqc_description","status"],
                          header=0,
                          dateparser=None,
-                         comment="#")
+                         comment="#",
+                         nrows=nrows)
     return ts
 
 def is_des_std(fname):
@@ -48,7 +49,7 @@ def is_des_std(fname):
             if pattern.match(line.lower()):
                 return True 
 
-def read_des_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_des_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
 
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
@@ -65,7 +66,8 @@ def read_des_std(fpath_pattern,start=None,end=None,selector=None,force_regular=T
                          dateparser=None,
                          comment="#",
                          extra_na=[""],
-                         prefer_age="new")
+                         prefer_age="new",
+                         nrows=nrows)
     return ts
     
 
@@ -83,7 +85,7 @@ def is_des(fname):
     
 
 
-def read_des(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_des(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
 
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
@@ -101,7 +103,8 @@ def read_des(fpath_pattern,start=None,end=None,selector=None,force_regular=True)
                          dateparser=None,
                          comment=None,
                          extra_na=[""],
-                         prefer_age="new")
+                         prefer_age="new",
+                         nrows=nrows)
     return ts
 
 ################################################33
@@ -114,7 +117,7 @@ def is_cdec_csv2(fname):
         return title_line.lower().startswith("station_id,duration,sensor_number")
 
 
-def read_cdec2(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_cdec2(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
     ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular,
@@ -128,7 +131,8 @@ def read_cdec2(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          sep=",",
                          dateparser=cdec2_date_parser,
                          comment=None,
-                         prefer_age="new")
+                         prefer_age="new",
+                         nrows=nrows)
     return ts
 
 ##################################### 
@@ -148,7 +152,7 @@ def is_cdec_csv1(fname):
         return title_line.lower().startswith("title:")
         
 
-def read_cdec1(fpath_pattern,start=None,end=None,selector=None, force_regular=True):
+def read_cdec1(fpath_pattern,start=None,end=None,selector=None, force_regular=True,nrows=None):
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
     
@@ -172,7 +176,8 @@ def read_cdec1(fpath_pattern,start=None,end=None,selector=None, force_regular=Tr
                          sep=",",
                          dateparser=cdec1_date_parser,
                          comment=None,
-                         prefer_age="new")
+                         prefer_age="new",
+                         nrows=nrows)
     return ts
 
 
@@ -189,7 +194,7 @@ def is_wdl(fname):
             return False
 
 
-def read_wdl(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_wdl(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
     
@@ -205,7 +210,8 @@ def read_wdl(fpath_pattern,start=None,end=None,selector=None,force_regular=True)
                          column_names=["datetime","value","qaqc_flag","comment"],
                          header=None,
                          dateparser=None,
-                         comment=None)    
+                         comment=None,
+                         nrows=nrows)    
     return ts
 
 
@@ -216,7 +222,7 @@ def is_wdl2(fname):
         return "\"Date" in first_line and "Site" in second_line
 
 
-def read_wdl2(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_wdl2(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
     
@@ -233,11 +239,39 @@ def read_wdl2(fpath_pattern,start=None,end=None,selector=None,force_regular=True
                          dtypes={"comment" : str},
                          header=0,
                          dateparser=None,
-                         comment=None)    
+                         comment=None,
+                         nrows=nrows)    
     return ts
 
 
 
+def is_wdl3(fname):
+    with open(fname,"r") as f:
+        first_line = f.readline()
+        second_line = f.readline()
+        ret = ("\"Time" in first_line) and ("\"and" in second_line)
+        return ret
+
+def read_wdl3(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
+    if selector is not None:
+        raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
+    
+    ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular,
+                         selector="value",
+                         format_compatible_fn=is_wdl3,
+                         qaqc_selector="qaqc_flag",
+                         qaqc_accept=['', ' ', ' ', 'e',"1"],
+                         parsedates=["datetime"],
+                         indexcol="datetime",
+                         sep=',',
+                         skiprows=2,
+                         column_names=["datetime","value","qaqc_flag","comment"],
+                         dtypes={"comment" : str},
+                         header=0,
+                         dateparser=None,
+                         comment=None,
+                         nrows=nrows)    
+    return ts
 
 ############################################################
 def is_usgs1(fname):
@@ -287,7 +321,7 @@ def usgs_data_columns1(fname):
                     return colnames
 
 
-def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     TZCOL = "tz_cd"
     if selector is None: 
         selector = usgs_data_columns1
@@ -313,7 +347,8 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          skiprows="count",
                          dateparser=None,
                          comment="#",
-                         dtypes=dtypes)    
+                         dtypes=dtypes,
+                         nrows=nrows)    
     #todo: hardwired from PST (though the intent is easily generalized)
     # note there is some bugginess to this. See SO post:
     # https://stackoverflow.com/questions/57714830/convert-from-naive-local-daylight-time-to-naive-local-standard-time-in-pandas
@@ -349,7 +384,7 @@ def is_usgs2(fname):
             if tzline and usgsline: return True
     return False
 
-def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     tzcol = "TZCD"
     if selector is None:
         selector = "VALUE"
@@ -372,7 +407,8 @@ def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          sep="\t",
                          skiprows="count",
                          comment="#",
-                         dtypes=dtypes)    
+                         dtypes=dtypes,
+                         nrows=nrows)    
     #todo: hardwired from PST (though the intent is easily generalized)
     # note there is some bugginess to this. See SO post:
     # https://stackoverflow.com/questions/57714830/convert-from-naive-local-daylight-time-to-naive-local-standard-time-in-pandas
@@ -408,7 +444,7 @@ def is_usgs_csv1(fname):
                 sampleline = True
     return sampleline
 
-def read_usgs_csv1(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_usgs_csv1(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
 
     if selector is None:
         selector = "Value"
@@ -431,7 +467,8 @@ def read_usgs_csv1(fpath_pattern,start=None,end=None,selector=None,force_regular
                                  engine=eng,
                                  skiprows=0,
                                  comment="#",
-                                 dtypes={"Value":float,"Approval Level":str,"Qualifiers":str})
+                                 dtypes={"Value":float,"Approval Level":str,"Qualifiers":str},
+                                 nrows=nrows)
             return ts
         except IndexError as e:
             if sep == ', ': raise
@@ -480,7 +517,7 @@ def noaa_qaqc_selector(selector,fname):
                     raise ValueError("Quality labels in file not known: {}".format(fname))
 
 
-def read_noaa(fpath_pattern,start=None,end=None,selector=None,force_regular=True):
+def read_noaa(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     
     ts = csv_retrieve_ts(fpath_pattern, 
                          start, end, force_regular, 
@@ -492,7 +529,8 @@ def read_noaa(fpath_pattern,start=None,end=None,selector=None,force_regular=True
                          indexcol="Date Time",
                          header=0,
                          sep=",",
-                         comment="#")    
+                         comment="#",
+                         nrows=nrows)    
     return ts
 
 
@@ -517,7 +555,7 @@ def read_vtide(fpath_pattern,start=None,end=None,selector=None,force_regular=Fal
 
 
 
-def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hint=None):
+def read_ts(fpath, start=None, end=None, force_regular=True,nrows=None, selector = None,hint=None):
     """ Read a time series from a text file in various formats.
         This function asks readers for different file formats to attempt to read the file.
         The first reader that confirms its appropriateness will be attempted. The order of this
@@ -543,7 +581,7 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
     readers = [read_usgs1,read_usgs2,read_usgs_csv1,
                read_noaa,read_des,read_des_std,
                read_cdec1,read_cdec2,
-               read_ncro_std,read_wdl2,read_wdl]
+               read_ncro_std,read_wdl3,read_wdl2,read_wdl]
     ts = None
     reader_count = 0
     last_reader_tried = None
@@ -552,7 +590,7 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
         if hint is not None:
             if hint not in reader.__name__: continue
         try:            
-            ts = reader(fpath,start,end,selector,force_regular=force_regular)
+            ts = reader(fpath,start,end,selector,force_regular=force_regular,nrows=nrows)
             return ts
         except IOError as e:
             if str(e).startswith("No match"): 
@@ -565,7 +603,10 @@ def read_ts(fpath, start=None, end=None, force_regular=True, selector = None,hin
     if ts is None:
         if last_reader_tried == readers[-1].__name__:
             last_reader_tried = last_reader_tried + " (this is the last on the list, so it may not be meaningful)"
-        raise ValueError("File not found, format not supported or error during read: {}. Last reader tried = {}\n" .format(fpath,last_reader_tried))
+        files = glob.glob(fpath)
+        found_some = len(files) > 0
+        found_txt = f"Can confirm found file(s) from pattern (false negative possible): {found_some}"
+        raise ValueError("File not found, format not supported or error during read: {}. Last reader tried = {}\n{}\n" .format(fpath,last_reader_tried,found_txt))
 
 
 
@@ -631,6 +672,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                     replace_names=None,
                     dtypes = None,
                     freq='infer',
+                    nrows=None,
                     **kwargs):
     import os
     import fnmatch
@@ -709,7 +751,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                            skiprows=skiprows,sep=sep,
                            parse_dates=parsedates, na_values=extra_na,
                            keep_default_na=True, dtype=dtypes,
-                           infer_datetime_format=True,skipinitialspace=True,
+                           infer_datetime_format=True,skipinitialspace=True,nrows=nrows,
                            **dargs)
 
             
