@@ -1,6 +1,0 @@
-
-
-
-station_dbase : station_dbase.csv   # From BayDeltaSCHISM
-variable_mappings: variable_mappings.csv
-variable_definitions: variables.csv
