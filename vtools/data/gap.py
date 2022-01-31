@@ -164,9 +164,10 @@ def gap_distance(ts, disttype="count", to = "good"):
         holding the distance of good/bad data. 
         
     """
-    ts_out=ts.copy()        
+    ts_out=ts.copy().to_frame()       
     si = ts.index.to_series()
-    for col in ts.columns:
+    tswork = ts.to_frame()
+    for col in tswork:
         id_key=True
         if to=="good":
             ts_out.at[~ts_out[col].isna(),col]=0
@@ -176,7 +177,7 @@ def gap_distance(ts, disttype="count", to = "good"):
         else:
             raise ValueError("invalid input to, must be good or bad")
         #test missing values
-        miss = ts[col].isna()
+        miss = tswork[col].isna()
       
         if np.any(miss==(id_key)):
             mm=si.groupby(miss).indices
