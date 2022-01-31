@@ -362,6 +362,11 @@ def convert_span_to_nstep(freq,span):
     freq = pd.tseries.frequencies.to_offset(freq)
     return span//freq
 
+def _gf1d(ts,sigma,order,mode,cval,truncate):
+    tscopy = ts.copy()
+    tscopy.loc[:] = gaussian_filter1d(ts.squeeze().to_numpy(),sigma=sigma,order=order,mode=mode,cval=cval,truncate=truncate)
+    return tscopy
+
 def ts_gaussian_filter(ts,sigma,order=0,mode='reflect', cval=0.0, truncate=4.0):
     """ Column-wise Gaussian smoothing of regular time series. 
     Missing/irregular values are not handled, which means this function is not much different from
@@ -387,8 +392,13 @@ def ts_gaussian_filter(ts,sigma,order=0,mode='reflect', cval=0.0, truncate=4.0):
     
     """
     freq = ts.index.freq
-    if type(sigma) != int: sigma = convert_span_to_nstep(freq,sigma)
-    tsout = ts.apply(gaussian_filter1d,sigma=sigma,axis=0,order=order,mode=mode,cval=cval,truncate=truncate)
+    if type(sigma) != int: 
+        sigma = convert_span_to_nstep(freq,sigma)
+    
+    if isinstance(ts,pd.Series):
+        tsout = _gf1d(ts,sigma=sigma,order=order,mode=mode,cval=cval,truncate=truncate)
+    else:
+        tsout = ts.apply(_gf1d,sigma=sigma,order=order,mode=mode,cval=cval,truncate=truncate)
     return tsout
         
     
