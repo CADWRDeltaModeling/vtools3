@@ -40,10 +40,11 @@ def create_arg_parser():
                         help='Id or name of one or more stations.')
     parser.add_argument('stationfile',nargs="*", help = 'CSV-format station file.')
     parser.add_argument('--overwrite', action='store_true',default=False,help = 'Overwrite existing files (if False they will be skipped, presumably for speed')
+    parser.add_argument('--freq', default=None, help = 'specify the frequency. Otherwise proceeds from even to hour to day. must be H or D')
     return parser
 
 
-def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
+def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,freq=None):
     """ Download robot for CDEC
     Requires a list of stations, destination directory and start/end date
     These dates are passed on to CDEC ... actual return dates can be
@@ -103,7 +104,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         
         zz = [z]
         for code in zz:
-            dur_codes = ["E","H","D"]
+            dur_codes = ["E","H","D"] if freq is None else [freq]
             for dur in dur_codes:
                 station_query = f"http://{cdec_base_url}/dynamicapp/req/CSVDataServletPST?Stations={cdec_id}&SensorNums={code}&dur_code={dur}&Start={stime}&End={etime}"
                 if sys.version_info[0] == 2:
@@ -156,6 +157,7 @@ def main():
     param = args.param
     start = args.start
     end = args.end
+    freq = args.freq
     stime = dt.datetime(*list(map(int, re.split(r'[^\d]', start))))
     if end is not None:
         etime = dt.datetime(*list(map(int, re.split(r'[^\d]', end))))
@@ -178,7 +180,8 @@ def main():
                   stime,
                   etime,
                   param,
-                  overwrite)
+                  overwrite,
+                  freq)
 
 if __name__ == '__main__':
     main()
