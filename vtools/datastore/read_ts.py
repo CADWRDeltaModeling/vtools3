@@ -338,7 +338,7 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          selector=selector,
                          format_compatible_fn = is_usgs1,
                          qaqc_selector=qaselect,
-                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:R','Approved'],
+                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:R','Approved','e'],
                          extra_cols="tz_cd",
                          parsedates=["datetime"],
                          indexcol="datetime",
@@ -743,12 +743,11 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
         
         if skiprows=="count":
             ncomment = count_comments(m,comment)
-            skiprows = list(range(ncomment)) + [ncomment+1]
-        
-        
+            skiprows_spec = list(range(ncomment)) + [ncomment+1]
+
         if column_names is None:
             dset = pd.read_csv(m, index_col=indexcol, header=header,
-                           skiprows=skiprows,sep=sep,
+                           skiprows=skiprows_spec,sep=sep,
                            parse_dates=parsedates, na_values=extra_na,
                            keep_default_na=True, dtype=dtypes,
                            infer_datetime_format=True,skipinitialspace=True,nrows=nrows,
@@ -769,7 +768,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
 
         else:
             dset = pd.read_csv(m, index_col=indexcol, header=header,
-                           skiprows=skiprows,sep=sep,
+                           skiprows=skiprows_spec,sep=sep,
                            parse_dates=parsedates, 
                            na_values=extra_na,
                            keep_default_na=True, dtype=dtypes,
