@@ -93,8 +93,11 @@ def nwis_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                 response = urllib.request.urlopen(station_query)
         except:
             failures.append(station)
-        else:    
-            station_html = response.read().decode().replace("\r","")
+        else:
+            try:
+                station_html = response.read().decode().replace("\r","")
+            except:
+                station_html = "" # Catches incomplete read error
             if len(station_html) > 30 and not "No sites found matching" in station_html:
                 found = True
                 with open(path,"w") as f:

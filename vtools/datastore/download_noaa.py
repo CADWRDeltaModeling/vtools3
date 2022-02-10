@@ -112,7 +112,7 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
 
 
     if end is None: 
-        end = dt.datetime.now()
+        end = dtm.datetime.now()
         endfile = 9999
     else: 
         endfile = end.year
