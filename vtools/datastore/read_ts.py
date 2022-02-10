@@ -298,10 +298,12 @@ def usgs_data_columns1(fname):
     MAX_SCAN_LINE=60
     import re
     description_re = re.compile(r"#\s+(ts|ts_id|dd)\s*(parameter)\s*description")
+    description_re = re.compile(r"#\s+(ts|ts_id|dd)\s*(parameter)\s*?(statistic)?\s*?description")
     colnames=[]
     description={}
     with open(fname,"r") as f:
         reading_cols = False
+        use_statistic = False
         for i,line in enumerate(f):
             if i > MAX_SCAN_LINE: return False
             linelower = line.lower().strip()
@@ -309,16 +311,27 @@ def usgs_data_columns1(fname):
                 raise ValueError("Column names could not be inferred in file: {}".format(fname))
             if description_re.match(linelower):
                 reading_cols = True
+                if "statistic" in linelower:
+                    use_statistic = True
                 continue
             if reading_cols:
                 import string
-                try: 
-                    comment, ts_id, param, describe = linelower.split(maxsplit=3)
-                    col_id = ts_id+"_"+param
-                    colnames.append(col_id)
-                    description[col_id]=describe.strip()
-                except:
-                    return colnames
+                if use_statistic:
+                    try: 
+                        comment, ts_id, param, statistic, describe = linelower.split(maxsplit=4)
+                        col_id = ts_id+"_"+param + "_"+ statistic
+                        colnames.append(col_id)
+                        description[col_id]=describe.strip()
+                    except:
+                        return colnames
+                else:
+                    try: 
+                        comment, ts_id, param, describe = linelower.split(maxsplit=3)
+                        col_id = ts_id+"_"+param
+                        colnames.append(col_id)
+                        description[col_id]=describe.strip()
+                    except:
+                        return colnames
 
 
 def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
@@ -338,7 +351,7 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          selector=selector,
                          format_compatible_fn = is_usgs1,
                          qaqc_selector=qaselect,
-                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:R','Approved','e'],
+                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:[91]','A:R','Approved','e'],
                          extra_cols="tz_cd",
                          parsedates=["datetime"],
                          indexcol="datetime",
@@ -366,6 +379,63 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
     ts = ts.loc[~ts.index.duplicated(keep='first')]
     if ts.index.freq is None: ts = ts.asfreq(f)
     return ts
+
+##############################################################
+def is_usgs1_daily(fname):
+    MAX_SCAN_LINE = 220
+ 
+    
+    tzline = False
+    usgsline = False
+    agencyline = False
+    with open(fname,"r") as f:
+        for i,line in enumerate(f):
+            if i >MAX_SCAN_LINE: return False
+            linelower = line.lower()
+            if "waterdata.usgs.gov" in linelower: 
+                usgsline = True 
+            if "nwisweb" in linelower:
+                usgsline = True
+            if linelower.startswith("usgs"):
+                usgsline = True
+            if "agency_cd" in linelower: 
+                agencyline = True
+            if "tz_cd" in linelower: 
+                return False  # Have to bail on this if it is daily before we test for presence of others
+            if usgsline and agencyline: 
+                return True
+
+    return False
+
+
+
+def read_usgs1_daily(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
+    if selector is None: 
+        selector = usgs_data_columns1
+        qaselect = lambda x,y: x+"_cd"
+
+    else:   
+        selector = listify(selector)
+        qaselect = [x+"_cd" for x in selector]
+
+    # Now tack on time zone at the end
+    ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular, 
+                         selector=selector,
+                         format_compatible_fn = is_usgs1_daily,
+                         qaqc_selector=qaselect,
+                         qaqc_accept=['', ' ', ' ', 'A','P','A:[99]','A:[91]','A:R','Approved','e','A:e'],
+                         parsedates=["datetime"],
+                         indexcol="datetime",
+                         header=0,
+                         sep="\t",
+                         skiprows="count",
+                         dateparser=None,
+                         comment="#",
+                         nrows=nrows)    
+
+    return ts
+
+
 
 ################################################################
 def is_usgs2(fname):
@@ -578,7 +648,7 @@ def read_ts(fpath, start=None, end=None, force_regular=True,nrows=None, selector
             metadata of the time series
     """
     from os.path import split as op_split
-    readers = [read_usgs1,read_usgs2,read_usgs_csv1,
+    readers = [read_usgs1,read_usgs2,read_usgs_csv1,read_usgs1_daily,
                read_noaa,read_des,read_des_std,
                read_cdec1,read_cdec2,
                read_ncro_std,read_wdl3,read_wdl2,read_wdl]
@@ -744,6 +814,8 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
         if skiprows=="count":
             ncomment = count_comments(m,comment)
             skiprows_spec = list(range(ncomment)) + [ncomment+1]
+        else:
+            skiprows_spec = skiprows
 
         if column_names is None:
             dset = pd.read_csv(m, index_col=indexcol, header=header,
