@@ -48,7 +48,7 @@ mappings = {
     'Salinity':'salinity'
     }
 
-def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev"]):    
+def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev","ec","temp","do","ph","turbidity","cla"]):    
     #mappings = ncro_variable_map()
     print(mappings)
     failures = []
@@ -102,16 +102,16 @@ def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev"]):
     for f in failures: 
         print(f)
 
-def ncro_download_por(dest):
+def download_ncro_por(dest):
     idf = download_ncro_inventory(dest)
     dbase = station_dbase()
     is_in_dbase = idf.station_number.isin(dbase.agency_id) | idf.station_number.isin(dbase.agency_id+"00") | idf.station_number.isin(dbase.agency_id+"Q")
-    download_ncro_period_record(idf.loc[is_in_dbase,:],dbase,dest)
+    download_ncro_period_record(idf.loc[is_in_dbase,:],dbase,dest,variables=["flow","elev","ec","temp","do","ph","turbidity","cla"])
 
 
 def main():
     dest = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro"
-    download_ncro_period_record(dest)
+    download_ncro_por(dest)
     
 
 if __name__ == "__main__":
