@@ -104,7 +104,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
         
         zz = [z]
         for code in zz:
-            dur_codes = ["E","H","D"] if freq is None else [freq]
+            dur_codes = ["E","H","D","M"] if freq is None else [freq]
             for dur in dur_codes:
                 station_query = f"http://{cdec_base_url}/dynamicapp/req/CSVDataServletPST?Stations={cdec_id}&SensorNums={code}&dur_code={dur}&Start={stime}&End={etime}"
                 if sys.version_info[0] == 2:
