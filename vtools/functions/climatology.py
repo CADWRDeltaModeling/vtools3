@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 """ 
 Module to apply climatology data pattern of historical record to user desired date time index, 
@@ -16,40 +19,23 @@ ext_tt=apply_climatology(tt,new_range)
 import numpy as np
 import pandas as pd
 
-
 def climatology(ts,freq,nsmooth):
-
     """" Create a climatology on the columns of ts
 
-        
-
         Parameters
-
         ----------
-
- 
-
+        
         ts: DataFrame or Series
-
         DataStructure to be analyzed. Must have a length of at least 2*freq
 
- 
-
         freq: period ["day","month"]
-
         Period over which the climatology is analyzed
 
- 
-
         nsmooth: int
-
            window size (number of values) of pre-smoothing. This may not make sense for series that are not approximately regular.
 
-         
         Returns:
-
            out: DataFrame or Series
-
            Data structure of the same type as ts, with Integer index representing month (Jan=1) or day of year (1:365).
            
     """
@@ -77,8 +63,64 @@ def climatology(ts,freq,nsmooth):
     climatology_data=pd.concat(mean_data,axis=1).transpose()
     return climatology_data
             
+
+def climatology_quantiles(ts,min_day_year,max_day_year,window_width,quantiles=[0.05,0.25,0.5,0.75,0.95]):
+    """" Create windowed quantiles across years on a time series
+
+        Parameters
+        ----------
+        
+        ts: DataFrame or Series
+        DataStructure to be analyzed. 
+        
+        min_day_year: int
+        Minimum Julian day to be considered
+
+        freq: period ["day","month"]
+        Maximum Julian day to be considered 
+  
+        window_width: int
+        Number of days to include, including the central day and days on each side. So for instance window_width=15 would span the central date and 7 days on each side
+
+        quantiles: array-like
+           quantiles requested
+
+        Returns:
+           out: DataFrame or Series
+           Data structure with Julian day as the index and quantiles as columns.
+           
+    """
+
+    if (min_day_year < window_width) or (max_day_year > (365-window_width)): 
+        raise NotImplementedError("Time brackets that cross January 1 not implemented yet")
+    if window_width % 2 == 0: 
+        raise ValueError("window_width must be odd")
+    window_half = (window_width - 1)/2
+    day_year = ts.index.dayofyear
+    nquant = len(quantiles)
+    clim = pd.DataFrame(columns=quantiles,index=range(min_day_year,max_day_year))
     
-              
+    for imid in range(min_day_year,max_day_year):
+        iend = imid + window_half + 1 # The plus one centers the estimate, equal on each side plus one for center
+        istart = imid - window_half
+        usets = ts[(day_year > istart) & (day_year < iend)]
+        qs = usets.quantile(quantiles)        
+        clim.loc[imid,:] = qs.values.flatten()
+    clim.index.name='day_of_year'
+    return clim
+
+if __name__=='__main__':
+    import matplotlib.pyplot as plt
+    from vtools.datastore.read_ts import read_ts
+    fname = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/des_twi_405_turbidity_*.csv"
+    fname = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/usgs_lib*turbidity*.rdb"
+    selector = "16127_63680"
+    ts = read_ts(fname,selector=selector)
+    window = 19 # central day plus 9 on each side
+    clim=climatology_quantiles(ts,182,305,window)
+    clim.plot()
+    plt.show()
+
 
 def apply_climatology(climate, index):
 
