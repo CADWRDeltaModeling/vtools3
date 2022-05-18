@@ -42,11 +42,12 @@ def read_ncro_std(fpath_pattern,start=None,end=None,selector=None,force_regular=
 
 def is_des_std(fname):
     import re
-    pattern = re.compile("#\s?provider\s?=\s?dwr-des")
+    pattern0 = re.compile("#\s?provider\s?=\s?dwr-des")
+    pattern1 = re.compile("#\s?provider\s?:\s?dwr-des")    
     with open(fname,"r") as f:
         for i,line in enumerate(f):
             if i > 6: return False
-            if pattern.match(line.lower()):
+            if pattern0.match(line.lower()) or pattern1.match(line.lower()):
                 return True 
 
 def read_des_std(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
@@ -124,7 +125,7 @@ def read_cdec2(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          selector="VALUE",
                          format_compatible_fn=is_cdec_csv2,
                          qaqc_selector="DATA_FLAG",
-                         qaqc_accept=['', ' ', ' ', 'e'],
+                         qaqc_accept=['', ' ', ' ', 'e','ART','BRT'],
                          parsedates=["OBS DATE"],
                          indexcol="OBS DATE",
                          skiprows=0,
@@ -255,8 +256,8 @@ def is_wdl3(fname):
 def read_wdl3(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
-    
-    ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular,
+    try:
+        ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular,
                          selector="value",
                          format_compatible_fn=is_wdl3,
                          qaqc_selector="qaqc_flag",
@@ -271,6 +272,24 @@ def read_wdl3(fpath_pattern,start=None,end=None,selector=None,force_regular=True
                          dateparser=None,
                          comment=None,
                          nrows=nrows)    
+    except pd.errors.ParserError as e:
+        if "Too many columns" in str(e):
+            ts = csv_retrieve_ts(fpath_pattern, start, end, force_regular,
+                         selector="value",
+                         format_compatible_fn=is_wdl3,
+                         qaqc_selector="qaqc_flag",
+                         qaqc_accept=['', ' ', ' ', 'e',"1"],
+                         parsedates=["datetime"],
+                         indexcol="datetime",
+                         sep=',',
+                         skiprows=2,
+                         column_names=["datetime","value","qaqc_flag"],
+                         dtypes={"comment" : str},
+                         header=0,
+                         dateparser=None,
+                         comment=None,
+                         nrows=nrows)            
+    
     return ts
 
 ############################################################
@@ -362,6 +381,7 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
                          comment="#",
                          dtypes=dtypes,
                          nrows=nrows)    
+    f_orig = ts.index.freq
     #todo: hardwired from PST (though the intent is easily generalized)
     # note there is some bugginess to this. See SO post:
     # https://stackoverflow.com/questions/57714830/convert-from-naive-local-daylight-time-to-naive-local-standard-time-in-pandas
@@ -373,11 +393,10 @@ def read_usgs1(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
     
     # Get rid of the time zone column
     ts = ts.drop(TZCOL,axis=1)
-    
     # Get rid of redundant entries caused by the time zone
-    f = ts.index.freq
+    #f = ts.index.freq
     ts = ts.loc[~ts.index.duplicated(keep='first')]
-    if ts.index.freq is None: ts = ts.asfreq(f)
+    if f_orig is not None: ts = ts.asfreq(f_orig)
     return ts
 
 ##############################################################
@@ -493,7 +512,7 @@ def read_usgs2(fpath_pattern,start=None,end=None,selector=None,force_regular=Tru
     
     # Get rid of redundant entries caused by the time zone
     ts = ts.loc[~ts.index.duplicated(keep='first')]
-    
+
     return ts
 
 ######################
@@ -735,7 +754,7 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                     dateparser=None,
                     comment=None,
                     sep="/s+",
-                    extra_na=["m", "---", "", " ","Eqp","Ssn","Dis","Mnt","***"],
+                    extra_na=["m", "---", "", " ","Eqp","Ssn","Dis","Mnt","***","ART","BRT","ZFL"],
                     blank_qaqc_good=True,
                     prefer_age="new",
                     column_names=None,
@@ -866,18 +885,19 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
     big_ts = ts_merge(tsm)  # pd.concat(tsm)
     if force_regular: 
         if freq == 'infer': 
-            f = pd.infer_freq(big_ts.index[0:6])
+            big_ts.index = big_ts.index.round('1min')
+            f = pd.infer_freq(big_ts.index[-6:-1])
             if f is None:
-                 big_ts.index=big_ts.index.round('1min')
-                 f = pd.infer_freq(big_ts.index[0:6])
+                big_ts.index = big_ts.index.round('1min')
+                istrt = 3*len(big_ts)//4
+                f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
             if f is None:
                 # Give it one more shot halfway through
                 istrt = len(big_ts)//2
                 f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
             if f is None:
-                big_ts.index = big_ts.index.round('1min')
-                istrt = 2*len(big_ts)//3
-                f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
+                big_ts.index=big_ts.index.round('1min')
+                f = pd.infer_freq(big_ts.index[0:6])                
                 #f = minutes(15)
                 if f is None:
                     raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
