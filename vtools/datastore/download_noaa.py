@@ -85,6 +85,9 @@ def write_header(fname, headers):
     f.flush()
     f.close()
 
+def faulty_output(text):
+    return "Please make sure" in text or len(text) < 300
+
 
 def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
     """ Download stage data from NOAA tidesandcurrents, and save it to
@@ -200,6 +203,9 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                 
                 try:
                     raw_table = retrieve_csv(url).decode()
+                    if faulty_output(raw_table):
+                        print("No good data produced")
+                        continue
                 except:
                     print("Error reported in retrieval")
                     raw_table = "\n" 
@@ -212,6 +218,9 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                     print("URL: {}".format(url))
                     try:
                         raw_table = retrieve_csv(url).decode()
+                        if faulty_output(raw_table):
+                            print("No good data produced [2]")
+                            continue
                     except:
                         print("Error in second retrieval")
                         continue
