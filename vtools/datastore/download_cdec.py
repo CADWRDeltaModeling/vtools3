@@ -71,7 +71,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
     subloc_inconsist = (stations.subloc.isin(["default","nan","upper","top"]))\
                & (stations.src_var_id.isin([92,102]))
     stations = stations.loc[~subloc_inconsist,:]    
-    subloc_inconsist = stations.subloc.isin(["lower","bot","bottom"]) & stations.src_var_id.isin([100])
+    subloc_inconsist = stations.subloc.isin(["lower","bot","bottom"]) & ~stations.src_var_id.isin([92,102])   # at present, only EC has bottom sensor listed
     stations = stations.loc[~subloc_inconsist,:] 
     
     for index,row in stations.iterrows():
@@ -92,7 +92,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
         if (subloc == "default"):
             path = os.path.join(dest_dir,f"cdec_{station}_{agency_id}_{p}_{yearname}.csv").lower()
         else:
-            path = os.path.join(dest_dir,f"cdec_{station}@{subloc}_{p}_{agency_id}_{yearname}.csv").lower()
+            path = os.path.join(dest_dir,f"cdec_{station}@{subloc}_{agency_id}_{p}_{yearname}.csv").lower()
                 
         if os.path.exists(path) and overwrite is False:
             print("Skipping existing station because file exists: %s" % path)
