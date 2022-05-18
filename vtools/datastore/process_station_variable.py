@@ -91,6 +91,7 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
         station_df["agency_id"] = station_df[agency_id_col]
     else: 
         station_df["agency_id"] = station_df["id"]
+    station_df["agency_id"] = station_df["agency_id"].astype(str).str.replace("\'","",regex=True)   # Some ids are prepended with ' in order to deal with Excel silent coersion.
 
     # Replace parameters with lookup values from station_lookup. Failure will leave as-is, in case of mix.
     if param_lookup:
