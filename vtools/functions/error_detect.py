@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
@@ -8,7 +11,7 @@ from scipy.signal import medfilt
 from scipy.stats.mstats import mquantiles
 from scipy.stats import iqr as scipy_iqr
 
-
+from vtools.data.gap import *
 
 
 '''
@@ -90,17 +93,130 @@ def nrepeat(ts):
 def threshold(ts,bounds,copy=True):
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
-    
-    if bounds[0] is not None:
-        ts_out.mask(ts_out < bounds[0],inplace=True)
-    if bounds[1] is not None:
-        ts_out.mask(ts_out > bounds[1],inplace=True)  
+    if bounds is not None:
+        if bounds[0] is not None:
+            ts_out.mask(ts_out < bounds[0],inplace=True)
+        if bounds[1] is not None:
+            ts_out.mask(ts_out > bounds[1],inplace=True)  
     return ts_out
+
+def median_test(ts, level = 4, filt_len = 7, quantiles=(0.005,0.095),copy = True):
+    return med_outliers(ts,level=level,filt_len=filt_len, quantiles=quantiles,copy=False,as_anomaly=True)
+
+def median_test_oneside(ts, scale=None,level = 4, filt_len = 6, quantiles=(0.005,0.095),
+                        copy = True,reverse=False):
+    kappa = filt_len//2
+    ts.to_csv("forward.csv")
+    if reverse:
+        original_index = ts.index
+        vals = ts[::-1] 
+        #vals.reset_index(inplace=True,drop=True)
+    else: 
+        vals = ts
+    vals = vals.to_frame()
+    vals.columns=["ts"]
+
+    vals["z"]=vals.ts.diff()
+    min_periods = kappa*2 - 1
+    vals['my']= vals['ts'].shift().rolling(kappa*2,min_periods=min_periods).median()
+    vals['mz'] =vals.z.shift().rolling(kappa*2,min_periods=min_periods).median()
+    vals['pred'] = vals.my + kappa*vals.mz
+    res = vals.ts - vals.pred
+    if scale is None:
+        qq = res.quantile( q=quantiles)
+        scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
+    anomaly = (res.abs() > level*scale) | (res.abs() < -level*scale)    
+    
+    if reverse: 
+        anomaly = anomaly[::-1]
+        anomaly.index = original_index
+        #print("anomaly",reverse,anomaly.loc[pd.Timestamp(2003,3,26,18)])
+        #print("vals",vals.loc[pd.Timestamp(2003,3,26,18),:])
+
+    #anomaly=anomaly #.astype(int)
+    return anomaly
 
 def med_outliers(ts,level=4.,scale = None,\
                  filt_len=7,range=(None,None),
                  quantiles = (0.01,0.99),
-                 copy = True):
+                 copy = True,as_anomaly=False):
+    """
+    Detect outliers by running a median filter, subtracting it
+    from the original series and comparing the resulting residuals
+    to a global robust range of scale (the interquartile range).
+    Individual time points are rejected if the residual at that time point is more than level times the range of scale. 
+
+    The original concept comes from Basu & Meckesheimer (2007)
+    Automatic outlier detection for time series: an application to sensor data
+    although they didn't use the interquartile range but rather
+    expert judgment. To use this function effectively, you need to
+    be thoughtful about what the interquartile range will be. For instance,
+    for a strongly tidal flow station it is likely to 
+    
+    level: Number of times the scale or interquantile range the data has to be
+           to be rejected.d
+
+    scale: Expert judgment of the scale of maximum variation over a time step.
+           If None, the interquartile range will be used. Note that for a 
+           strongly tidal station the interquartile range may substantially overestimate the reasonable variation over a single time step, in which case the filter will work fine, but level should be set to 
+           a number (less than one) accordingly.
+
+    filt_len: length of median filter, default is 5
+    
+    quantiles : tuple of quantiles defining the measure of scale. Ignored
+          if scale is given directly. Default is interquartile range, and
+          this is almost always a reasonable choice.
+
+    copy: if True, a copy is made leaving original series intact
+
+    You can also specify rejection of  values based on a simple range
+
+    Returns: copy of series with outliers replaced by nan
+    """
+    import warnings
+    ts_out = ts.copy() if copy else ts
+    warnings.filterwarnings("ignore")
+    
+    if range is not None:
+        threshold(ts_out,range,copy=False)
+
+    vals = ts_out.to_numpy()
+    #if ts_out.ndim == 1:
+    #    filt = medfilt(vals,filt_len)
+    #else:
+    #    filt = np.apply_along_axis(medfilt,0,vals,filt_len)
+    filt = ts_out.rolling(filt_len,center=True,axis=0).median()
+
+    res = ts_out - filt
+
+
+    if scale is None:
+        qq = res.quantile( q=quantiles)
+        scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
+
+    anomaly = (res.abs() > level*scale) | (res.abs() < -level*scale)
+    if as_anomaly: 
+        return anomaly   
+    # apply anomaly by setting values to nan
+    values = np.where(anomaly,np.nan,ts_out.values)
+    ts_out.iloc[:]= values
+    warnings.resetwarnings()
+    return ts_out
+
+
+def gapdist_test_series(ts,smallgaplen=0):
+    test_gap = ts.copy()
+    gapcount = gap_count(ts)
+    testgapnull = test_gap.isnull()
+    is_small_gap = (gapcount <= smallgaplen)
+    smallgap = testgapnull & is_small_gap
+    test_gap.loc[smallgap] = -99999999.
+    return test_gap
+
+def steep_then_nan(ts,level=4.,scale = None,\
+                 filt_len=11,range=(None,None),
+                 quantiles = (0.01,0.99),
+                 copy = True,as_anomaly = True):
     """
     Detect outliers by running a median filter, subtracting it
     from the original series and comparing the resulting residuals
@@ -137,16 +253,16 @@ def med_outliers(ts,level=4.,scale = None,\
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
     
-    if range is not None:
-        threshold(ts_out,range,copy=False)
-
+    test_gap = gapdist_test_series(ts,smallgaplen=3)
+    gapdist = gap_distance(test_gap, disttype="count", to = "bad").squeeze()
+    neargapdist = 5
+    nearbiggap = gapdist.squeeze() < neargapdist  
     vals = ts_out.to_numpy()
     if ts_out.ndim == 1:
         filt = medfilt(vals,filt_len)
     else:
         filt = np.apply_along_axis(medfilt,0,vals,filt_len)
         
-
     res = ts_out - filt
 
 
@@ -155,16 +271,37 @@ def med_outliers(ts,level=4.,scale = None,\
         scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
 
     outlier = (np.absolute(res) > level*scale) | (np.absolute(res) < -level*scale)
-    values = np.where(outlier,np.nan,ts_out.values)
- 
-    ts_out.iloc[:]= values
+    diag_plot = False
+    if diag_plot:
+        fig,(ax0,ax1) = plt.subplots(2,sharex=True)
+
+        print(outlier)
+        outliernum = (ts_out*0.).fillna(0.)
+        outliernum[outlier] = 1.
+        nearbiggapnum = (ts_out*0.).fillna(0.)
+        print(nearbiggap)
+        nearbiggapnum[nearbiggap] = 1.
+        outliernum.plot(ax=ax0)
+        nearbiggapnum.plot(ax=ax1)
+        gapdist.plot(ax=ax1)
+        plt.show()
+  
+    outlier = outlier.squeeze() & nearbiggap.squeeze()  
+    print("Any outliers?")
+    print(outlier.any())
+    print(ts_out[outlier])
+    print("Near big gap")
+    print(nearbiggap[nearbiggap.values])
+    print("OK")
+    
+    if not as_anomaly:
+        values = np.where(outlier,np.nan,ts_out.values)
+        ts_out.iloc[:]= values
 
     warnings.resetwarnings()
-
     
-    return ts_out
-
-
+    
+    return outlier if as_anomaly else ts_out
 
 
 
@@ -261,8 +398,7 @@ def despike(arr, n1=2, n2=20, block=10):
     arr[mask] = np.NaN
     return arr + offset
 
-if __name__ == '__main__':
-    # Just an example
+def example():
     station = sys.argv[1]
     ts = read_cdec("cdec_download/%s.csv"%station,start=None,end=None)
 
@@ -274,3 +410,13 @@ if __name__ == '__main__':
     plt.plot(ts.times,ts.data-filt.data,label="res")
     plt.legend()
     plt.show()
+
+def example2():
+    data = np.arange(32)*2. + np.cos(np.arange(32)*2*np.pi/24.)
+    ndx = pd.date_range(pd.Timestamp(2000,1,1),periods = len(data),freq="15T")
+    df = pd.DataFrame(data=data,index=ndx)
+    median_test_oneside(df,quantiles=(0.25,0.75),level=2)
+
+if __name__ == '__main__':
+    example2()
+    # Just an example
