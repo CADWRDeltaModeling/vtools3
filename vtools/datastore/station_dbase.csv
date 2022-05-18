@@ -21,7 +21,7 @@ ish,B95283,Italian Slough Headwater near Byron,37.83829885,-121.6015684,623050.7
 jer,JER,Jersey Point,38.05216585,-121.6889874,615024.3,4212414.2,D15,,JER,usbr,,,x,Pier is used by USBR and possibly USGS for wq
 mal,60,Sacramento River at Mallard Island,38.04288249,-121.9201106,594757.5,4211123.3,D10A,,MAL,dwr_des,x,,x,Collocated with MWQI Mallardis
 mhr,B95530,Middle River at Howard Rd Bridge,37.877,-121.3835,642165.8,4193399.5,,B95530,MHR,dwr_ncro,x,,x,
-msd,B95820,San Joaquin at Mossdale Bridge,37.78613049,-121.3064425,649126.1,4183436.8,C7A,B95820,MSD,dwr_ncro,x,x,,"Flow transect is 0.25 miles ds from bridge. Was once at bridge, but ferrous metals interfered with"
+msd,B95820,San Joaquin at Mossdale Bridge,37.78613049,-121.3064425,649126.1,4183436.8,C7A,B95820,MSD,dwr_ncro,x,x,,Flow transect is 0.25 miles ds from bridge. Was once at bridge but ferrous metals interfered.
 mtb,B95503,Middle River at Tracy Blvd,37.8816,-121.456,635780.8,4193802,,B95503,MTB,dwr_ncro,x,,x,
 oad,B95366,Old River Barrier near DMC (Above),37.81055556,-121.5422222,628312.5,4185763.1,,B95366,OAD,dwr_ncro,x,,x,"At OAD, NCRO collects stage, EC, pH, DO, turbidity and chlorophyll above the temp barrier (B95366 and B953660) and telemeters it.  "
 obd,B95365,Old River below Dam,37.8116,-121.547,627898.6,4185906.3,,B95365,OBD,dwr_ncro,x,,x,At OBD NCRO collects only stage (B95365) and telemeters. 
@@ -31,20 +31,21 @@ orb,B95270,Old River at Byron,37.8911,-121.57,625738.9,4194696.3,,B95270,ORB,dwr
 ppt,80,Prisoners Point,38.0563597,-121.5499831,627213.4,4213060.7,D29,,PPT,dwr_des,,,x,Identified by Mike Dempsey
 rsl,B95218,Rock Slough at Contra Costa Canal,37.976,-121.635,619885.2,4204031,,B95218,RSL,dwr,x,,x,
 sal,SAL,San Andreas Landing,38.10327819,-121.5912553,623513.4,4218211.2,C4,,SAL,usbr,,,x,Confirmed by USBR
-sjr,90,San Joaquin River Mccune Station near Vernalis,37.6791908,-121.2648837,653005.8,4171637.9,C10A,,SJR,dwr_des,x,x,x,"C10A is jointly operated by DWR and IEP-EMP. Collocated with VER. Flow monitoring discontinued and considered unsuccessful, so USGS is the best for that and it is upstream at the bridge."
+sjr,90,San Joaquin River Mccune Station near Vernalis,37.6791908,-121.2648837,653005.8,4171637.9,C10A,,SJR,dwr_des,x,x,x,C10A is jointly operated by DWR and IEP-EMP. Collocated with VER. Flow monitoring discontinued and considered unsuccessful so USGS is the best for that and it is upstream at the bridge.
 sti,STI,Mokelumne River (South Fork) @ Staten Island,38.11685852,-121.4989048,631586.4,4219845,C13,,STI,usbr,,,x,
 tms,B91160,Sacramento River at Threemile Slough,38.106,-121.7,613974.4,4218374.1,,B91160,TMS,dwr_ncro,,,x,
 tpi,B95421,Tom Paine Sl above intake,37.79054048,-121.4187437,639228.5,4183752.9,,B95421,TPI,dwr_ncro,,,x,wdl: B95421 for stage and B9542100 for temp and EC
 tpp,B95425,Tom Paine Sl near Pescadero,37.76724044,-121.3514436,645200.2,4181269.9,,B95425,TPP,dwr_ncro,x,,,
 tps,B95420,Tom Paine Sl above the mouth,37.79054048,-121.4187437,639228.5,4183752.9,,B95420,TPS,dwr_ncro,x,,,
+pdup,B9541050,Paradise Cut Upstream,37.801022,-121.373076,643229.,4184985.,,B8541050,,dwr_ncro,x,,,
 trp,TRP,Tracy Pumping Plant,37.80027343,-121.584902,626865,4186450,,,TRP,dwr_om,,x,x,Moved from facility to trash rack
-uni,UNI,Union Island,37.82209337,-121.3750095,643018.6,4187320.1,C8,,UNI,usbr,,,x,"Historically called """"bifurcation of Middle and Old Rivers"""""
+uni,UNI,Union Island,37.82209337,-121.3750095,643018.6,4187320.1,C8,,UNI,usbr,,,x,Historically called bifurcation of Middle and Old Rivers
 vic,VIC,Victoria Island,37.89122605,-121.48825,632927.2,4194823.6,,,VIC,usbr,,,x,Not confirmed
 bks,BKS,Barker Slough Pumping Plant,38.27639642,-121.7969582,605228,4237166.9,,,BKS,dwr,,x,x,Slightly moved closer to slough. D1461 site was in another side slough upstream.
 vni,B95580,Venice Island,38.0491,-121.4976,631822.4,4212328.2,,B95580,VNI,dwr,x,,,same as the WDL B95580
 cse,22,Sacramento River at Collinsville,38.07394957,-121.8500958,600859.1,4214643.6,C2B,,CSE,dwr_des,x,,x,
-srh,70,Sacramento River at Hood,38.36771516,-121.5205061,629247.7,4247651,C3A,,SRH,dwr_des,,,x,"Colocated wiht MWQI """"HOOD"""" Established to replace C3. Location confirmed visually by DES (there is a bogus location north)."
-rvb,30,Sacramento River at Rio Vista,38.15974033,-121.6862425,615105,422435,D24A,B91212,RVB,dwr_des,x,,x,DWR Rio Vista site nudged 9m to the east and a few meters south to be always wet
+srh,70,Sacramento River at Hood,38.36771516,-121.5205061,629247.7,4247651,C3A,,SRH,dwr_des,,,x,Colocated wiht MWQI HOOD. Established to replace C3. Location confirmed visually by DES (there is a bogus location north).
+rvb,30,Sacramento River at Rio Vista,38.15974033,-121.6862425,615105,4224350,D24A,B91212,RVB,dwr_des,x,,x,DWR Rio Vista site nudged 9m to the east and a few meters south to be always wet
 mrz,40,Sacramento River at Martinez,38.02761665,-122.1405194,575432.5,4209227.7,C6A,,MRZ,dwr_des,x,,x,
 snc,21,Chadbourne Slough at Sunrise Duck Club,38.18503208,-122.0830545,580303.5,4226742.3,S21,,SNC,dwr_des,x,,,Not confirmed
 gys,35,Goodyear Slough at Morrow Island club,38.11908576,-122.0957696,579253,4219416,S35,,GYS,dwr_des,x,,x,Moved 8m to west to be in channel
@@ -135,7 +136,7 @@ ptchi,9415144,Port Chicago,38.056,-122.0395,584266.1,4212463.8,,,,noaa,x,,,
 bts,40,Boynton Slough,38.20528,-122.06111,582201.4519,4228997,,,,dwr_des,,,,
 rindg,B95620,San Joaquin River at Rindge Pump,37.99721718,-121.4194314,638779.3,4206684.9,,B95620,,dwr_ncro,x,,,
 ist,A02100,Sacramento R at I Street,38.57164649,-121.5168395,630173.3,4272187.3,,A02100,IST,dwr_ncro,x,,,Not confirmed. This station is pegged to I Street bridge in photos based on description.
-gemok,B94100,Georgiana Slough at Mokelumne R,38.13,-121.5802778,624430.5,4221190.9,,B94100,,dwr_ncro,x,,,Not confirmed. Based on lat/long to 1 arc second from Central District
+gsm,B94100,Georgiana Slough at Mokelumne R,38.13,-121.5802778,624430.5,4221190.9,,B94100,,dwr_ncro,x,,,Not confirmed. Based on lat/long to 1 arc second from Central District
 swe,B91650,Sacramento R at Walnut Grove,38.24180921,-121.515902,629874.3,4233686.1,,B91650,SWE,dwr_ncro,x,x,x,Not confirmed. Based on lat/long to 1 arc second from Central District and nudged to pier.
 snod,B91750,Sacramento R at Snodgrass,38.34999607,-121.533782,628119.1,4245666.2,,B91750,,dwr_ncro,x,,,Not confirmed. Based on lat/long to 1 arc second from Central District and nudged to shore.
 sr3,B95060,Threemile Slough at San Joaquin R,38.09002802,-121.6865309,615180.4,4216618.4,,B95060,SR3,dwr_ncro,x,,x,Not confirmed. Based on lat/long to 1 arc second from Central District and nudged to shore.
@@ -237,7 +238,6 @@ cm,11460090,Corte Madera Creek Near Larkspur,37.943,-122.515,542639,4199638.8,,,
 orm,B95370,Old River upstream of Mountain House Creek,37.7938408,-121.5173813,630537,4183977,,B95370Q,ORM,dwr_ncro,,x,,Quality and flow have different CDEC
 #pco,B95410,Paradise Cut Above Old River,37.80197222,-121.4123056,639774,4185031,,B95410,PCO,dwr_ncro,,,x,EC and Temp
 pdc,B95410,Paradise Cut,37.8020598,-121.4122564,639778,4185041,,B95410Q,PDC,dwr_ncro,,x,x,Flow and WQ
-pcu,B9541050,Paradise Cut Upstream - WQ,37.8010219,-121.373076,643229.4964,4184984.934,,B9541050,,dwr_ncro,,,x,EC and Temp
 pcw,11454000,Putah Creek near Winters,38.515186,-122.081917,580133.2256,4263389,,,,usgs,,,,
 sjc,B95640,San Joaquin River near Buckley Cove,37.98026611,-121.3857175,641772,4204855,,B95640Q,SJC,dwr_ncro,,x,,Dave Huston's replacement for RRI
 dvi,B95880,San Joaquin River at D.V.I. Pump,37.75002778,-121.3028889,649512,4179437,,B95880,,dwr_ncro,,,x,
@@ -273,5 +273,6 @@ knl,A02200,Sacramento River at Knights Landing,38.803348,-121.716391,611458.99,4
 klup,A0223002,Sacramento River above CBD,38.805210,-121.723720,610819.69,4295934.45,,A0223002,,dwr_ncro,,,x,
 wlk,11390500,Sacramento River below Wilkins Sl near Grimes,39.00990,-121.82469,601759.47,4318532.21,,,WLK,usgs,,,x,
 ssw,A02108,Sacramento River above Sacramento Weir,38.60805,-121.55930,625441.04,4274267.15,,,SSW,dwr_ncro,,,x,
-ssw2,11426000,Sacramento Weir Spill to Yolo Bypass,38.440277,-121.554166,626181,4255656,,,SSW2,usgs,,,x,Only reports hourly flow and not realtime
+ssa,B95100,San Joaquin River at San Andreas Landing,38.103333,-121.591389,623502.,4218217.,,,SSA,dwr_ncro,,,x,
+# dup ssw2,11426000,Sacramento Weir Spill to Yolo Bypass,38.440277,-121.554166,626181,4255656,,,SSW2,usgs,,,x,Only reports hourly flow and not realtime
 #id,agency_id,name,lat,lon,x,y,d1641_id,wdl_id,cdec_id,agency,stage,flow,quality,notes
