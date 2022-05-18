@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import pandas as pd
+import matplotlib.pyplot as plt
+from vtools.datastore.read_ts import *
+
 import pandas as pd
 import numpy as np
 
@@ -27,11 +33,10 @@ def gap_count(ts,state="gap",dtype=int):
         pandas :meth:`astype <pandas:pandas.DataFrame.astype>`
     
     """   
-    ts_out = ts.fillna(0).astype(dtype)
-    s = ts.index.to_series()
-    for c in ts.columns:
-        #test missing values
-        miss = ts[c].isna()
+    def column_gap_count(ser):
+        s = ser.index.to_series()
+        tsout = ser.fillna(0).astype(dtype)
+        miss = ser.isna()
         #create consecutive groups that increment each time the "is missing state" (na or not na) changes
         g = miss.ne(miss.shift()).cumsum()
 
@@ -40,12 +45,17 @@ def gap_count(ts,state="gap",dtype=int):
                 
         # g contains a group index for each member of out, and here
         # we map g to out which has cumulative time
-        ts_out[c] = g.map(count)
+        tsout = g.map(count)
         if state == "gap":
-            ts_out.loc[~miss,c] = 0
+            tsout.loc[~miss] = 0
         elif state == "good":
-            ts_out.loc[miss,c] = 0
-    return ts_out
+            tsout.loc[miss] = 0
+        return tsout
+    
+    if hasattr(ts,"columns"):
+        return ts.apply(column_gap_count,axis=0,result_type='broadcast').astype(dtype)
+    else:
+        return column_gap_count(ts).astype(dtype)
 
 
 
@@ -119,8 +129,6 @@ def gap_size(ts):
         miss = ts[c].isna()
         #create consecutive groups that increment each time the "is missing state" (na or not na) changes
         g = miss.ne(miss.shift()).cumsum()
-        print("**")
-        print(g)
         # identify beginning (min time) of each state
         m1 = s.groupby(g).min()
         
@@ -164,20 +172,21 @@ def gap_distance(ts, disttype="count", to = "good"):
         holding the distance of good/bad data. 
         
     """
-    ts_out=ts.copy().to_frame()       
     si = ts.index.to_series()
-    tswork = ts.to_frame()
-    for col in tswork:
+    ts_out = ts.to_frame() if isinstance(ts,pd.Series) else ts.copy()
+    cols = ts_out.columns
+    for col in cols:
         id_key=True
+        #test missing values
+        miss = ts_out[col].isna()
         if to=="good":
-            ts_out.at[~ts_out[col].isna(),col]=0
+            ts_out.at[~miss,col]=0
         elif to=="bad":
-            ts_out.at[ts_out[col].isna(),col]=0
+            ts_out.at[miss,col]=0
             id_key=False
         else:
             raise ValueError("invalid input to, must be good or bad")
-        #test missing values
-        miss = tswork[col].isna()
+
       
         if np.any(miss==(id_key)):
             mm=si.groupby(miss).indices
@@ -213,7 +222,8 @@ def example_gap():
     print(out)
     
     out = gap_distance(df)
-
+    print("**")
+    print(out)
     
 if __name__=="__main__":
     example_gap()    
