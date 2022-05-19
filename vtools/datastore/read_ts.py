@@ -4,14 +4,45 @@ import numpy as np
 import matplotlib.pylab as plt
 import datetime as dtm
 import glob
+import re
 from vtools.functions.merge import *
 from vtools.data.vtime import minutes
 
 
+def is_dms1(fname):
+    if not fname.endswith(".csv"): return False
+    pattern = re.compile("#\s?format\s?:\s?dwr-dms-1.0")
+    with open(fname,"r") as f:
+        line = f.readline()
+        if not pattern.match(line): 
+            return False
+    return True
+    
+def read_dms1(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
+
+    if selector is not None:
+        raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
+    print("Got here")
+    ts = csv_retrieve_ts(fpath_pattern, 
+                         start, end, force_regular,
+                         format_compatible_fn=is_dms1,
+                         selector="value",
+                         qaqc_selector=None,
+                         qaqc_accept=[],
+                         parsedates=["datetime"],
+                         indexcol="datetime",
+                         sep=',',
+                         skiprows=0,
+                         header=0,
+                         dateparser=None,
+                         comment="#",
+                         nrows=nrows)
+    return ts    
+
 
 
 def is_ncro_std(fname):
-    import re
+
     pattern = re.compile("#\s?provider\s?=\s?dwr-ncro")
     with open(fname,"r") as f:
         for i,line in enumerate(f):
@@ -667,7 +698,8 @@ def read_ts(fpath, start=None, end=None, force_regular=True,nrows=None, selector
             metadata of the time series
     """
     from os.path import split as op_split
-    readers = [read_usgs1,read_usgs2,read_usgs_csv1,read_usgs1_daily,
+    readers = [read_dms1,
+               read_usgs1,read_usgs2,read_usgs_csv1,read_usgs1_daily,
                read_noaa,read_des,read_des_std,
                read_cdec1,read_cdec2,
                read_ncro_std,read_wdl3,read_wdl2,read_wdl]
