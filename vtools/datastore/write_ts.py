@@ -41,7 +41,6 @@ def prep_header(metadata,format_version):
         Prep includes making sure that the lines are commented and start with the format: line
     """
     if isinstance(metadata,str):
-        print("yo")
         metadata = metadata.split("\n")
         if not "format" in metadata[0]:
             if metadata[0].startswith("#"):

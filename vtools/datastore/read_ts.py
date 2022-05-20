@@ -22,7 +22,6 @@ def read_dms1(fpath_pattern,start=None,end=None,selector=None,force_regular=True
 
     if selector is not None:
         raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
-    print("Got here")
     ts = csv_retrieve_ts(fpath_pattern, 
                          start, end, force_regular,
                          format_compatible_fn=is_dms1,
