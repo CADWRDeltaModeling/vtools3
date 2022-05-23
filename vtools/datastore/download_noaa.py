@@ -80,7 +80,7 @@ def write_header(fname, headers):
     f = open(fname, 'w')
     for key in headers:
         value = headers[key]
-        buf = "# \"{}\"=\"{}\"\n".format(key, value)
+        buf = f"# {key}: {value}\n"
         f.write(buf)
     f.flush()
     f.close()
@@ -111,7 +111,7 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
             production, it is either water_level or predictions.
 
     """
-
+    verbose = False
 
 
     if end is None: 
@@ -123,12 +123,11 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
         os.mkdir(dest_dir) 
     skips = []
                                                     
-    print(stations)
     for ndx,row in stations.iterrows():
         agency_id = row.agency_id
         station = row.station_id
         param = row.src_var_id
-        station_name=row.name
+        station_name=row['name']
         paramname = row.param
         subloc = row.subloc
 
@@ -138,7 +137,7 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                                                "datum": "NAVD",
                                                "station_id": f"{agency_id}",
                                                 "station_name": f"{station_name}", 
-                                               "item": "elev",
+                                               "param": "elev",
                                                "timezone": "LST",
                                                "source": "http://tidesandcurrents.noaa.gov/"},
                         "predictions" :      { "agency": "noaa",
@@ -146,7 +145,7 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                                                 "datum": "NAVD",
                                                 "station_id": "{}".format(agency_id),
                                                 "station_name": f"{station_name}", 
-                                                "item": "predictions",
+                                                "param": "predictions",
                                                 "timezone": "LST",
                                                 "source": "http://tidesandcurrents.noaa.gov/"},
                         "water_temperature" : { "agency": "noaa",
@@ -154,14 +153,14 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                                                 "station_id": "{}".format(agency_id),
                                                 "station_id": f"{agency_id}",
                                                 "station_name": f"{station_name}", 
-                                                "item": "temperature",
+                                                "param": "temp",
                                                 "timezone": "LST",
                                                 "source": "http://tidesandcurrents.noaa.gov/"},
                         "conductivity"      : { "agency": "noaa",
                                                 "unit": "microS/cm",
                                                 "station_id": "{}".format(agency_id),
                                                 "station_name": f"{station_name}", 
-                                                "item": "conductivity",
+                                                "item": "ec",
                                                 "timezone": "LST",
                                                 "source": "http://tidesandcurrents.noaa.gov/"}
                         }  
@@ -181,6 +180,7 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
             raise ValueError("Product not supported: {}".format(param))
         first = True
         headers = product_info[param]
+        headers['station_name'] = station_name
         app = "NOS.COOPS.TAC.PHYSOCEAN" if param in ("conductivity","temperature") else "NOS.COOPS.TAC.WL"
         
         for year in range(start.year, end.year + 1):
@@ -198,31 +198,31 @@ def noaa_download(stations,dest_dir,start,end=None,param=None,overwrite=False):
                 url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={param}&application={app}&begin_date={date_start}&end_date={date_end}&station={agency_id}&time_zone=LST&units=metric{datum_str}&format=csv"
 
 
-                print(f"Retrieving {url}\n station {agency_id} from {date_start} to {date_end}".format(url,agency_id, date_start, date_end))
+                #print(f"Retrieving {url}\n station {agency_id} from {date_start} to {date_end}".format(url,agency_id, date_start, date_end))
                 #print("URL: {}".format(url))
                 
                 try:
                     raw_table = retrieve_csv(url).decode()
                     if faulty_output(raw_table):
-                        print("No good data produced")
+                        if verbose: print(f"No good data produced for {station},{paramname}")
                         continue
                 except:
-                    print("Error reported in retrieval")
+                    if verbose: print(f"Error reported in retrieval for {station},{paramname}")
                     raw_table = "\n" 
                     
                 if raw_table[0] == '\n':
                     datum = "STND"
                     datum_str = f"&datum={datum}" if param in ("water_level","predictions") else ""
                     url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product={param}&application={app}&begin_date={date_start}&end_date={date_end}&station={agency_id}&time_zone=LST&units=metric&{datum_str}&format=csv"
-                    print("Retrieving Station {}, from {} to {}...".format(agency_id, date_start, date_end))
-                    print("URL: {}".format(url))
+                    #print("Retrieving Station {}, from {} to {}...".format(agency_id, date_start, date_end))
+                    #print("URL: {}".format(url))
                     try:
                         raw_table = retrieve_csv(url).decode()
                         if faulty_output(raw_table):
-                            print("No good data produced [2]")
+                            if verbose: print("No good data produced [2] for ")
                             continue
                     except:
-                        print("Error in second retrieval")
+                        if verbose: print("Error in second retrieval")
                         continue
                 if first:
                     headers["datum"] = datum

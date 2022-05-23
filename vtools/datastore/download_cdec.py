@@ -50,10 +50,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
     These dates are passed on to CDEC ... actual return dates can be
     slightly different
     """
-    
-    print(stations)
-    
-    
+      
     if end is None: 
         end = dt.datetime.now()
         endfile = 9999
@@ -81,8 +78,6 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
         except:
             cdec_id = station
             
-        print("CDEC ID")
-        print(cdec_id)
         agency_id = row.agency_id
         p = row.param
         z = row.src_var_id
@@ -121,7 +116,6 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
                     break
             if found: break
         if not found: 
-            print(f"Station {station} parameter {p} query failed or produced no data")
             failures.append((station,p))
     
     if len(failures) == 0:

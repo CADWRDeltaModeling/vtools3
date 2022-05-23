@@ -8,10 +8,8 @@ def chunk_bounds(ts,block_size):
     firstyr = ts.first_valid_index().year
     lastyr = ts.last_valid_index().year
     # Get a number that is "neat" w.r.t. block size
-    print("Firstlast",firstyr,lastyr)
     neat_lower_bound = int(block_size*(firstyr//block_size))
     neat_upper_bound = int(block_size*(lastyr//block_size)) 
-    print(neat_lower_bound,neat_upper_bound)
     bounds = []
     for bound in range(neat_lower_bound,neat_upper_bound+1,block_size):
         lo = max(firstyr,bound)
@@ -41,7 +39,6 @@ def prep_header(metadata,format_version):
         Prep includes making sure that the lines are commented and start with the format: line
     """
     if isinstance(metadata,str):
-        print("yo")
         metadata = metadata.split("\n")
         if not "format" in metadata[0]:
             if metadata[0].startswith("#"):
@@ -120,12 +117,10 @@ def write_ts_csv(ts,fpath,metadata=None,chunk_years=False,format_version="dwr-dm
                     new_date_range_str = f"{bnd[0]}"
             newfname = fpath
             newfname = fpath.replace(".csv","_"+new_date_range_str + ".csv")  # coerces to csv
-            print(newfname)
             with open(newfname,'w',newline="\n") as outfile:
                 outfile.write(meta_header)
                 tssub.to_csv(outfile,header=True,sep=",",date_format="%Y-%m-%dT%H:%M:%S",**kwargs)
     else: # not chunk_years
         with open(fpath,'w',newline="\n") as outfile:
-            print(meta_header)
             outfile.write(meta_header)
             ts.to_csv(outfile,header=True,sep=",",date_format="%Y-%m-%dT%H:%M:%S",**kwargs)

@@ -97,9 +97,7 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
     if param_lookup:
         vlookup = pd.read_csv(param_lookup,sep=",",comment="#",header=0,usecols=['var_name','src_var_id','src_name'],dtype=str)
         vlookup = vlookup.loc[vlookup.src_name == source,:]
-        vlookup.rename(columns={"var_name":"param"},inplace=True)
-        print(vlookup)
-        print(station_df)        
+        vlookup.rename(columns={"var_name":"param"},inplace=True)       
         station_df = station_df.merge(vlookup,on="param",how="left")
         station_df = station_df.fillna(value={"src_var_id":station_df.param})
 

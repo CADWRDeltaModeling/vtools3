@@ -14,7 +14,7 @@ def station_info(search):
     #vlookup = station_config.config_file("variable_mappings")
     slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,usecols=["id","agency",
                                                                                "agency_id","name",
-                                                                               "x","y"]).squeeze()
+                                                                               "x","y","lat","lon"]).squeeze()
     slookup["id"] = slookup.id.str.lower()
     lsearch = search.lower()
     match_id = slookup["id"].str.lower().str.contains(lsearch)
@@ -23,7 +23,7 @@ def station_info(search):
     match_agency = slookup.agency.str.lower().str.contains(lsearch)
     matches = match_id | match_name | match_agency_id | match_agency
     print("Matches:")
-    mlook =slookup.loc[matches,["id","agency","agency_id","name","x","y"]].sort_values(axis=0,by='id').set_index("id") 
+    mlook =slookup.loc[matches,["id","agency","agency_id","name","x","y","lat","lon"]].sort_values(axis=0,by='id').set_index("id") 
     if mlook.shape[0] == 0: 
         print("None")
     else:
