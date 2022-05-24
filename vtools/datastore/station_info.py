@@ -12,18 +12,19 @@ def station_info(search):
         print(station_config.configuration())
         return
     #vlookup = station_config.config_file("variable_mappings")
-    slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,usecols=["id","agency",
-                                                                               "agency_id","name",
-                                                                               "x","y","lat","lon"]).squeeze()
-    slookup["id"] = slookup.id.str.lower()
+    #slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,usecols=["id","agency",
+    #                                                                           "agency_id","name",
+    #                                                                           "x","y","lat","lon"]).squeeze()
+    slookup = station_config.station_dbase()[["agency","agency_id","name","x","y","lat","lon"]]
+    slookup.loc[:,"station_id"] = slookup.index.str.lower()
     lsearch = search.lower()
-    match_id = slookup["id"].str.lower().str.contains(lsearch)
+    match_id = slookup.station_id.str.contains(lsearch)
     match_name = slookup.name.str.lower().str.contains(lsearch)
     match_agency_id = slookup.agency_id.str.lower().str.contains(lsearch)
     match_agency = slookup.agency.str.lower().str.contains(lsearch)
     matches = match_id | match_name | match_agency_id | match_agency
     print("Matches:")
-    mlook =slookup.loc[matches,["id","agency","agency_id","name","x","y","lat","lon"]].sort_values(axis=0,by='id').set_index("id") 
+    mlook =slookup.loc[matches,["station_id","agency","agency_id","name","x","y","lat","lon"]].sort_values(axis=0,by='station_id')  #.set_index("id") 
     if mlook.shape[0] == 0: 
         print("None")
     else:
