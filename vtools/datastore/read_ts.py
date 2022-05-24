@@ -4,24 +4,41 @@ import numpy as np
 import matplotlib.pylab as plt
 import datetime as dtm
 import glob
+import yaml
 import re
 from vtools.functions.merge import *
 from vtools.data.vtime import minutes
 
+
+def original_header(fpath,comment="#"):
+    original_head=[]
+    with open(fpath,'r') as infile:
+        for line in infile:
+            if line.startswith(comment):
+                original_head.append(line.strip().replace("#","#  ") )          
+            else: 
+                allheader = original_head
+                break
+    return "\n".join(original_head) if len(original_head)>0 else ""
+
+
+def read_yaml_header(fpath):
+    header = original_header(fpath)
+    header = "\n".join([x.replace("#","") for x in header.split("\n")])
+    yamlhead = yaml.safe_load(header)
+    return yamlhead
 
 def is_dms1(fname):
     if not fname.endswith(".csv"): return False
     pattern = re.compile("#\s?format\s?:\s?dwr-dms-1.0")
     with open(fname,"r") as f:
         line = f.readline()
-        if not pattern.match(line): 
+        if pattern.match(line) is None: 
             return False
     return True
     
 def read_dms1(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
 
-    if selector is not None:
-        raise ValueError("selector argument is for API compatability. This is not a multivariate format, selector not allowed")
     ts = csv_retrieve_ts(fpath_pattern, 
                          start, end, force_regular,
                          format_compatible_fn=is_dms1,
@@ -917,21 +934,25 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
     if force_regular: 
         if freq == 'infer': 
             big_ts.index = big_ts.index.round('1min')
-            f = pd.infer_freq(big_ts.index[-6:-1])
-            if f is None:
-                big_ts.index = big_ts.index.round('1min')
-                istrt = 3*len(big_ts)//4
-                f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
-            if f is None:
-                # Give it one more shot halfway through
-                istrt = len(big_ts)//2
-                f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
-            if f is None:
-                big_ts.index=big_ts.index.round('1min')
-                f = pd.infer_freq(big_ts.index[0:6])                
-                #f = minutes(15)
+            if len(big_ts) < 8: 
+                print(big_ts)
+                f = pd.infer_freq(big_ts.index)
+            else:
+                f = pd.infer_freq(big_ts.index[-6:-1])
                 if f is None:
-                    raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
+                    big_ts.index = big_ts.index.round('1min')
+                    istrt = 3*len(big_ts)//4
+                    f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
+                if f is None:
+                    # Give it one more shot halfway through
+                    istrt = len(big_ts)//2
+                    f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
+                if f is None:
+                    big_ts.index=big_ts.index.round('1min')
+                    f = pd.infer_freq(big_ts.index[0:6])                
+                    #f = minutes(15)
+                    if f is None:
+                        raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
         else: 
             raise NotImplementedError("force_regular with prescribed frequency not implemented yet")
         # Round to neat times, which may cause duplicates
