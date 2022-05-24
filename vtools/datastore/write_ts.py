@@ -38,13 +38,14 @@ def prep_header(metadata,format_version):
     """ Prepares metadata in the form of a string or yaml data structure for inclusion
         Prep includes making sure that the lines are commented and start with the format: line
     """
+
     if isinstance(metadata,str):
         metadata = metadata.split("\n")
         if not "format" in metadata[0]:
             if metadata[0].startswith("#"):
-                metadata = [f"# format : {format_version}"]+metadata  
+                metadata = [f"# format: {format_version}",f"# date_formatted: {pd.Timestamp.now().strftime('%Y-%m-%dT%H:%M:%S')}"]+metadata  
             else:
-                metadata = [f"format : {format_version}"]+metadata
+                metadata = [f"format: {format_version}",f"date_formatted: {pd.Timestamp.now().strftime('%Y-%m-%dT%H:%M:%S')}"]+metadata
             # Get rid of conflicting line
             conflict = -1
             for i in range(1,len(metadata)):
@@ -97,7 +98,7 @@ def write_ts_csv(ts,fpath,metadata=None,chunk_years=False,format_version="dwr-dm
         ts = ts.copy()
         ts.index.name = "datetime"
     if metadata is None:
-        meta_header = f"# format: {format_version}"
+        meta_header = f"# format: {format_version}\ndate_formatted: {pd.Timestamp.now().strftime('%Y-%m-%dT%H:%M:%S')}"
     else:
         meta_header = prep_header(metadata,format_version)
     
