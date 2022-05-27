@@ -89,6 +89,8 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
         station_df = station_df.merge(slookup,on="id",how="left")       
         station_df.loc[station_df.subloc.isin(['nan','']),'subloc'] = "default"
         station_df["agency_id"] = station_df[agency_id_col]
+        no_agency_id = station_df.agency_id.isin(['nan','']) | station_df.agency_id.isnull()
+        station_df.loc[no_agency_id,'agency_id'] = station_df.loc[no_agency_id,'station_id']
     else: 
         station_df["agency_id"] = station_df["id"]
     station_df["agency_id"] = station_df["agency_id"].astype(str).str.replace("\'","",regex=True)   # Some ids are prepended with ' in order to deal with Excel silent coersion.
