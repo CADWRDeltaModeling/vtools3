@@ -360,7 +360,7 @@ def convert_span_to_nstep(freq,span):
     if type(span) == int: return span
     span = pd.tseries.frequencies.to_offset(span)
     freq = pd.tseries.frequencies.to_offset(freq)
-    return span//freq
+    return int(span/freq)
 
 def _gf1d(ts,sigma,order,mode,cval,truncate):
     tscopy = ts.copy()
