@@ -1,25 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-""" 
-Module to apply climatology data pattern of historical record to user desired date time index, 
-one usage is to extroplate temperature time series to future.
-
-# here is a exampe of usage
-temp_file="temp_new.th" ## historical temperature csv file with header
-temp_data=pd.read_csv(temp_file,header=0,parse_dates=True,index_col=0,sep="\s+")## 15min interval
-tt=climatology(temp_data,"day",480) ## 5 day moving aveaged, daily climatology 
-## extend to 2024 daily data
-new_range=pd.date_range('2024-01-01', '2024-12-31', freq='D') 
-ext_tt=apply_climatology(tt,new_range)
-
-"""
-
 import numpy as np
 import pandas as pd
 
-def climatology(ts,freq,nsmooth):
+def climatology(ts,freq,nsmooth=None):
     """" Create a climatology on the columns of ts
 
         Parameters
@@ -39,7 +24,10 @@ def climatology(ts,freq,nsmooth):
            Data structure of the same type as ts, with Integer index representing month (Jan=1) or day of year (1:365).
            
     """
-    ts_mean=ts.rolling(nsmooth,center=True).mean() # moving average
+    if nsmooth is None:
+        ts_mean = ts
+    else:        
+        ts_mean=ts.rolling(nsmooth,center=True,min_periods=nsmooth//2).mean() # moving average
     
     by=[ts_mean.index.month, ts_mean.index.day]
     if(freq=="month"):
@@ -61,10 +49,16 @@ def climatology(ts,freq,nsmooth):
              mean_data_size.append(group.count())
              
     climatology_data=pd.concat(mean_data,axis=1).transpose()
+    indexvals = list(range(1,13) if freq == "month" else range(1,len(climatology_data)+1))
+
+    climatology_data.index = list(indexvals)
+    climatology_data.index.name = "month" if freq=="month" else "dayofyear"
     return climatology_data
             
 
-def climatology_quantiles(ts,min_day_year,max_day_year,window_width,quantiles=[0.05,0.25,0.5,0.75,0.95]):
+def climatology_quantiles(ts,min_day_year,max_day_year,
+                          window_width,
+                          quantiles=[0.05,0.25,0.5,0.75,0.95]):
     """" Create windowed quantiles across years on a time series
 
         Parameters
@@ -126,52 +120,38 @@ def apply_climatology(climate, index):
 
     """ Apply daily or monthly climatology to a new index 
 
-    
+    Parameters
+    ----------
 
-         Parameters
+    climate: DataFrame with integer index representing month of year (Jan=1) or day of year. Must be of size 12 365,366. Day 366 will be inferred from day 365 value
 
-           ----------
+    index: DatetimeIndex representing locations to be inferred
 
-           climate: DataFrame with integer index representing month of year (Jan=1) or day of year. Must be of size 12 365,366. Day 366 will be inferred from day 365 value
-
-          
-
-           index: DatetimeIndex representing locations to be inferred
-
-          
-
-           Returns
-
-           -------
-
-           DataFrame or Series as given by climate with values extracted from climatology for the month or day
-           
-    
+    Returns
+    -------
+    DataFrame or Series as given by climate with values extracted from climatology for the month or day   
     """
+    import numpy as np
+    if len(climate) not in [12,365,366]:
+        raise ValueError("Length of climatology must be 12,365 or 366")
+    if len(climate) == 365:
+        climate.loc[366,:] = climate.loc[365,:]
+     
+    freq = "month" if len(climate) == 12 else "day"
     
     
-    doy=index.dayofyear-1
-    moy=index.month-1
+    df = pd.DataFrame(index = index,data=np.zeros(len(index),dtype='d'))
+    def rowFunc1(row):
+        return climate.loc[row.name.dayofyear,:]
+    def rowFunc2(row):
+        return climate.loc[row.name.month,:]
     
-    extend_data_dic={}
-    extend_data_dic["time"]=index
-    extend_data=pd.DataFrame(extend_data_dic)
-    extend_data=extend_data.set_index("time")
-    for sid in climate.columns:
-        extend_data[sid]=[np.nan]*len(index)
-    
-    if(index.freqstr=="M"):
-        extend_data.at[index]=climate.iloc[moy].values
-    elif(index.freqstr=="D"):
-        if(365 in doy):    ##fix leap year 366 point to 365
-            new_data = pd.DataFrame(climate[-1:].values, index=[365], columns=climate.columns)
-            ct=climate.append(new_data)
-            extend_data.at[index]=ct.iloc[doy].values
-        else:
-            extend_data.at[index]=climate.iloc[doy].values
+    if freq == "day":
+        out=df.apply(rowFunc1,axis=1)
     else:
-        print("Warning: index frequency is not supported, only daily or monthly supported")
+        out=df.apply(rowFunc2,axis=1)
+               
     
-    return extend_data
+    return out
 
 

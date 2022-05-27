@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import pandas as pd
@@ -6,12 +6,11 @@ import numpy as np
 import pytest
 
 
-from .climatology import *
-
+from vtools.functions.climatology import *
 import matplotlib.pyplot as plt
 
 
-def test_climatology():
+def test_climatology_daily():
     
     data_time=pd.date_range("2007-01-20","2012-03-21",freq="15min")
     temp_dic={}
@@ -32,9 +31,31 @@ def test_climatology():
     
     with pytest.raises(ValueError):
         tt = climatology(temp_data,"year",480) 
+
+def test_climatology_round_trip():
+    """Tests round trip of series whose climatology matches the index"""
+    for freq in ["day","month"]:  
+        datetime=pd.date_range("2009-01-01","2012-02-21",freq="15min")
+        if freq=="month": 
+            data = datetime.month.astype(float)
+        else: data = datetime.dayofyear.astype(float)
+        df = pd.DataFrame(index=datetime,data=data)
+        df.to_csv("testc.csv")
+        climate = climatology(df,freq)
+        print("calling")
+        round_trip = apply_climatology(climate,datetime)
+
+        print("round")
+        print(round_trip)
+        #climate = climatology(df,"day")
+        print(climate)
+    
+    
+    
+
     
 
 if __name__ == "__main__":
-    test_climatology()
+    test_climatology_round_trip()
 
  
