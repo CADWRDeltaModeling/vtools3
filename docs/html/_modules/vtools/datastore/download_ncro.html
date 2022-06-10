@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vtools.datastore.download_ncro &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.datastore.download_ncro</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">vtools.datastore.process_station_variable</span> <span class="kn">import</span> <span class="n">process_station_list</span><span class="p">,</span><span class="n">stationfile_or_stations</span>
+<span class="kn">from</span> <span class="nn">vtools.datastore</span> <span class="kn">import</span> <span class="n">station_config</span>
+
+<span class="n">ncro_inventory_file</span> <span class="o">=</span> <span class="s2">&quot;ncro_por_inventory.txt&quot;</span>
+
+<div class="viewcode-block" id="station_dbase"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.station_dbase">[docs]</a><span class="k">def</span> <span class="nf">station_dbase</span><span class="p">():</span>
+    <span class="n">dbase_fname</span><span class="o">=</span><span class="n">station_config</span><span class="o">.</span><span class="n">config_file</span><span class="p">(</span><span class="s2">&quot;station_dbase&quot;</span><span class="p">)</span>
+    <span class="n">dbase_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">dbase_fname</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+    <span class="n">is_ncro</span> <span class="o">=</span> <span class="n">dbase_df</span><span class="o">.</span><span class="n">agency</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;ncro&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">is_ncro</span><span class="p">[</span><span class="n">is_ncro</span><span class="o">.</span><span class="n">isnull</span><span class="p">()])</span>
+    <span class="k">return</span> <span class="n">dbase_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">is_ncro</span><span class="p">,:]</span></div>
+
+
+<div class="viewcode-block" id="download_ncro_inventory"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.download_ncro_inventory">[docs]</a><span class="k">def</span> <span class="nf">download_ncro_inventory</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://data.cnra.ca.gov/dataset/fcba3a88-a359-4a71-a58c-6b0ff8fdc53f/resource/cdb5dd35-c344-4969-8ab2-d0e2d6c00821/download/station-trace-download-links.csv&quot;</span>
+    <span class="n">idf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;first_measurement_date&quot;</span><span class="p">,</span><span class="s2">&quot;last_measurement_date&quot;</span><span class="p">])</span>
+    <span class="n">idf</span> <span class="o">=</span> <span class="n">idf</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">idf</span><span class="o">.</span><span class="n">station_type</span> <span class="o">!=</span> <span class="s2">&quot;Groundwater&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">idf</span><span class="o">.</span><span class="n">output_interval</span> <span class="o">==</span> <span class="s2">&quot;Raw&quot;</span><span class="p">),:]</span>
+    <span class="n">idf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span><span class="n">ncro_inventory_file</span><span class="p">),</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">date_format</span><span class="o">=</span><span class="s2">&quot;%Y-</span><span class="si">%d</span><span class="s2">%-mT%H:%M&quot;</span><span class="p">)</span>    
+    <span class="k">return</span> <span class="n">idf</span></div>
+    
+<div class="viewcode-block" id="ncro_variable_map"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.ncro_variable_map">[docs]</a><span class="k">def</span> <span class="nf">ncro_variable_map</span><span class="p">():</span>
+    <span class="n">varmap</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;variable_mappings.csv&quot;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">varmap</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">varmap</span><span class="o">.</span><span class="n">src_name</span><span class="o">==</span><span class="s2">&quot;wdl&quot;</span><span class="p">,:]</span></div>
+    
+<span class="c1">#station_number,station_type,first_measurement_date,last_measurement_date,parameter,output_interval,download_link</span>
+
+<span class="n">mappings</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Water Temperature&#39;</span><span class="p">:</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Stage&#39;</span><span class="p">:</span><span class="s1">&#39;elev&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Conductivity&#39;</span><span class="p">:</span><span class="s1">&#39;ec&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Water Temperature ADCP&#39;</span><span class="p">:</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Dissolved Oxygen&#39;</span><span class="p">:</span><span class="s1">&#39;do&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Chlorophyll&#39;</span><span class="p">:</span><span class="s1">&#39;cla&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Dissolved Oxygen (%)&#39;</span><span class="p">:</span><span class="s1">&#39;do&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Velocity&#39;</span><span class="p">:</span><span class="s1">&#39;velocity&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pH&#39;</span><span class="p">:</span><span class="s1">&#39;ph&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Turbidity&#39;</span><span class="p">:</span><span class="s1">&#39;turbidity&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Flow&#39;</span><span class="p">:</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Salinity&#39;</span><span class="p">:</span><span class="s1">&#39;salinity&#39;</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="download_ncro_period_record"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.download_ncro_period_record">[docs]</a><span class="k">def</span> <span class="nf">download_ncro_period_record</span><span class="p">(</span><span class="n">inventory</span><span class="p">,</span><span class="n">dbase</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span><span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span><span class="s2">&quot;elev&quot;</span><span class="p">,</span><span class="s2">&quot;ec&quot;</span><span class="p">,</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span><span class="s2">&quot;do&quot;</span><span class="p">,</span><span class="s2">&quot;ph&quot;</span><span class="p">,</span><span class="s2">&quot;turbidity&quot;</span><span class="p">,</span><span class="s2">&quot;cla&quot;</span><span class="p">]):</span>    
+    <span class="c1">#mappings = ncro_variable_map()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">mappings</span><span class="p">)</span>
+    <span class="n">failures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ndx</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">agency_id</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">station_number</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">parameter</span>
+        <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> 
+            <span class="n">var</span> <span class="o">=</span> <span class="n">mappings</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>           
+           <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No standard mapping for NCRO parameter </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1">#printed.add(param)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">mappings</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+        <span class="n">link_url</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">download_link</span>
+        <span class="n">sdate</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">first_measurement_date</span>
+        <span class="n">edate</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">last_measurement_date</span>        
+        <span class="n">entry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ndx</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>        
+        <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;00&#39;</span><span class="p">,</span><span class="s1">&#39;Q&#39;</span><span class="p">]:</span>
+            <span class="n">full_id</span> <span class="o">=</span> <span class="n">dbase</span><span class="o">.</span><span class="n">agency_id</span><span class="o">+</span><span class="n">suffix</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="n">dbase</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">full_id</span><span class="o">==</span><span class="n">agency_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;multiple entries for agency id </span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2"> in database&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+               <span class="n">station_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    
+        <span class="k">if</span> <span class="n">station_id</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Item </span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2"> not found in station database after accounting for Q and 00 suffixes&quot;</span><span class="p">)</span>
+            
+        <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ncro_</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">sdate</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">edate</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span><span class="n">fname</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing: </span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sdate</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">edate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">link_url</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">link_url</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">failures</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">station_id</span><span class="p">,</span><span class="n">agency_id</span><span class="p">,</span><span class="n">var</span><span class="p">,</span><span class="n">param</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>    
+            <span class="n">station_html</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_html</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span> <span class="ow">and</span> <span class="ow">not</span> <span class="s2">&quot;No sites found matching&quot;</span> <span class="ow">in</span> <span class="n">station_html</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">station_html</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span> 
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Station </span><span class="si">%s</span><span class="s2"> query failed or produced no data&quot;</span> <span class="o">%</span> <span class="n">station</span><span class="p">)</span>
+                <span class="n">failures</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">station_id</span><span class="p">,</span><span class="n">agency_id</span><span class="p">,</span><span class="n">var</span><span class="p">,</span><span class="n">param</span><span class="p">))</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failures&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">failures</span><span class="p">:</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="download_ncro_por"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.download_ncro_por">[docs]</a><span class="k">def</span> <span class="nf">download_ncro_por</span><span class="p">(</span><span class="n">dest</span><span class="p">):</span>
+    <span class="n">idf</span> <span class="o">=</span> <span class="n">download_ncro_inventory</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+    <span class="n">dbase</span> <span class="o">=</span> <span class="n">station_dbase</span><span class="p">()</span>
+    <span class="n">is_in_dbase</span> <span class="o">=</span> <span class="n">idf</span><span class="o">.</span><span class="n">station_number</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">dbase</span><span class="o">.</span><span class="n">agency_id</span><span class="p">)</span> <span class="o">|</span> <span class="n">idf</span><span class="o">.</span><span class="n">station_number</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">dbase</span><span class="o">.</span><span class="n">agency_id</span><span class="o">+</span><span class="s2">&quot;00&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">idf</span><span class="o">.</span><span class="n">station_number</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">dbase</span><span class="o">.</span><span class="n">agency_id</span><span class="o">+</span><span class="s2">&quot;Q&quot;</span><span class="p">)</span>
+    <span class="n">download_ncro_period_record</span><span class="p">(</span><span class="n">idf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">is_in_dbase</span><span class="p">,:],</span><span class="n">dbase</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span><span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span><span class="s2">&quot;elev&quot;</span><span class="p">,</span><span class="s2">&quot;ec&quot;</span><span class="p">,</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span><span class="s2">&quot;do&quot;</span><span class="p">,</span><span class="s2">&quot;ph&quot;</span><span class="p">,</span><span class="s2">&quot;turbidity&quot;</span><span class="p">,</span><span class="s2">&quot;cla&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">dest</span> <span class="o">=</span> <span class="s2">&quot;//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro&quot;</span>
+    <span class="n">download_ncro_por</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span></div>
+    
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

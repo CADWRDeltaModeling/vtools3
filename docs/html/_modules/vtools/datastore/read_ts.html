@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.datastore.read_ts &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>vtools.datastore.read_ts &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -51,18 +51,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
@@ -112,20 +112,136 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dtm</span>
 <span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">vtools.functions.merge</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">vtools.data.vtime</span> <span class="kn">import</span> <span class="n">minutes</span>
 
 
-<div class="viewcode-block" id="is_des"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_des">[docs]</a><span class="k">def</span> <span class="nf">is_des</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<div class="viewcode-block" id="original_header"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.original_header">[docs]</a><span class="k">def</span> <span class="nf">original_header</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+    <span class="n">original_head</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">infile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">comment</span><span class="p">):</span>
+                <span class="n">original_head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">,</span><span class="s2">&quot;#  &quot;</span><span class="p">)</span> <span class="p">)</span>          
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">allheader</span> <span class="o">=</span> <span class="n">original_head</span>
+                <span class="k">break</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">original_head</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">original_head</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="read_yaml_header"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_yaml_header">[docs]</a><span class="k">def</span> <span class="nf">read_yaml_header</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">original_header</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)])</span>
+    <span class="n">yamlhead</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">yamlhead</span></div>
+
+<div class="viewcode-block" id="is_dms1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_dms1">[docs]</a><span class="k">def</span> <span class="nf">is_dms1</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;#\s?format\s?:\s?dwr-dms-1.0&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+    
+<div class="viewcode-block" id="read_dms1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_dms1">[docs]</a><span class="k">def</span> <span class="nf">read_dms1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> 
+                         <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_dms1</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                         <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ts</span>    </div>
+
+
+
+<div class="viewcode-block" id="is_ncro_std"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_ncro_std">[docs]</a><span class="k">def</span> <span class="nf">is_ncro_std</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;#\s?provider\s?=\s?dwr-ncro&quot;</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="s2">&quot;result_id&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> 
+            <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
                 <span class="k">return</span> <span class="kc">True</span> </div>
+
+<div class="viewcode-block" id="read_ncro_std"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_ncro_std">[docs]</a><span class="k">def</span> <span class="nf">read_ncro_std</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> 
+                         <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_ncro_std</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;qaqc_code&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                         <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_code&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_description&quot;</span><span class="p">,</span><span class="s2">&quot;status&quot;</span><span class="p">],</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ts</span></div>
+
+<div class="viewcode-block" id="is_des_std"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_des_std">[docs]</a><span class="k">def</span> <span class="nf">is_des_std</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="n">pattern0</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;#\s?provider\s?=\s?dwr-des&quot;</span><span class="p">)</span>
+    <span class="n">pattern1</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;#\s?provider\s?:\s?dwr-des&quot;</span><span class="p">)</span>    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">pattern0</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="n">pattern1</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                <span class="k">return</span> <span class="kc">True</span> </div>
+
+<div class="viewcode-block" id="read_des_std"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_des_std">[docs]</a><span class="k">def</span> <span class="nf">read_des_std</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> 
+                         <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_des_std</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;qaqc_flag_id&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;U&quot;</span><span class="p">,</span><span class="s2">&quot;G&quot;</span><span class="p">,</span><span class="s2">&quot;A&quot;</span><span class="p">],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                         <span class="n">extra_na</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">],</span>
+                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ts</span></div>
+    
+
+<div class="viewcode-block" id="is_des"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_des">[docs]</a><span class="k">def</span> <span class="nf">is_des</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">linelow</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;result_id&quot;</span> <span class="ow">in</span> <span class="n">linelow</span><span class="p">:</span> 
+                <span class="n">count</span> <span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="s2">&quot;row#&quot;</span> <span class="ow">in</span> <span class="n">linelow</span> <span class="ow">or</span> <span class="s2">&quot;row #&quot;</span> <span class="ow">in</span> <span class="n">linelow</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span></div>
     
 
 
-<div class="viewcode-block" id="read_des"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_des">[docs]</a><span class="k">def</span> <span class="nf">read_des</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_des"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_des">[docs]</a><span class="k">def</span> <span class="nf">read_des</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
@@ -143,7 +259,8 @@
                          <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">extra_na</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">],</span>
-                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">)</span>
+                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ts</span></div>
 
 <span class="c1">################################################33</span>
@@ -156,21 +273,22 @@
         <span class="k">return</span> <span class="n">title_line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;station_id,duration,sensor_number&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="read_cdec2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_cdec2">[docs]</a><span class="k">def</span> <span class="nf">read_cdec2</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_cdec2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_cdec2">[docs]</a><span class="k">def</span> <span class="nf">read_cdec2</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
                          <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;VALUE&quot;</span><span class="p">,</span>
                          <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_cdec_csv2</span><span class="p">,</span>
                          <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;DATA_FLAG&quot;</span><span class="p">,</span>
-                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">],</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s1">&#39;ART&#39;</span><span class="p">,</span><span class="s1">&#39;BRT&#39;</span><span class="p">],</span>
                          <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;OBS DATE&quot;</span><span class="p">],</span>
                          <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;OBS DATE&quot;</span><span class="p">,</span>
                          <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                          <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
                          <span class="n">dateparser</span><span class="o">=</span><span class="n">cdec2_date_parser</span><span class="p">,</span>
                          <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">)</span>
+                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ts</span></div>
 
 <span class="c1">##################################### </span>
@@ -190,7 +308,7 @@
         <span class="k">return</span> <span class="n">title_line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;title:&quot;</span><span class="p">)</span></div>
         
 
-<div class="viewcode-block" id="read_cdec1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_cdec1">[docs]</a><span class="k">def</span> <span class="nf">read_cdec1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_cdec1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_cdec1">[docs]</a><span class="k">def</span> <span class="nf">read_cdec1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
     
@@ -214,7 +332,8 @@
                          <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
                          <span class="n">dateparser</span><span class="o">=</span><span class="n">cdec1_date_parser</span><span class="p">,</span>
                          <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">)</span>
+                         <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ts</span></div>
 
 
@@ -222,7 +341,8 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">first_line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">first_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span> 
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -230,7 +350,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="read_wdl"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_wdl">[docs]</a><span class="k">def</span> <span class="nf">read_wdl</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_wdl"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_wdl">[docs]</a><span class="k">def</span> <span class="nf">read_wdl</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
     
@@ -238,40 +358,126 @@
                          <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
                          <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_wdl</span><span class="p">,</span>
                          <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                         <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span><span class="s2">&quot;comment&quot;</span><span class="p">],</span>
+                         <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
+    <span class="k">return</span> <span class="n">ts</span></div>
+
+
+<div class="viewcode-block" id="is_wdl2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_wdl2">[docs]</a><span class="k">def</span> <span class="nf">is_wdl2</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">first_line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">second_line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">Date&quot;</span> <span class="ow">in</span> <span class="n">first_line</span> <span class="ow">and</span> <span class="s2">&quot;Site&quot;</span> <span class="ow">in</span> <span class="n">second_line</span></div>
+
+
+<div class="viewcode-block" id="read_wdl2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_wdl2">[docs]</a><span class="k">def</span> <span class="nf">read_wdl2</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
+    
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_wdl2</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span>
                          <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
                          <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
                          <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
                          <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
                          <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">],</span>
-                         <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span><span class="s2">&quot;comment&quot;</span><span class="p">],</span>
+                         <span class="n">dtypes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;comment&quot;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">},</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                          <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>    
+                         <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
+    <span class="k">return</span> <span class="n">ts</span></div>
+
+
+
+<div class="viewcode-block" id="is_wdl3"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_wdl3">[docs]</a><span class="k">def</span> <span class="nf">is_wdl3</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">first_line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">second_line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">Time&quot;</span> <span class="ow">in</span> <span class="n">first_line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">and&quot;</span> <span class="ow">in</span> <span class="n">second_line</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="read_wdl3"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_wdl3">[docs]</a><span class="k">def</span> <span class="nf">read_wdl3</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;selector argument is for API compatability. This is not a multivariate format, selector not allowed&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_wdl3</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                         <span class="n">skiprows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                         <span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span><span class="s2">&quot;comment&quot;</span><span class="p">],</span>
+                         <span class="n">dtypes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;comment&quot;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">},</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
+    <span class="k">except</span> <span class="n">pd</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ParserError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;Too many columns&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_wdl3</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                         <span class="n">skiprows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                         <span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="s2">&quot;qaqc_flag&quot;</span><span class="p">],</span>
+                         <span class="n">dtypes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;comment&quot;</span> <span class="p">:</span> <span class="nb">str</span><span class="p">},</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>            
+    
     <span class="k">return</span> <span class="n">ts</span></div>
 
 <span class="c1">############################################################</span>
 <div class="viewcode-block" id="is_usgs1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_usgs1">[docs]</a><span class="k">def</span> <span class="nf">is_usgs1</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-    <span class="n">MAX_SCAN_LINE</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">MAX_SCAN_LINE</span> <span class="o">=</span> <span class="mi">220</span>
+    <span class="n">tzline</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span><span class="n">MAX_SCAN_LINE</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
             <span class="n">linelower</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="k">if</span> <span class="s2">&quot;waterdata.usgs.gov&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> 
-                <span class="k">return</span> <span class="kc">True</span> 
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span> 
             <span class="k">if</span> <span class="s2">&quot;nwisweb&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">True</span>
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="n">linelower</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;usgs&quot;</span><span class="p">):</span>
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s2">&quot;tz_cd&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> <span class="n">tzline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">tzline</span> <span class="ow">and</span> <span class="n">usgsline</span><span class="p">:</span> 
                 <span class="k">return</span> <span class="kc">True</span>
+    
     <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="usgs_data_columns1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.usgs_data_columns1">[docs]</a><span class="k">def</span> <span class="nf">usgs_data_columns1</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="n">MAX_SCAN_LINE</span><span class="o">=</span><span class="mi">60</span>
     <span class="kn">import</span> <span class="nn">re</span>
     <span class="n">description_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;#\s+(ts|ts_id|dd)\s*(parameter)\s*description&quot;</span><span class="p">)</span>
+    <span class="n">description_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;#\s+(ts|ts_id|dd)\s*(parameter)\s*?(statistic)?\s*?description&quot;</span><span class="p">)</span>
     <span class="n">colnames</span><span class="o">=</span><span class="p">[]</span>
     <span class="n">description</span><span class="o">=</span><span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">reading_cols</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">use_statistic</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="n">MAX_SCAN_LINE</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
             <span class="n">linelower</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -279,19 +485,30 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Column names could not be inferred in file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">description_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">linelower</span><span class="p">):</span>
                 <span class="n">reading_cols</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s2">&quot;statistic&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span>
+                    <span class="n">use_statistic</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">reading_cols</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">string</span>
-                <span class="k">try</span><span class="p">:</span> 
-                    <span class="n">comment</span><span class="p">,</span> <span class="n">ts_id</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">describe</span> <span class="o">=</span> <span class="n">linelower</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-                    <span class="n">col_id</span> <span class="o">=</span> <span class="n">ts_id</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">param</span>
-                    <span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_id</span><span class="p">)</span>
-                    <span class="n">description</span><span class="p">[</span><span class="n">col_id</span><span class="p">]</span><span class="o">=</span><span class="n">describe</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">colnames</span></div>
+                <span class="k">if</span> <span class="n">use_statistic</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span> 
+                        <span class="n">comment</span><span class="p">,</span> <span class="n">ts_id</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">statistic</span><span class="p">,</span> <span class="n">describe</span> <span class="o">=</span> <span class="n">linelower</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+                        <span class="n">col_id</span> <span class="o">=</span> <span class="n">ts_id</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">param</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">+</span> <span class="n">statistic</span>
+                        <span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_id</span><span class="p">)</span>
+                        <span class="n">description</span><span class="p">[</span><span class="n">col_id</span><span class="p">]</span><span class="o">=</span><span class="n">describe</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">colnames</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span> 
+                        <span class="n">comment</span><span class="p">,</span> <span class="n">ts_id</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">describe</span> <span class="o">=</span> <span class="n">linelower</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                        <span class="n">col_id</span> <span class="o">=</span> <span class="n">ts_id</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">param</span>
+                        <span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_id</span><span class="p">)</span>
+                        <span class="n">description</span><span class="p">[</span><span class="n">col_id</span><span class="p">]</span><span class="o">=</span><span class="n">describe</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">colnames</span></div>
 
 
-<div class="viewcode-block" id="read_usgs1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs1">[docs]</a><span class="k">def</span> <span class="nf">read_usgs1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_usgs1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs1">[docs]</a><span class="k">def</span> <span class="nf">read_usgs1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">TZCOL</span> <span class="o">=</span> <span class="s2">&quot;tz_cd&quot;</span>
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
         <span class="n">selector</span> <span class="o">=</span> <span class="n">usgs_data_columns1</span>
@@ -302,13 +519,13 @@
         <span class="n">qaselect</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="s2">&quot;_cd&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">selector</span><span class="p">]</span>
 
     <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">TZCOL</span> <span class="p">:</span> <span class="nb">str</span><span class="p">}</span>
-        
+
     <span class="c1"># Now tack on time zone at the end</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span> 
                          <span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">,</span>
                          <span class="n">format_compatible_fn</span> <span class="o">=</span> <span class="n">is_usgs1</span><span class="p">,</span>
                          <span class="n">qaqc_selector</span><span class="o">=</span><span class="n">qaselect</span><span class="p">,</span>
-                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;A:[99]&#39;</span><span class="p">],</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;A:[99]&#39;</span><span class="p">,</span><span class="s1">&#39;A:[91]&#39;</span><span class="p">,</span><span class="s1">&#39;A:R&#39;</span><span class="p">,</span><span class="s1">&#39;Approved&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">],</span>
                          <span class="n">extra_cols</span><span class="o">=</span><span class="s2">&quot;tz_cd&quot;</span><span class="p">,</span>
                          <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
                          <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
@@ -317,7 +534,9 @@
                          <span class="n">skiprows</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
                          <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
-                         <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">)</span>    
+                         <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
+    <span class="n">f_orig</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
     <span class="c1">#todo: hardwired from PST (though the intent is easily generalized)</span>
     <span class="c1"># note there is some bugginess to this. See SO post:</span>
     <span class="c1"># https://stackoverflow.com/questions/57714830/convert-from-naive-local-daylight-time-to-naive-local-standard-time-in-pandas</span>
@@ -329,27 +548,87 @@
     
     <span class="c1"># Get rid of the time zone column</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">TZCOL</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    
     <span class="c1"># Get rid of redundant entries caused by the time zone</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="c1">#f = ts.index.freq</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
-    <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">f_orig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="n">f_orig</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ts</span></div>
+
+<span class="c1">##############################################################</span>
+<div class="viewcode-block" id="is_usgs1_daily"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_usgs1_daily">[docs]</a><span class="k">def</span> <span class="nf">is_usgs1_daily</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="n">MAX_SCAN_LINE</span> <span class="o">=</span> <span class="mi">220</span>
+ 
+    
+    <span class="n">tzline</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">agencyline</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span><span class="n">MAX_SCAN_LINE</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">linelower</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;waterdata.usgs.gov&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> 
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span> 
+            <span class="k">if</span> <span class="s2">&quot;nwisweb&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span>
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">linelower</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;usgs&quot;</span><span class="p">):</span>
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s2">&quot;agency_cd&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> 
+                <span class="n">agencyline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s2">&quot;tz_cd&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> 
+                <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Have to bail on this if it is daily before we test for presence of others</span>
+            <span class="k">if</span> <span class="n">usgsline</span> <span class="ow">and</span> <span class="n">agencyline</span><span class="p">:</span> 
+                <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="read_usgs1_daily"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs1_daily">[docs]</a><span class="k">def</span> <span class="nf">read_usgs1_daily</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+        <span class="n">selector</span> <span class="o">=</span> <span class="n">usgs_data_columns1</span>
+        <span class="n">qaselect</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="s2">&quot;_cd&quot;</span>
+
+    <span class="k">else</span><span class="p">:</span>   
+        <span class="n">selector</span> <span class="o">=</span> <span class="n">listify</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+        <span class="n">qaselect</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="s2">&quot;_cd&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">selector</span><span class="p">]</span>
+
+    <span class="c1"># Now tack on time zone at the end</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span> 
+                         <span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">,</span>
+                         <span class="n">format_compatible_fn</span> <span class="o">=</span> <span class="n">is_usgs1_daily</span><span class="p">,</span>
+                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="n">qaselect</span><span class="p">,</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;A:[99]&#39;</span><span class="p">,</span><span class="s1">&#39;A:[91]&#39;</span><span class="p">,</span><span class="s1">&#39;A:R&#39;</span><span class="p">,</span><span class="s1">&#39;Approved&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">,</span><span class="s1">&#39;A:e&#39;</span><span class="p">],</span>
+                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+                         <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span>
+                         <span class="n">skiprows</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
+                         <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
+
+    <span class="k">return</span> <span class="n">ts</span></div>
+
+
 
 <span class="c1">################################################################</span>
 <div class="viewcode-block" id="is_usgs2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.is_usgs2">[docs]</a><span class="k">def</span> <span class="nf">is_usgs2</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-    <span class="n">MAX_SCAN_LINE</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">MAX_SCAN_LINE</span> <span class="o">=</span> <span class="mi">210</span>
+    <span class="n">tzline</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="n">MAX_SCAN_LINE</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
             <span class="n">linelower</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="k">if</span> <span class="s2">&quot;# //united states geological survey&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> 
-                <span class="k">return</span> <span class="kc">True</span> 
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span> 
             <span class="k">if</span> <span class="s2">&quot;nwis-i unit-values&quot;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">True</span>
+                <span class="n">usgsline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s1">&#39;tzcd&#39;</span> <span class="ow">in</span> <span class="n">linelower</span><span class="p">:</span> <span class="n">tzline</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">tzline</span> <span class="ow">and</span> <span class="n">usgsline</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="read_usgs2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs2">[docs]</a><span class="k">def</span> <span class="nf">read_usgs2</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_usgs2"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs2">[docs]</a><span class="k">def</span> <span class="nf">read_usgs2</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">tzcol</span> <span class="o">=</span> <span class="s2">&quot;TZCD&quot;</span>
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="s2">&quot;VALUE&quot;</span>
@@ -365,21 +644,22 @@
                          <span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">,</span>
                          <span class="n">format_compatible_fn</span> <span class="o">=</span> <span class="n">is_usgs2</span><span class="p">,</span>
                          <span class="n">qaqc_selector</span><span class="o">=</span><span class="n">qaselect</span><span class="p">,</span>
-                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;A:[99]&#39;</span><span class="p">],</span>
+                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;A:[99]&#39;</span><span class="p">,</span><span class="s1">&#39;A:R&#39;</span><span class="p">,</span><span class="s1">&#39;Approved&#39;</span><span class="p">],</span>
                          <span class="n">parsedates</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;DATE&quot;</span><span class="p">,</span><span class="s2">&quot;TIME&quot;</span><span class="p">]],</span>
                          <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;DATE_TIME&quot;</span><span class="p">,</span>
                          <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                          <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span>
                          <span class="n">skiprows</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
                          <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
-                         <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">)</span>    
+                         <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
     <span class="c1">#todo: hardwired from PST (though the intent is easily generalized)</span>
     <span class="c1"># note there is some bugginess to this. See SO post:</span>
     <span class="c1"># https://stackoverflow.com/questions/57714830/convert-from-naive-local-daylight-time-to-naive-local-standard-time-in-pandas</span>
     <span class="n">dst</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">tzcol</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;PDT&quot;</span>
     <span class="k">if</span> <span class="n">dst</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
         <span class="c1">#todo: hardwire</span>
-        <span class="n">ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s1">&#39;US/Pacific&#39;</span><span class="p">,</span><span class="n">ambiguous</span><span class="o">=</span><span class="n">ts</span><span class="p">[</span><span class="s2">&quot;tz_cd&quot;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;PDT&quot;</span> <span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Etc/GMT+8&#39;</span><span class="p">)</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s1">&#39;US/Pacific&#39;</span><span class="p">,</span><span class="n">ambiguous</span><span class="o">=</span><span class="n">ts</span><span class="p">[</span><span class="n">tzcol</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;PDT&quot;</span> <span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Etc/GMT+8&#39;</span><span class="p">)</span>
         <span class="n">ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
     
     <span class="c1"># Get rid of the time zone column</span>
@@ -387,7 +667,7 @@
     
     <span class="c1"># Get rid of redundant entries caused by the time zone</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
-    
+
     <span class="k">return</span> <span class="n">ts</span></div>
 
 <span class="c1">######################</span>
@@ -408,27 +688,35 @@
                 <span class="n">sampleline</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="n">sampleline</span></div>
 
-<div class="viewcode-block" id="read_usgs_csv1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs_csv1">[docs]</a><span class="k">def</span> <span class="nf">read_usgs_csv1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_usgs_csv1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_usgs_csv1">[docs]</a><span class="k">def</span> <span class="nf">read_usgs_csv1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
     <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="s2">&quot;Value&quot;</span>
     <span class="n">qaselect</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Approval Level&quot;</span><span class="p">]</span>
         
-    <span class="c1"># Now tack on time zone at the end</span>
-    <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span> 
-                         <span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">,</span>
-                         <span class="n">format_compatible_fn</span> <span class="o">=</span> <span class="n">is_usgs_csv1</span><span class="p">,</span>
-                         <span class="n">qaqc_selector</span><span class="o">=</span><span class="n">qaselect</span><span class="p">,</span>
-                         <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;Approved&#39;</span><span class="p">,</span><span class="s1">&#39;Working&#39;</span><span class="p">],</span>
-                         <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
-                         <span class="n">indexcol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                         <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">,</span>
-                         <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
-                         <span class="n">skiprows</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
-                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
-                         <span class="n">dtypes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Value&quot;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span><span class="s2">&quot;Approval Level&quot;</span><span class="p">:</span><span class="nb">str</span><span class="p">})</span>
-    <span class="k">return</span> <span class="n">ts</span></div>
+    <span class="c1"># Extra</span>
+    <span class="n">sep_eng</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">),(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span><span class="s1">&#39;python&#39;</span><span class="p">)]</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">sep</span><span class="p">,</span><span class="n">eng</span> <span class="ow">in</span> <span class="n">sep_eng</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span> 
+                                 <span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">,</span>
+                                 <span class="n">format_compatible_fn</span> <span class="o">=</span> <span class="n">is_usgs_csv1</span><span class="p">,</span>
+                                 <span class="n">qaqc_selector</span><span class="o">=</span><span class="n">qaselect</span><span class="p">,</span>
+                                 <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;P&#39;</span><span class="p">,</span><span class="s1">&#39;Approved&#39;</span><span class="p">,</span><span class="s1">&#39;Working&#39;</span><span class="p">,</span><span class="s1">&#39;A:[99]&#39;</span><span class="p">,</span><span class="s1">&#39;A:R&#39;</span><span class="p">],</span>
+                                 <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">indexcol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                 <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                 <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>    <span class="c1"># used to be sep=&quot;, &quot; which broke one file</span>
+                                 <span class="n">engine</span><span class="o">=</span><span class="n">eng</span><span class="p">,</span>
+                                 <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                 <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                                 <span class="n">dtypes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Value&quot;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span><span class="s2">&quot;Approval Level&quot;</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="s2">&quot;Qualifiers&quot;</span><span class="p">:</span><span class="nb">str</span><span class="p">},</span>
+                                 <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ts</span>
+        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sep</span> <span class="o">==</span> <span class="s1">&#39;, &#39;</span><span class="p">:</span> <span class="k">raise</span>
+    <span class="k">return</span> <span class="kc">None</span>   <span class="c1"># should not actually get this far</span></div>
     
 
 <span class="c1">##############################################</span>
@@ -473,7 +761,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Quality labels in file not known: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="read_noaa"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_noaa">[docs]</a><span class="k">def</span> <span class="nf">read_noaa</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_noaa"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_noaa">[docs]</a><span class="k">def</span> <span class="nf">read_noaa</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     
     <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> 
                          <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span> 
@@ -485,7 +773,8 @@
                          <span class="n">indexcol</span><span class="o">=</span><span class="s2">&quot;Date Time&quot;</span><span class="p">,</span>
                          <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                          <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
-                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">)</span>    
+                         <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>    
     <span class="k">return</span> <span class="n">ts</span></div>
 
 
@@ -510,7 +799,7 @@
 
 
 
-<div class="viewcode-block" id="read_ts"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_ts">[docs]</a><span class="k">def</span> <span class="nf">read_ts</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">selector</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">hint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="read_ts"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_ts">[docs]</a><span class="k">def</span> <span class="nf">read_ts</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">hint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Read a time series from a text file in various formats.</span>
 <span class="sd">        This function asks readers for different file formats to attempt to read the file.</span>
 <span class="sd">        The first reader that confirms its appropriateness will be attempted. The order of this</span>
@@ -533,24 +822,36 @@
 <span class="sd">            metadata of the time series</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span> <span class="k">as</span> <span class="n">op_split</span>
-    <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">read_usgs1</span><span class="p">,</span><span class="n">read_usgs2</span><span class="p">,</span><span class="n">read_usgs_csv1</span><span class="p">,</span>
-               <span class="n">read_noaa</span><span class="p">,</span><span class="n">read_des</span><span class="p">,</span>
-               <span class="n">read_cdec1</span><span class="p">,</span><span class="n">read_cdec2</span><span class="p">,</span><span class="n">read_wdl</span><span class="p">]</span>
+    <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">read_dms1</span><span class="p">,</span>
+               <span class="n">read_usgs1</span><span class="p">,</span><span class="n">read_usgs2</span><span class="p">,</span><span class="n">read_usgs_csv1</span><span class="p">,</span><span class="n">read_usgs1_daily</span><span class="p">,</span>
+               <span class="n">read_noaa</span><span class="p">,</span><span class="n">read_des</span><span class="p">,</span><span class="n">read_des_std</span><span class="p">,</span>
+               <span class="n">read_cdec1</span><span class="p">,</span><span class="n">read_cdec2</span><span class="p">,</span>
+               <span class="n">read_ncro_std</span><span class="p">,</span><span class="n">read_wdl3</span><span class="p">,</span><span class="n">read_wdl2</span><span class="p">,</span><span class="n">read_wdl</span><span class="p">]</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">reader_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">last_reader_tried</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">reader</span> <span class="ow">in</span> <span class="n">readers</span><span class="p">:</span>
+        <span class="n">last_reader_tried</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">if</span> <span class="n">hint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">hint</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="k">continue</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">ts</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="n">force_regular</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>            
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="n">selector</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="n">force_regular</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ts</span>
         <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;No match&quot;</span><span class="p">):</span> 
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">break</span>
             <span class="k">continue</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e0</span><span class="p">:</span>
             <span class="k">raise</span>
 
     <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File format not supported or error during read: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span></div>
+        <span class="k">if</span> <span class="n">last_reader_tried</span> <span class="o">==</span> <span class="n">readers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+            <span class="n">last_reader_tried</span> <span class="o">=</span> <span class="n">last_reader_tried</span> <span class="o">+</span> <span class="s2">&quot; (this is the last on the list, so it may not be meaningful)&quot;</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="n">found_some</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">found_txt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Can confirm found file(s) from pattern (false negative possible): </span><span class="si">{</span><span class="n">found_some</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File not found, format not supported or error during read: </span><span class="si">{}</span><span class="s2">. Last reader tried = </span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="n">last_reader_tried</span><span class="p">,</span><span class="n">found_txt</span><span class="p">))</span></div>
 
 
 
@@ -609,13 +910,14 @@
                     <span class="n">dateparser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;/s+&quot;</span><span class="p">,</span>
-                    <span class="n">extra_na</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;---&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">],</span>
+                    <span class="n">extra_na</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;---&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span><span class="s2">&quot;Eqp&quot;</span><span class="p">,</span><span class="s2">&quot;Ssn&quot;</span><span class="p">,</span><span class="s2">&quot;Dis&quot;</span><span class="p">,</span><span class="s2">&quot;Mnt&quot;</span><span class="p">,</span><span class="s2">&quot;***&quot;</span><span class="p">,</span><span class="s2">&quot;ART&quot;</span><span class="p">,</span><span class="s2">&quot;BRT&quot;</span><span class="p">,</span><span class="s2">&quot;ZFL&quot;</span><span class="p">],</span>
                     <span class="n">blank_qaqc_good</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">prefer_age</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">,</span>
                     <span class="n">column_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">replace_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">dtypes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+                    <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">os</span>
     <span class="kn">import</span> <span class="nn">fnmatch</span>
@@ -626,7 +928,6 @@
     <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">fdir</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">fpat</span><span class="p">):</span>
             <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
-
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;No matches found for pattern: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpat</span><span class="p">))</span>
@@ -687,16 +988,18 @@
         
         <span class="k">if</span> <span class="n">skiprows</span><span class="o">==</span><span class="s2">&quot;count&quot;</span><span class="p">:</span>
             <span class="n">ncomment</span> <span class="o">=</span> <span class="n">count_comments</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">comment</span><span class="p">)</span>
-            <span class="n">skiprows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">ncomment</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="n">ncomment</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-        
-        
+            <span class="n">skiprows_spec</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">ncomment</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="n">ncomment</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">skiprows_spec</span> <span class="o">=</span> <span class="n">skiprows</span>
+
         <span class="k">if</span> <span class="n">column_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">indexcol</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
-                           <span class="n">skiprows</span><span class="o">=</span><span class="n">skiprows</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
+                           <span class="n">skiprows</span><span class="o">=</span><span class="n">skiprows_spec</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
                            <span class="n">parse_dates</span><span class="o">=</span><span class="n">parsedates</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="n">extra_na</span><span class="p">,</span>
                            <span class="n">keep_default_na</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
-                           <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">skipinitialspace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span>
                            <span class="o">**</span><span class="n">dargs</span><span class="p">)</span>
+
             
             <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># This is essentially a fixup for vtide, which I&#39;m not</span>
@@ -712,12 +1015,12 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">indexcol</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
-                           <span class="n">skiprows</span><span class="o">=</span><span class="n">skiprows</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
+                           <span class="n">skiprows</span><span class="o">=</span><span class="n">skiprows_spec</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
                            <span class="n">parse_dates</span><span class="o">=</span><span class="n">parsedates</span><span class="p">,</span> 
                            <span class="n">na_values</span><span class="o">=</span><span class="n">extra_na</span><span class="p">,</span>
                            <span class="n">keep_default_na</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
                            <span class="n">names</span><span class="o">=</span><span class="n">column_names</span><span class="p">,</span>
-                           <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">skipinitialspace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                            <span class="o">**</span><span class="n">dargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -738,21 +1041,26 @@
     <span class="n">big_ts</span> <span class="o">=</span> <span class="n">ts_merge</span><span class="p">(</span><span class="n">tsm</span><span class="p">)</span>  <span class="c1"># pd.concat(tsm)</span>
     <span class="k">if</span> <span class="n">force_regular</span><span class="p">:</span> 
         <span class="k">if</span> <span class="n">freq</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span> 
-            <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                 <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
-                 <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Give it one more shot halfway through</span>
-                <span class="n">istrt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">5</span><span class="p">,:]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
-                <span class="n">istrt</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span><span class="o">//</span><span class="mi">3</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">5</span><span class="p">,:]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-                <span class="c1">#f = minutes(15)</span>
+            <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span> 
+                <span class="nb">print</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;read_ts set to infer frequency, but two attempts failed. Set to string to manually &quot;</span><span class="p">)</span>
+                    <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
+                    <span class="n">istrt</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span><span class="o">//</span><span class="mi">4</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">5</span><span class="p">,:]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Give it one more shot halfway through</span>
+                    <span class="n">istrt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">5</span><span class="p">,:]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>                
+                    <span class="c1">#f = minutes(15)</span>
+                    <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;read_ts set to infer frequency, but two attempts failed. Set to string to manually &quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span> 
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;force_regular with prescribed frequency not implemented yet&quot;</span><span class="p">)</span>
         <span class="c1"># Round to neat times, which may cause duplicates</span>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions.merge &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>vtools.functions.merge &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -51,18 +51,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
@@ -108,7 +108,6 @@
   <h1>Source code for vtools.functions.merge</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-
 <div class="viewcode-block" id="ts_merge"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.merge.ts_merge">[docs]</a><span class="k">def</span> <span class="nf">ts_merge</span><span class="p">(</span><span class="n">series</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; merge a number of timeseries together and return a new ts.</span>
 <span class="sd">    Similar to concatenate, but provides more control over order in cases of overlap</span>
@@ -127,14 +126,122 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># this concatenates, leaving redundant indices in df0, df1, df2</span>
+    <span class="c1"># we are not doing the real work yet, just getting the right indexes</span>
+    <span class="c1"># this doesn&#39;t seem super efficient, but good enough for a start     </span>
     <span class="n">dfmerge</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1"># This populates with the values from the highest series </span>
+    <span class="c1"># It is a bug for the first series to have a duplicate index</span>
+    <span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">~</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
+    <span class="n">dfmerge</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">dfmerge</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>  
 
-    <span class="c1"># finally, drop duplicate indices</span>
+    <span class="c1"># drop duplicate indices</span>
     <span class="n">dfmerge</span> <span class="o">=</span> <span class="n">dfmerge</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">dfmerge</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;last&#39;</span><span class="p">)]</span>
     <span class="c1"># Now apply, in priority order, each of the original dataframes to fill the original</span>
-    <span class="k">for</span> <span class="n">ddf</span> <span class="ow">in</span> <span class="n">series</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">ddf</span> <span class="ow">in</span> <span class="n">series</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
         <span class="n">dfmerge</span> <span class="o">=</span> <span class="n">dfmerge</span><span class="o">.</span><span class="n">combine_first</span><span class="p">(</span><span class="n">ddf</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dfmerge</span></div>
+    
+<div class="viewcode-block" id="ts_splice"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.merge.ts_splice">[docs]</a><span class="k">def</span> <span class="nf">ts_splice</span><span class="p">(</span><span class="n">tss</span><span class="p">,</span><span class="n">transition</span><span class="o">=</span><span class="s2">&quot;prefer_last&quot;</span><span class="p">,</span><span class="n">floor_dates</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; splice a number of timeseries together in a non-overlapping way. </span>
+<span class="sd">    The function supports three methods of positioning the breakpoints</span>
+<span class="sd">    between series.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series  :  tuple(:class:`DataFrame &lt;pandas:pandas.DataFrame&gt;`)</span>
+<span class="sd">        Series ranked from first to last in time. Must have identical column structure</span>
+<span class="sd">        or unexpected results may occur during concatenate.</span>
+
+<span class="sd">    transition : &#39;prefer_first&#39; | &#39;prefer_last&#39; | list(pd.Datetime)</span>
+<span class="sd">        Description of how to switch between series. If prefer_first, the</span>
+<span class="sd">        earlier series will be used until their end point.  </span>
+<span class="sd">        If prefer_last, the first time stamp of the </span>
+<span class="sd">        later series will be used. </span>
+
+<span class="sd">    floor_dates: bool</span>
+<span class="sd">        Floor the transition dates that are inferred with &#39;prefer_first&#39; or &#39;prefer_last&#39;.</span>
+<span class="sd">        Note that this can produce nans if the input series are regular with a freq attribute</span>
+<span class="sd">        or a big gap otherwise unless there is overlapping data covering the days that are rounded.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------    </span>
+<span class="sd">    spliced : :class:`DataFrame &lt;pandas:pandas.DataFrame&gt;`</span>
+<span class="sd">        A new time series with freq same as the inputs if they are all the same,</span>
+<span class="sd">        time extent the union of the inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transition</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">floor_dates</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Floor dates option not compatible with transition that is a list of Timestamps&quot;</span><span class="p">)</span>
+        <span class="n">dup_keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">transition</span> <span class="o">==</span> <span class="s1">&#39;prefer_first&#39;</span><span class="p">:</span>
+            <span class="n">dup_keep</span> <span class="o">=</span> <span class="s1">&#39;first&#39;</span>
+            <span class="n">transition</span> <span class="o">=</span> <span class="p">[</span><span class="n">ts</span><span class="o">.</span><span class="n">last_valid_index</span><span class="p">()</span> <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tss</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">floor_dates</span><span class="p">:</span>
+                <span class="n">transition</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">transition</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">transition</span> <span class="o">==</span> <span class="s1">&#39;prefer_last&#39;</span><span class="p">:</span>
+            <span class="n">dup_keep</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span>
+            <span class="n">transition</span> <span class="o">=</span> <span class="p">[</span><span class="n">ts</span><span class="o">.</span><span class="n">first_valid_index</span><span class="p">()</span> <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tss</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+            <span class="k">if</span> <span class="n">floor_dates</span><span class="p">:</span>
+                <span class="n">transition</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">transition</span><span class="p">]</span>                
+    <span class="n">transition</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">transition</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;transition</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">transition</span><span class="p">)</span>
+    <span class="n">sections</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">f</span><span class="o">=</span><span class="n">tss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="k">for</span> <span class="n">ts</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="n">end</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tss</span><span class="p">,</span><span class="n">transition</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">transition</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;here&quot;</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="s2">&quot;ts</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">ts</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span> <span class="o">==</span> <span class="n">f</span> <span class="k">else</span> <span class="kc">None</span>      
+        <span class="n">sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">),:])</span>
+    <span class="n">tsout</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">sections</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">duplicatetime</span> <span class="o">=</span> <span class="n">tsout</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="n">dup_keep</span><span class="p">)</span>
+    <span class="n">nduplicatetime</span> <span class="o">=</span> <span class="n">duplicatetime</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">nduplicatetime</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">tsout</span> <span class="o">=</span> <span class="n">tsout</span><span class="p">[</span><span class="o">~</span><span class="n">duplicatetime</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">tsout</span> <span class="o">=</span> <span class="n">tsout</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tsout</span></div>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.merge.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">from</span> <span class="nn">vtools.data.vtime</span> <span class="kn">import</span> <span class="n">hours</span><span class="p">,</span><span class="n">days</span>
+
+    <span class="n">dfs</span> <span class="o">=</span> <span class="p">[]</span>    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">hours</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">8</span><span class="p">),</span><span class="n">freq</span><span class="o">=</span><span class="s2">&quot;H&quot;</span><span class="p">,</span><span class="n">periods</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">10.</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mf">100.</span><span class="p">)</span> 
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dr</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">ts_long</span> <span class="o">=</span> <span class="n">ts_splice</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span><span class="n">transition</span><span class="o">=</span><span class="s1">&#39;prefer_first&#39;</span><span class="p">,</span><span class="n">floor_dates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts_long</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;**&quot;</span><span class="p">)</span>
+    <span class="n">dfs</span> <span class="o">=</span> <span class="p">[]</span>    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">hours</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">8</span><span class="p">),</span><span class="n">freq</span><span class="o">=</span><span class="s2">&quot;H&quot;</span><span class="p">,</span><span class="n">periods</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">12.</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mf">100.</span><span class="p">)</span> 
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dr</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">ts_long</span> <span class="o">=</span> <span class="n">ts_splice</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span><span class="n">transition</span><span class="o">=</span><span class="s1">&#39;prefer_last&#39;</span><span class="p">,</span><span class="n">floor_dates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts_long</span><span class="p">)</span>
+    
+    <span class="n">transitions</span> <span class="o">=</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">17</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">22</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;***************&quot;</span><span class="p">)</span>
+    <span class="n">dfs</span> <span class="o">=</span> <span class="p">[]</span>    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">days</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">-</span><span class="n">hours</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">freq</span><span class="o">=</span><span class="s2">&quot;H&quot;</span><span class="p">,</span><span class="n">periods</span><span class="o">=</span><span class="mi">77</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">78.</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mf">100.</span><span class="p">)</span> 
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dr</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span><span class="o">=</span><span class="kc">None</span>
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">ts_long</span> <span class="o">=</span> <span class="n">ts_splice</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span><span class="n">transition</span><span class="o">=</span><span class="s1">&#39;prefer_last&#39;</span><span class="p">,</span><span class="n">floor_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ts_long</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span></div>
+
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
           </div>

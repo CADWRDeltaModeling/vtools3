@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>Monotonic Spline Example &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Monotonic Spline Example &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -51,18 +52,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
@@ -323,15 +324,15 @@ div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
 </style>
-<div class="section" id="Monotonic-Spline-Example">
+<section id="Monotonic-Spline-Example">
 <h1>Monotonic Spline Example<a class="headerlink" href="#Monotonic-Spline-Example" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>import numpy as np
-import vtools.functions as vf
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtools.functions</span> <span class="k">as</span> <span class="nn">vf</span>
 </pre></div>
 </div>
 </div>
@@ -340,10 +341,10 @@ import vtools.functions as vf
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>x=np.arange(0.,20.,2.)
-y=np.sin(x/4.)
-xnew=np.arange(0.,18,.5)
-out=vf.spline(x,y,xnew)
+<span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">20.</span><span class="p">,</span><span class="mf">2.</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="mf">4.</span><span class="p">)</span>
+<span class="n">xnew</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mi">18</span><span class="p">,</span><span class="mf">.5</span><span class="p">)</span>
+<span class="n">out</span><span class="o">=</span><span class="n">vf</span><span class="o">.</span><span class="n">spline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">xnew</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -371,7 +372,7 @@ out=vf.spline(x,y,xnew)
 </pre></div>
 </div>
 </div>
-</div>
+</section>
 
 
           </div>

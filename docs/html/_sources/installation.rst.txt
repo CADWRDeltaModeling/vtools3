@@ -49,7 +49,7 @@ Once you have a copy of the source, you can install it with:
     $ # for dev environment
     $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 pytest pytest-runner versioneer
     $ # for docs generation
-    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib
+    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib sphinx-argparse numpydoc
     $ cd vtools3/
     $ conda activate dev_vtools3
     $ pip install -e .

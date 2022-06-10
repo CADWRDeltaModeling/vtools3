@@ -4,6 +4,14 @@ vtools.functions package
 Submodules
 ----------
 
+vtools.functions.climatology module
+-----------------------------------
+
+.. automodule:: vtools.functions.climatology
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.error\_detect module
 -------------------------------------
 
@@ -36,6 +44,14 @@ vtools.functions.filter module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.interannual module
+-----------------------------------
+
+.. automodule:: vtools.functions.interannual
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.interpolate module
 -----------------------------------
 
@@ -48,6 +64,14 @@ vtools.functions.lag\_cross\_correlation module
 -----------------------------------------------
 
 .. automodule:: vtools.functions.lag_cross_correlation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.functions.medianAD module
+--------------------------------
+
+.. automodule:: vtools.functions.medianAD
    :members:
    :undoc-members:
    :show-inheritance:
@@ -84,6 +108,14 @@ vtools.functions.skill\_metrics module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.test\_climatology module
+-----------------------------------------
+
+.. automodule:: vtools.functions.test_climatology
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.test\_error\_detect module
 -------------------------------------------
 
@@ -100,10 +132,26 @@ vtools.functions.test\_filter module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.test\_filter3 module
+-------------------------------------
+
+.. automodule:: vtools.functions.test_filter3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.test\_lag module
 ---------------------------------
 
 .. automodule:: vtools.functions.test_lag
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.functions.test\_medianAD module
+--------------------------------------
+
+.. automodule:: vtools.functions.test_medianAD
    :members:
    :undoc-members:
    :show-inheritance:

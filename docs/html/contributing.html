@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>Contributing &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Contributing &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -53,18 +54,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API Documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#types-of-contributions">Types of Contributions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#get-started">Get Started!</a></li>
@@ -114,14 +115,14 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="contributing">
+  <section id="contributing">
 <h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
 <p>Contributions are welcome, and they are greatly appreciated! Every little bit
 helps, and credit will always be given.</p>
 <p>You can contribute in many ways:</p>
-<div class="section" id="types-of-contributions">
+<section id="types-of-contributions">
 <h2>Types of Contributions<a class="headerlink" href="#types-of-contributions" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="report-bugs">
+<section id="report-bugs">
 <h3>Report Bugs<a class="headerlink" href="#report-bugs" title="Permalink to this headline">¶</a></h3>
 <p>Report bugs at <a class="reference external" href="https://github.com/CADWRDeltaModeling/vtools3/issues">https://github.com/CADWRDeltaModeling/vtools3/issues</a>.</p>
 <p>If you are reporting a bug, please include:</p>
@@ -130,24 +131,24 @@ helps, and credit will always be given.</p>
 <li><p>Any details about your local setup that might be helpful in troubleshooting.</p></li>
 <li><p>Detailed steps to reproduce the bug.</p></li>
 </ul>
-</div>
-<div class="section" id="fix-bugs">
+</section>
+<section id="fix-bugs">
 <h3>Fix Bugs<a class="headerlink" href="#fix-bugs" title="Permalink to this headline">¶</a></h3>
 <p>Look through the GitHub issues for bugs. Anything tagged with “bug” and “help
 wanted” is open to whoever wants to implement it.</p>
-</div>
-<div class="section" id="implement-features">
+</section>
+<section id="implement-features">
 <h3>Implement Features<a class="headerlink" href="#implement-features" title="Permalink to this headline">¶</a></h3>
 <p>Look through the GitHub issues for features. Anything tagged with “enhancement”
 and “help wanted” is open to whoever wants to implement it.</p>
-</div>
-<div class="section" id="write-documentation">
+</section>
+<section id="write-documentation">
 <h3>Write Documentation<a class="headerlink" href="#write-documentation" title="Permalink to this headline">¶</a></h3>
 <p>vtools could always use more documentation, whether as part of the
 official vtools docs, in docstrings, or even on the web in blog posts,
 articles, and such.</p>
-</div>
-<div class="section" id="submit-feedback">
+</section>
+<section id="submit-feedback">
 <h3>Submit Feedback<a class="headerlink" href="#submit-feedback" title="Permalink to this headline">¶</a></h3>
 <p>The best way to send feedback is to file an issue at <a class="reference external" href="https://github.com/CADWRDeltaModeling/vtools3/issues">https://github.com/CADWRDeltaModeling/vtools3/issues</a>.</p>
 <p>If you are proposing a feature:</p>
@@ -157,9 +158,9 @@ articles, and such.</p>
 <li><p>Remember that this is a volunteer-driven project, and that contributions
 are welcome :)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="get-started">
+</section>
+</section>
+<section id="get-started">
 <h2>Get Started!<a class="headerlink" href="#get-started" title="Permalink to this headline">¶</a></h2>
 <p>Ready to contribute? Here’s how to set up <cite>vtools</cite> for local development.</p>
 <ol class="arabic">
@@ -175,7 +176,7 @@ $ conda install -y -n dev_vtools3 -c cadwr-dms -c defaults numpy pandas scipy be
 $ <span class="c1"># for dev environment</span>
 $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 pytest pytest-runner versioneer
 $ <span class="c1"># for docs generation</span>
-$ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib
+$ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib sphinx-argparse numpydoc
 $ <span class="nb">cd</span> vtools3/
 $ conda activate dev_vtools3
 $ pip install -e .
@@ -203,8 +204,8 @@ $ git push origin name-of-your-bugfix-or-feature
 </li>
 <li><p>Submit a pull request through the GitHub website.</p></li>
 </ol>
-</div>
-<div class="section" id="pull-request-guidelines">
+</section>
+<section id="pull-request-guidelines">
 <h2>Pull Request Guidelines<a class="headerlink" href="#pull-request-guidelines" title="Permalink to this headline">¶</a></h2>
 <p>Before you submit a pull request, check that it meets these guidelines:</p>
 <ol class="arabic simple">
@@ -215,15 +216,15 @@ feature to the list in README.rst.</p></li>
 <li><p>The pull request should work for Python 3.7, and for conda build. Check
 and make sure that the tests pass for all supported Python versions.</p></li>
 </ol>
-</div>
-<div class="section" id="tips">
+</section>
+<section id="tips">
 <h2>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h2>
 <p>To run a subset of tests:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ pytest tests.test_xxx
 </pre></div>
 </div>
-</div>
-<div class="section" id="deploying">
+</section>
+<section id="deploying">
 <h2>Deploying<a class="headerlink" href="#deploying" title="Permalink to this headline">¶</a></h2>
 <p>A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
@@ -233,8 +234,8 @@ $ git push
 $ git push --tags
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions.filter &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>vtools.functions.filter &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -51,18 +51,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
@@ -113,29 +113,19 @@
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="nb">abs</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">vtools.data.vtime</span> <span class="kn">import</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">hours</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">array</span> <span class="k">as</span> <span class="n">sciarray</span>
 <span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">lfilter</span><span class="p">,</span><span class="n">firwin</span><span class="p">,</span><span class="n">filtfilt</span>
 <span class="kn">from</span> <span class="nn">scipy.signal.filter_design</span> <span class="kn">import</span> <span class="n">butter</span>
-
+<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">gaussian_filter1d</span>
 
 <span class="c1">#__all__=[&quot;boxcar&quot;,&quot;butterworth&quot;,&quot;daily_average&quot;,&quot;godin&quot;,&quot;cosine_lanczos&quot;,\</span>
 <span class="c1">#         &quot;lowpass_cosine_lanczos_filter_coef&quot;,&quot;ts_gaussian_filter&quot;]</span>
 
 
 
+<span class="n">_cached_filt_info</span> <span class="o">=</span> <span class="p">{}</span>
 
-<span class="c1">## This dic saves the missing points for different intervals. </span>
-<span class="c1">#first_point={time_interval(minutes=15):48,time_interval(hours=1):36}</span>
-
-<span class="c1">## This dic store tide butterworth filter&#39; cut-off frequencies for </span>
-<span class="c1">## tide time series analysis, here set cutoff frequency at 0.8 cycle/day</span>
-<span class="c1">## ,but it is represented as a ratio to Nyquist frequency for two</span>
-<span class="c1">## sample intervals.</span>
-<span class="c1">#butterworth_cutoff_frequencies={time_interval(minutes=15):0.8/(48),\</span>
-<span class="c1">#                               time_interval(hours=1):0.8/12}</span>
-
-<span class="c1">## supported interval</span>
-<span class="c1">#_butterworth_interval=[time_interval(minutes=15),time_interval(hours=1)]</span>
 
 <span class="c1">########################################################################### </span>
 <span class="c1">## Public interface.</span>
@@ -215,8 +205,7 @@
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="c1">#if not ts.is_regular():</span>
-    <span class="c1">#    raise ValueError(&quot;Only regular time series are supported.&quot;)</span>
+    
         
     
     <span class="n">freq</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
@@ -230,7 +219,11 @@
     <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.25</span> <span class="o">*</span> <span class="mf">2.</span> <span class="o">/</span><span class="n">cf</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Filter lengths specified in time not ready&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="n">freq</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;filter_len was not an int or divisible by filter_len (probably a type incompatiblity)&quot;</span><span class="p">)</span>
+        <span class="c1">#raise NotImplementedError(&quot;Only integer length filter lengths or supported currently. Received: &quot;.format(type(m)))</span>
 
     <span class="c1">##find out nan location and fill with 0.0. This way we can use the</span>
     <span class="c1">## signal processing filtrations out-of-the box without nans causing trouble,</span>
@@ -359,7 +352,7 @@
     <span class="p">[</span><span class="n">b</span><span class="p">,</span><span class="n">a</span><span class="p">]</span><span class="o">=</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">cf</span><span class="p">)</span>
     <span class="n">d2</span><span class="o">=</span><span class="n">filtfilt</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">ts</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">padlen</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">d2</span>
+    <span class="n">out</span><span class="p">[:]</span><span class="o">=</span><span class="n">d2</span>
 
 <span class="c1">#    prop={}</span>
 <span class="c1">#    for key,val in ts.props.items():</span>
@@ -377,20 +370,20 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
 <span class="sd">    </span>
-<span class="sd">    Cf: float</span>
+<span class="sd">    cf: float</span>
 <span class="sd">      Cutoff frequency expressed as a ratio of a Nyquist frequency.</span>
 <span class="sd">                  </span>
-<span class="sd">    M: int</span>
+<span class="sd">    m: int</span>
 <span class="sd">      Size of filtering window size.</span>
 <span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    --------</span>
-<span class="sd">    pdb.set_trace()</span>
 <span class="sd">    Results: list</span>
 <span class="sd">           Coefficients of filtering window.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+    <span class="k">if</span> <span class="p">(</span><span class="n">cf</span><span class="p">,</span><span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_cached_filt_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_cached_filt_info</span><span class="p">[(</span><span class="n">cf</span><span class="p">,</span><span class="n">m</span><span class="p">)]</span>
     <span class="n">coscoef</span><span class="o">=</span><span class="p">[</span><span class="n">cf</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">k</span><span class="o">*</span><span class="n">cf</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">k</span><span class="o">*</span><span class="n">cf</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)]</span>
     <span class="n">sigma</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">k</span><span class="o">/</span><span class="n">m</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">k</span><span class="o">/</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">)]</span>
     <span class="n">prod</span><span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coscoef</span><span class="p">,</span><span class="n">sigma</span><span class="p">)]</span>
@@ -398,21 +391,34 @@
     <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">/</span><span class="n">res</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">_cached_filt_info</span><span class="p">[(</span><span class="n">cf</span><span class="p">,</span><span class="n">m</span><span class="p">)]</span> <span class="o">=</span> <span class="n">res</span>
     <span class="k">return</span> <span class="n">res</span>    </div>
-    
-<div class="viewcode-block" id="generate_godin_fir"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.generate_godin_fir">[docs]</a><span class="k">def</span> <span class="nf">generate_godin_fir</span><span class="p">(</span><span class="n">timeinterval</span><span class="p">):</span>
+
+
+<div class="viewcode-block" id="generate_godin_fir"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.generate_godin_fir">[docs]</a><span class="k">def</span> <span class="nf">generate_godin_fir</span><span class="p">(</span><span class="n">freq</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    generate godin filter impulse response for given timeinterval</span>
-<span class="sd">    timeinterval could be anything that pd.Timedelta can accept</span>
+<span class="sd">    generate godin filter impulse response for given freq</span>
+<span class="sd">    freq is a pandas freq</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="n">mins</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">timeinterval</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span><span class="o">/</span><span class="mi">60</span>
-    <span class="n">wts24</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">/</span><span class="n">mins</span><span class="p">))</span>
-    <span class="n">wts24</span><span class="p">[:]</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">wts24</span><span class="o">.</span><span class="n">size</span>
-    <span class="n">tidal_period</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="mf">24.75</span><span class="o">*</span><span class="mi">60</span><span class="o">/</span><span class="n">mins</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">tidal_period</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="n">tidal_period</span><span class="o">=</span><span class="n">tidal_period</span><span class="o">+</span><span class="mi">1</span>
-    <span class="n">wts25</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">tidal_period</span><span class="p">)</span>
-    <span class="n">wts25</span><span class="p">[:]</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="n">wts25</span><span class="o">.</span><span class="n">size</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">wts25</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">wts24</span><span class="p">,</span><span class="n">wts24</span><span class="p">))</span></div>
+    <span class="n">freqstr</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">freqstr</span> <span class="ow">in</span> <span class="n">_cached_filt_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_cached_filt_info</span><span class="p">[</span><span class="n">freqstr</span><span class="p">]</span>
+    <span class="n">dt_sec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="o">/</span><span class="n">seconds</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">nsample24</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">86400</span><span class="o">//</span><span class="n">dt_sec</span><span class="p">)</span>  <span class="c1"># 24 hours by dt (24 for hour, 96 for 15min)</span>
+    <span class="n">wts24</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nsample24</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>  
+    <span class="n">wts24</span><span class="p">[:]</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="n">nsample24</span>
+    <span class="n">nsample25</span><span class="o">=</span><span class="p">(</span><span class="mi">1490</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span><span class="o">//</span><span class="n">dt_sec</span>  <span class="c1"># 24 hr 50min in seconds by dt</span>
+    <span class="k">if</span> <span class="n">nsample25</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> 
+        <span class="c1"># ensure odd</span>
+        <span class="n">nsample25</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">wts25</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nsample25</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+    <span class="n">wts25</span><span class="p">[:]</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="n">nsample25</span>
+    <span class="n">wts24</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nsample24</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+    <span class="n">wts24</span><span class="p">[:]</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="n">nsample24</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">wts25</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">wts24</span><span class="p">,</span><span class="n">wts24</span><span class="p">))</span>
+    <span class="n">_cached_filt_info</span><span class="p">[</span><span class="n">freqstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">v</span></div>
+    
     
 <div class="viewcode-block" id="godin"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.godin">[docs]</a><span class="k">def</span> <span class="nf">godin</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Low-pass Godin filter a regular time series.</span>
@@ -435,27 +441,79 @@
 <span class="sd">        </span>
 <span class="sd">    Raise</span>
 <span class="sd">    --------</span>
-<span class="sd">    ValueError</span>
+<span class="sd">    NotImplementedError</span>
 <span class="sd">        If input time series is not univariate</span>
 <span class="sd">        </span>
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    .. [1] Godin (1972) Analysis of Tides</span>
-<span class="sd">        </span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">freqstr</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freqstr</span>
-    <span class="k">if</span> <span class="n">freqstr</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">freqstr</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">freqstr</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;No regular frequency could be determined from the index of the data frame or from infer_freq method. Try on smaller slice of dataframe index&quot;&quot;&quot;</span><span class="p">)</span>
-    <span class="n">godin_ir</span><span class="o">=</span><span class="n">generate_godin_fir</span><span class="p">(</span><span class="n">freqstr</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Godin Filter not functional for multivariate series yet&quot;</span><span class="p">)</span>
-    <span class="n">dfg</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">godin_ir</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">),</span> 
-        <span class="n">columns</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">freq</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValueException</span><span class="p">(</span><span class="s2">&quot;Series must be regular (have freq set)&quot;</span><span class="p">)</span>
+    <span class="n">godin_ir</span><span class="o">=</span><span class="n">generate_godin_fir</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+    <span class="n">nfilt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">godin_ir</span><span class="p">)</span>
+    <span class="n">nhalffilt</span> <span class="o">=</span> <span class="n">nfilt</span><span class="o">//</span><span class="mi">2</span>
+    <span class="c1">#if not (len(ts.columns) == 1):</span>
+    <span class="c1">#    raise NotImplementedError(&quot;Godin Filter not functional for multivariate series yet&quot;)</span>
+    <span class="n">dfg</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">godin_ir</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+    <span class="n">dfg</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span>
+    <span class="n">dfg</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nhalffilt</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">dfg</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="n">nhalffilt</span><span class="p">:,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="k">return</span> <span class="n">dfg</span></div>
-<span class="c1">#</span>
+
+<div class="viewcode-block" id="convert_span_to_nstep"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.convert_span_to_nstep">[docs]</a><span class="k">def</span> <span class="nf">convert_span_to_nstep</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span><span class="n">span</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">span</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span> <span class="k">return</span> <span class="n">span</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">tseries</span><span class="o">.</span><span class="n">frequencies</span><span class="o">.</span><span class="n">to_offset</span><span class="p">(</span><span class="n">span</span><span class="p">)</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">tseries</span><span class="o">.</span><span class="n">frequencies</span><span class="o">.</span><span class="n">to_offset</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">span</span><span class="o">/</span><span class="n">freq</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">_gf1d</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="n">order</span><span class="p">,</span><span class="n">mode</span><span class="p">,</span><span class="n">cval</span><span class="p">,</span><span class="n">truncate</span><span class="p">):</span>
+    <span class="n">tscopy</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">tscopy</span><span class="o">.</span><span class="n">loc</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">gaussian_filter1d</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span><span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span><span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span><span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span><span class="n">truncate</span><span class="o">=</span><span class="n">truncate</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tscopy</span>
+
+<div class="viewcode-block" id="ts_gaussian_filter"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.ts_gaussian_filter">[docs]</a><span class="k">def</span> <span class="nf">ts_gaussian_filter</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;reflect&#39;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Column-wise Gaussian smoothing of regular time series. </span>
+<span class="sd">    Missing/irregular values are not handled, which means this function is not much different from</span>
+<span class="sd">    a rolling window gaussian average in pandas which may be preferable in the case of </span>
+<span class="sd">    missing data (ts.rolling(window=5,win_type=&#39;gaussian&#39;).mean. </span>
+<span class="sd">    This function has been kept around awaiting irreg as an aspiration but yet to be implemented.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    </span>
+<span class="sd">    ts : :class:`DataFrame &lt;pandas:pandas.DataFrame&gt;`</span>
+<span class="sd">        The series to be smoothed</span>
+<span class="sd">        </span>
+<span class="sd">    sigma : int or freq</span>
+<span class="sd">        The sigma scale of the smoothing (analogous to std. deviation), given as a number of steps </span>
+<span class="sd">        or freq</span>
+<span class="sd">  </span>
+<span class="sd">  </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : :class:`DataFrame &lt;pandas:pandas.DataFrame&gt;`</span>
+<span class="sd">        A new regular time series with the same interval of ts. </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span> 
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">convert_span_to_nstep</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span><span class="n">sigma</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">tsout</span> <span class="o">=</span> <span class="n">_gf1d</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span><span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span><span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span><span class="n">truncate</span><span class="o">=</span><span class="n">truncate</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tsout</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_gf1d</span><span class="p">,</span><span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span><span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span><span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span><span class="n">truncate</span><span class="o">=</span><span class="n">truncate</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tsout</span></div>
+        
+    
+    
+    
+    
+    
 </pre></div>
 
           </div>

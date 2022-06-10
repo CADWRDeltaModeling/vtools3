@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vtools.datastore.write_ts &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.datastore.write_ts</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<div class="viewcode-block" id="chunk_bounds"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.write_ts.chunk_bounds">[docs]</a><span class="k">def</span> <span class="nf">chunk_bounds</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">block_size</span><span class="p">):</span>
+    <span class="n">firstyr</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">first_valid_index</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
+    <span class="n">lastyr</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">last_valid_index</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
+    <span class="c1"># Get a number that is &quot;neat&quot; w.r.t. block size</span>
+    <span class="n">neat_lower_bound</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">block_size</span><span class="o">*</span><span class="p">(</span><span class="n">firstyr</span><span class="o">//</span><span class="n">block_size</span><span class="p">))</span>
+    <span class="n">neat_upper_bound</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">block_size</span><span class="o">*</span><span class="p">(</span><span class="n">lastyr</span><span class="o">//</span><span class="n">block_size</span><span class="p">))</span> 
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">neat_lower_bound</span><span class="p">,</span><span class="n">neat_upper_bound</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">block_size</span><span class="p">):</span>
+        <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">firstyr</span><span class="p">,</span><span class="n">bound</span><span class="p">)</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">lastyr</span><span class="p">,</span><span class="n">bound</span><span class="o">+</span><span class="n">block_size</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="n">bound</span><span class="o">+</span><span class="n">block_size</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">bounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">bounds</span></div>
+
+
+
+<div class="viewcode-block" id="block_comment"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.write_ts.block_comment">[docs]</a><span class="k">def</span> <span class="nf">block_comment</span><span class="p">(</span><span class="n">txt</span><span class="p">):</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">txt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span>  <span class="p">[</span><span class="s2">&quot;# &quot;</span><span class="o">+</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">text</span><span class="p">]</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;# #&quot;</span><span class="p">,</span><span class="s2">&quot;#  &quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">text</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="block_uncomment"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.write_ts.block_uncomment">[docs]</a><span class="k">def</span> <span class="nf">block_uncomment</span><span class="p">(</span><span class="n">txt</span><span class="p">):</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">txt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">uncomment</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;#&quot;</span> <span class="k">else</span> <span class="n">x</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="p">[</span><span class="n">uncomment</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">split</span>  <span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prep_header"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.write_ts.prep_header">[docs]</a><span class="k">def</span> <span class="nf">prep_header</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span><span class="n">format_version</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prepares metadata in the form of a string or yaml data structure for inclusion</span>
+<span class="sd">        Prep includes making sure that the lines are commented and start with the format: line</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;format&quot;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+                <span class="n">metadata</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;# format: </span><span class="si">{</span><span class="n">format_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;# date_formatted: </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">metadata</span>  
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">metadata</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;format: </span><span class="si">{</span><span class="n">format_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;date_formatted: </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">metadata</span>
+            <span class="c1"># Get rid of conflicting line</span>
+            <span class="n">conflict</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="s2">&quot;format&quot;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">conflict</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">if</span> <span class="n">conflict</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> 
+                <span class="k">del</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="n">conflict</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;# &quot;</span><span class="o">+</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">]</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;# #&quot;</span><span class="p">,</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># yaml</span>
+        <span class="k">if</span> <span class="s2">&quot;format&quot;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="k">del</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;format&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">&quot;original_header&quot;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;original_header&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_uncomment</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;original_header&quot;</span><span class="p">])</span>
+        <span class="n">header_no_comment</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">block_comment</span><span class="p">(</span><span class="n">header_no_comment</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;format&quot;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;# format: dwr-dms-1.0</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">header</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">header</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>            
+    <span class="k">return</span> <span class="n">header</span></div>
+        
+
+<div class="viewcode-block" id="write_ts_csv"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.write_ts.write_ts_csv">[docs]</a><span class="k">def</span> <span class="nf">write_ts_csv</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">fpath</span><span class="p">,</span><span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chunk_years</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">format_version</span><span class="o">=</span><span class="s2">&quot;dwr-dms-1.0&quot;</span><span class="p">,</span>
+                 <span class="n">overwrite_conventions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">block_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write time series to a csv file following a standard format</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    ts : pandas.DataFrame </span>
+<span class="sd">    The time series to write</span>
+<span class="sd">    </span>
+<span class="sd">    fpath : string</span>
+<span class="sd">    File name to write</span>
+<span class="sd">    </span>
+<span class="sd">    metadata : str or dict</span>
+<span class="sd">    String that represents valid yaml or a yaml-style data structure of dicts and lists</span>
+<span class="sd">    </span>
+<span class="sd">    chunk_years : bool</span>
+<span class="sd">    Break data into chunks by year</span>
+<span class="sd">    </span>
+<span class="sd">    dms_data_format : str</span>
+<span class="sd">    Version number of format. Defaults to current default format</span>
+<span class="sd">    </span>
+<span class="sd">    **kwargs : other</span>
+<span class="sd">    Other items that will be passed to write_csv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">former_index</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">former_index</span> <span class="o">!=</span> <span class="s2">&quot;datetime&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite_conventions</span><span class="p">:</span> 
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Index will be renamed datetime in file according to specification. Copy made&quot;</span><span class="p">)</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;datetime&quot;</span>
+    <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">meta_header</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;# format: </span><span class="si">{</span><span class="n">format_version</span><span class="si">}</span><span class="se">\n</span><span class="s2">date_formatted: </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">meta_header</span> <span class="o">=</span> <span class="n">prep_header</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span><span class="n">format_version</span><span class="p">)</span>
+    
+    
+    <span class="k">if</span> <span class="n">chunk_years</span><span class="p">:</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">chunk_bounds</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+        <span class="n">single_year_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">block_size</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bnd</span> <span class="ow">in</span> <span class="n">bounds</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">bnd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">ts</span><span class="o">.</span><span class="n">first_valid_index</span><span class="p">())</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">bnd</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">,</span><span class="mi">23</span><span class="p">,</span><span class="mi">59</span><span class="p">,</span><span class="mi">59</span><span class="p">),</span><span class="n">ts</span><span class="o">.</span><span class="n">last_valid_index</span><span class="p">())</span>
+            <span class="n">tssub</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">s</span><span class="p">:</span><span class="n">e</span><span class="p">]</span>
+            <span class="n">new_date_range_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bnd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bnd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">single_year_label</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bnd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">bnd</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> 
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks not compatible with single_year&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="n">new_date_range_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bnd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">newfname</span> <span class="o">=</span> <span class="n">fpath</span>
+            <span class="n">newfname</span> <span class="o">=</span> <span class="n">fpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">,</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">new_date_range_str</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">)</span>  <span class="c1"># coerces to csv</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">newfname</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">newline</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+                <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">meta_header</span><span class="p">)</span>
+                <span class="n">tssub</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">date_format</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%S&quot;</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># not chunk_years</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">newline</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">meta_header</span><span class="p">)</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">date_format</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%S&quot;</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

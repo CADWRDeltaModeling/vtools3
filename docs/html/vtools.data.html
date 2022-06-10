@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>vtools.data package &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>vtools.data package &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -53,18 +54,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">#API Documentation</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="vtools.html">vtools package</a></li>
 </ul>
 </li>
@@ -114,12 +115,12 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="vtools-data-package">
+  <section id="vtools-data-package">
 <h1>vtools.data package<a class="headerlink" href="#vtools-data-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
+<section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-vtools.data.gap">
+</section>
+<section id="module-vtools.data.gap">
 <span id="vtools-data-gap-module"></span><h2>vtools.data.gap module<a class="headerlink" href="#module-vtools.data.gap" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="vtools.data.gap.example_gap">
@@ -134,9 +135,9 @@ Identifies gaps (runs of missing or non-missing data) and quantifies the
 length of the gap in terms of number of samples, which works better for
 regular series. Each time point receives the length of the run.</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>Time series to analyze</p>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>Time series to analyze</p>
 </dd>
 <dt><strong>state</strong><span class="classifier"><cite>str</cite> one of ‘gap’|’good’|’both’</span></dt><dd><p>State to count. If state is gap, block size of missing data are counted 
 and reported for time points in the gap (every point in a given gap will
@@ -145,7 +146,33 @@ Setting state to ‘good’ inverts this – missing blocks are reported as
 zero and good data are counted.</p>
 </dd>
 <dt><strong>dtype</strong><span class="classifier"><cite>str</cite> or <cite>type</cite></span></dt><dd><p>Data type of output, should be acceptable to
-pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.astype.html#pandas.DataFrame.astype" title="(in pandas v1.0.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">astype</span></code></a></p>
+pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.astype.html#pandas.DataFrame.astype" title="(in pandas v1.4.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">astype</span></code></a></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.data.gap.gap_distance">
+<code class="sig-name descname">gap_distance</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">disttype='count'</em>, <em class="sig-param">to='good'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/gap.html#gap_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.gap.gap_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each element of ts, count the distance to the nearest good data/or bad data.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd></dd>
+<dt><strong>disttype</strong><span class="classifier"><cite>str</cite> one of ‘bad’|’good’</span></dt><dd></dd>
+<dt><strong>If disttype = “count” this is the number of values. If dist_type=”freq” it is in the units of ts.freq</strong></dt><dd></dd>
+<dt><strong>(so if freq == “15T” it is in minutes”)</strong></dt><dd></dd>
+<dt><strong>to</strong><span class="classifier"><cite>str</cite> one of ‘bad’|’good’</span></dt><dd></dd>
+<dt><strong>If to = “good” this is the distance to the nearest good data (which is 0 for good data).</strong></dt><dd></dd>
+<dt><strong>If to = “bad”, this is the distance to the nearest nan (which is 0 for nan).</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>result</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>A new regular time series with the same freq as the argument
+holding the distance of good/bad data.</p>
 </dd>
 </dl>
 </dd>
@@ -162,14 +189,14 @@ with non-missing data returning zero. Time is measured from the time the
 data first started being missing to when the data first starts being not missing
 .</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd></dd>
+<dt><strong>ts</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd></dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl>
-<dt><strong>result</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>A new regular time series with the same freq as the argument
+<dt><strong>result</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></dt><dd><p>A new regular time series with the same freq as the argument
 holding the size of the gap.</p>
 </dd>
 </dl>
@@ -217,8 +244,8 @@ holding the size of the gap.</p>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="module-vtools.data.sample_series">
+</section>
+<section id="module-vtools.data.sample_series">
 <span id="vtools-data-sample-series-module"></span><h2>vtools.data.sample_series module<a class="headerlink" href="#module-vtools.data.sample_series" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="vtools.data.sample_series.bessel_df">
@@ -253,8 +280,8 @@ This is a tough lowpass filtering job because the diurnal band is large and
 must be supressed in order to see the more subtle subtidal amplitude</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-vtools.data.timeseries">
+</section>
+<section id="module-vtools.data.timeseries">
 <span id="vtools-data-timeseries-module"></span><h2>vtools.data.timeseries module<a class="headerlink" href="#module-vtools.data.timeseries" title="Permalink to this headline">¶</a></h2>
 <p>Time series module
 Helpers for creating regular and irregular time series, transforming irregular to regular
@@ -264,11 +291,11 @@ and analyzing gaps.</p>
 <code class="sig-name descname">datetime_elapsed</code><span class="sig-paren">(</span><em class="sig-param">index_or_ts</em>, <em class="sig-param">reftime=None</em>, <em class="sig-param">dtype='d'</em>, <em class="sig-param">inplace=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#datetime_elapsed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.datetime_elapsed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a time series or DatetimeIndex to an integer/double series of elapsed time</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>index_or_ts</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></span></dt><dd><p>Time series or index to be transformed</p>
 </dd>
-<dt><strong>reftime</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html#pandas.Timestamp" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></a> or something convertible</span></dt><dd><p>The reference time upon which elapsed time is measured. Default of None means start of 
+<dt><strong>reftime</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html#pandas.Timestamp" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></a> or something convertible</span></dt><dd><p>The reference time upon which elapsed time is measured. Default of None means start of 
 series</p>
 </dd>
 <dt><strong>dtype</strong><span class="classifier">str like ‘i’ or ‘d’ or type like <cite>int</cite> (<cite>Int64</cite>) or <cite>float</cite> (<cite>Float64</cite>)</span></dt><dd><p>Data type for output, which starts out as a Float64 (‘d’) and gets converted, typically to Int64 (‘i’)</p>
@@ -277,7 +304,7 @@ series</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>result :</dt><dd><p>A new index using elapsed time from <cite>reftime</cite> as its value and of type <cite>dtype</cite></p>
 </dd>
@@ -291,17 +318,17 @@ series</p>
 <code class="sig-name descname">elapsed_datetime</code><span class="sig-paren">(</span><em class="sig-param">index_or_ts</em>, <em class="sig-param">reftime=None</em>, <em class="sig-param">time_unit='s'</em>, <em class="sig-param">inplace=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#elapsed_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.elapsed_datetime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a time series or numerical Index to a Datetime index or series</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>index_or_ts</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></span></dt><dd><p>Time series or index to be transformed with index in elapsed seconds from <cite>reftime</cite></p>
 </dd>
-<dt><strong>reftime</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html#pandas.Timestamp" title="(in pandas v1.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></a> or something convertible</span></dt><dd><p>The reference time upon which datetimes are to be evaluated.</p>
+<dt><strong>reftime</strong><span class="classifier"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html#pandas.Timestamp" title="(in pandas v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatatimeIndex</span></code></a> or something convertible</span></dt><dd><p>The reference time upon which datetimes are to be evaluated.</p>
 </dd>
 <dt><strong>inplace</strong><span class="classifier"><cite>bool</cite></span></dt><dd><p>If input is a data frame, replaces the index in-place with no copy</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>result :</dt><dd><p>A new index using DatetimeIndex inferred from elapsed time from <cite>reftime</cite> as its value and of type <cite>dtype</cite></p>
 </dd>
@@ -320,11 +347,11 @@ series</p>
 <code class="sig-name descname">extrapolate_ts</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">method='constant'</em>, <em class="sig-param">val=nan</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#extrapolate_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.extrapolate_ts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extend a regular time series with newer start/end</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>start</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></span></dt><dd><p>The starting time to be extended to.Optional, default no extension.</p>
+<dt><strong>start</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></span></dt><dd><p>The starting time to be extended to.Optional, default no extension.</p>
 </dd>
-<dt><strong>end</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></span></dt><dd><p>The ending time to be extended to.Optional,default no extension.</p>
+<dt><strong>end</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></span></dt><dd><p>The ending time to be extended to.Optional,default no extension.</p>
 </dd>
 <dt><strong>method</strong><span class="classifier">:string</span></dt><dd><p>Method to fill the extended part of resulting series. either
 “taper” or”constant”. default constant.</p>
@@ -334,7 +361,7 @@ gets tapered to. Only constant is supported for multivariate data</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>result <code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></dt><dd><p>An new time series extended to the input start and end.
 This function will only extend, not clip, so if you want to be
@@ -351,7 +378,7 @@ a window afterwards.</p>
 <code class="sig-name descname">rts</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">start</em>, <em class="sig-param">freq</em>, <em class="sig-param">columns=None</em>, <em class="sig-param">props=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#rts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.rts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a regular or calendar time series from data and time parameters</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>data</strong><span class="classifier">array_like</span></dt><dd><dl class="simple">
 <dt>Should be a array/list of values. There is no restriction on data </dt><dd><p>type, but not all functionality like addition or interpolation will work on all data.</p>
@@ -365,7 +392,7 @@ understood by <code class="xref py py-func docutils literal notranslate"><span c
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl>
 <dt><strong>result</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></span></dt><dd><p>A regular time series with the <cite>freq</cite> attribute set</p>
 </dd>
@@ -379,7 +406,7 @@ understood by <code class="xref py py-func docutils literal notranslate"><span c
 <code class="sig-name descname">rts_formula</code><span class="sig-paren">(</span><em class="sig-param">start</em>, <em class="sig-param">end</em>, <em class="sig-param">freq</em>, <em class="sig-param">valfunc=nan</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/data/timeseries.html#rts_formula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.data.timeseries.rts_formula" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a regular time series filled with constant value or formula based on elapsed seconds</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>start</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.Timestamp</span></code></span></dt><dd><p>Starting Timestamp or a string or type that can be coerced to one.</p>
 </dd>
@@ -391,7 +418,7 @@ understood by <code class="xref py py-func docutils literal notranslate"><span c
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl>
 <dt><strong>result</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pandas.DataFrame</span></code></span></dt><dd><p>A regular time series with the <cite>freq</cite> attribute set</p>
 </dd>
@@ -409,8 +436,11 @@ the time stamps of the start/end, possibly ignoring NaNs at the beginning
 if valid=True, does not check for actual time stamp alignment</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-vtools.data.vtime">
+</section>
+<section id="vtools-data-timeseries3-module">
+<h2>vtools.data.timeseries3 module<a class="headerlink" href="#vtools-data-timeseries3-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-vtools.data.vtime">
 <span id="vtools-data-vtime-module"></span><h2>vtools.data.vtime module<a class="headerlink" href="#module-vtools.data.vtime" title="Permalink to this headline">¶</a></h2>
 <p>Basic ops for creating, testing and manipulating times and time intervals.
 This module contains factory and helper functions for working with
@@ -473,11 +503,11 @@ and the latter should be GMT-8. In a sense, this function is included before the
 <dd><p>Create a time interval representing y years</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-vtools.data">
+</section>
+<section id="module-vtools.data">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vtools.data" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>

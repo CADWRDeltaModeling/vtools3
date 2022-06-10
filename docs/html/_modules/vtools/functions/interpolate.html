@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions.interpolate &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>vtools.functions.interpolate &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -51,18 +51,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
@@ -112,10 +112,14 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">vtools.functions._monotonic_spline</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">vtools.functions._monotonic_spline</span> <span class="kn">import</span> <span class="n">_monotonic_spline</span>
 
 
 
+<div class="viewcode-block" id="interpolate_to_index"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.interpolate.interpolate_to_index">[docs]</a><span class="k">def</span> <span class="nf">interpolate_to_index</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">dest</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">dest</span><span class="p">))</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span></div>
+
+    
 <div class="viewcode-block" id="rhistinterp"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.interpolate.rhistinterp">[docs]</a><span class="k">def</span> <span class="nf">rhistinterp</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">lowbound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolbound</span><span class="o">=</span><span class="mf">1.e-3</span><span class="p">,</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Interpolate a regular time series (rts) to a finer rts by rational histospline.</span>
 
@@ -128,8 +132,8 @@
 <span class="sd">    ----------</span>
 
 <span class="sd">    ts : :class:`Pandas.DataFrame`</span>
-<span class="sd">        Series to be interpolated, typically with period index and assuming time stamps at beginning</span>
-<span class="sd">        of the period</span>
+<span class="sd">        Series to be interpolated, with period index and assuming time stamps at beginning</span>
+<span class="sd">        of the period and no missing data</span>
 
 <span class="sd">    dest : string or :class:`DateTimeIndex &lt;pandas:pandas.DateTimeIndex&gt;`</span>
 <span class="sd">        A pandas freq code (e.g. &#39;16min&#39; or &#39;D&#39;) or a DateTimeIndex</span>
@@ -167,18 +171,26 @@
     <span class="n">xnew</span> <span class="o">=</span> <span class="p">(</span><span class="n">dest</span><span class="o">-</span><span class="n">strt</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
     
     
-    <span class="n">cols</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([],</span><span class="n">index</span><span class="o">=</span><span class="n">dest</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">rhist_bound</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">xnew</span><span class="p">,</span><span class="n">y0</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">yn</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">lbound</span><span class="o">=</span><span class="n">lowbound</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span><span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="c1">#import matplotlib.pyplot as plt</span>
-            <span class="c1">#ts[col].plot()</span>
-            <span class="c1">#plt.show()</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;In rhist_bound, could not meet lower bound in column </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
-        <span class="n">result</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">rhist_bound</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">xnew</span><span class="p">,</span><span class="n">y0</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">yn</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">lbound</span><span class="o">=</span><span class="n">lowbound</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span><span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">out</span><span class="p">,</span><span class="n">index</span> <span class="o">=</span> <span class="n">dest</span><span class="p">)</span> 
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([],</span><span class="n">index</span><span class="o">=</span><span class="n">dest</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">rhist_bound</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">xnew</span><span class="p">,</span><span class="n">y0</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">yn</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">lbound</span><span class="o">=</span><span class="n">lowbound</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span><span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;In rhist_bound, error or could not meet lower bound in column </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+   
     <span class="k">return</span> <span class="n">result</span>    </div>
 
 
@@ -314,7 +326,8 @@
     <span class="c1"># calculate cumulative sum of values of y</span>
     <span class="n">xdiff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">to_begin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">])</span>    
     <span class="n">ycum</span><span class="o">=</span> <span class="n">xdiff</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">ycum</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*=</span> <span class="n">y</span>
+    <span class="c1"># todo: inefficient but need a better test that includes univariate and multivariate</span>
+    <span class="n">ycum</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">*=</span><span class="n">y</span>
     <span class="n">ycum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">ycum</span><span class="p">)</span>
     
     <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">d</span> <span class="o">=</span> <span class="n">_ratsp1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">ycum</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">q</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">yn</span><span class="p">)</span>
@@ -464,15 +477,13 @@
     <span class="n">end</span> <span class="o">=</span> <span class="n">ndx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">ndx</span> <span class="o">-</span> <span class="n">strt</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>   
  
-    <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">strt</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">):</span>
         <span class="n">end</span><span class="o">=</span><span class="n">ndx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
         <span class="n">dest</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span> <span class="o">=</span> <span class="n">strt</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">end</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="n">dest</span><span class="p">)</span>
         
     <span class="n">xnew</span> <span class="o">=</span> <span class="p">(</span><span class="n">dest</span><span class="o">-</span><span class="n">strt</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xnew</span><span class="p">))</span>
+    <span class="c1">#print(len(xnew))</span>
     <span class="n">cols</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([],</span><span class="n">index</span><span class="o">=</span><span class="n">dest</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>

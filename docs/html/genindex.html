@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Index &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>Index &#8212; vtools 3.6.3+0.ga3dd26d.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -52,18 +52,18 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
@@ -121,6 +121,7 @@
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -129,10 +130,15 @@
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#Y"><strong>Y</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
  
 </div>
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.climatology.apply_climatology">apply_climatology() (in module vtools.functions.climatology)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.assure_datetime">assure_datetime() (in module vtools.datastore.download_noaa)</a>
 </li>
@@ -144,8 +150,20 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.sample_series.bessel_df">bessel_df() (in module vtools.data.sample_series)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.beta">beta() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.binomial">binomial() (in module vtools.functions.test_filter3)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.prep_header.block_comment">block_comment() (in module vtools.datastore.prep_header)</a>
+
+      <ul>
+        <li><a href="vtools.datastore.html#vtools.datastore.write_ts.block_comment">(in module vtools.datastore.write_ts)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.datastore.html#vtools.datastore.write_ts.block_uncomment">block_uncomment() (in module vtools.datastore.write_ts)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.filter.butterworth">butterworth() (in module vtools.functions.filter)</a>
 </li>
   </ul></td>
@@ -156,16 +174,34 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.calculate_lag">calculate_lag() (in module vtools.functions.lag_cross_correlation)</a>
 </li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_wdl.candidate_id">candidate_id() (in module vtools.datastore.download_wdl)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.cdec1_date_parser">cdec1_date_parser() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.cdec2_date_parser">cdec2_date_parser() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_cdec.cdec_download">cdec_download() (in module vtools.datastore.download_cdec)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.skill_metrics.corr_coefficient">corr_coefficient() (in module vtools.functions.skill_metrics)</a>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.chisquare">chisquare() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.choice">choice() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.write_ts.chunk_bounds">chunk_bounds() (in module vtools.datastore.write_ts)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.climatology.climatology">climatology() (in module vtools.functions.climatology)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.climatology.climatology_quantiles">climatology_quantiles() (in module vtools.functions.climatology)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.station_config.config_file">config_file() (in module vtools.datastore.station_config)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.station_config.configuration">configuration() (in module vtools.datastore.station_config)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.filter.convert_span_to_nstep">convert_span_to_nstep() (in module vtools.functions.filter)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.skill_metrics.corr_coefficient">corr_coefficient() (in module vtools.functions.skill_metrics)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.filter.cosine_lanczos">cosine_lanczos() (in module vtools.functions.filter)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.count_comments">count_comments() (in module vtools.datastore.read_ts)</a>
@@ -176,6 +212,12 @@
         <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.create_arg_parser">(in module vtools.datastore.download_noaa)</a>
 </li>
         <li><a href="vtools.datastore.html#vtools.datastore.download_nwis.create_arg_parser">(in module vtools.datastore.download_nwis)</a>
+</li>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_nwis2.create_arg_parser">(in module vtools.datastore.download_nwis2)</a>
+</li>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_wdl.create_arg_parser">(in module vtools.datastore.download_wdl)</a>
+</li>
+        <li><a href="vtools.datastore.html#vtools.datastore.station_info.create_arg_parser">(in module vtools.datastore.station_info)</a>
 </li>
       </ul></li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.csv_retrieve_ts">csv_retrieve_ts() (in module vtools.datastore.read_ts)</a>
@@ -190,9 +232,17 @@
 </li>
       <li><a href="vtools.data.html#vtools.data.vtime.days">days() (in module vtools.data.vtime)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.despike">despike() (in module vtools.functions.error_detect)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.dirichlet">dirichlet() (in module vtools.functions.test_filter3)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.functions.html#vtools.functions.error_detect.despike">despike() (in module vtools.functions.error_detect)</a>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_ncro.download_ncro_inventory">download_ncro_inventory() (in module vtools.datastore.download_ncro)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_ncro.download_ncro_period_record">download_ncro_period_record() (in module vtools.datastore.download_ncro)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_ncro.download_ncro_por">download_ncro_por() (in module vtools.datastore.download_ncro)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.vtime.dst_to_standard_naive">dst_to_standard_naive() (in module vtools.data.vtime)</a>
 </li>
@@ -207,12 +257,18 @@
       <li><a href="vtools.data.html#vtools.data.timeseries.example">example() (in module vtools.data.timeseries)</a>
 
       <ul>
+        <li><a href="vtools.functions.html#vtools.functions.error_detect.example">(in module vtools.functions.error_detect)</a>
+</li>
         <li><a href="vtools.functions.html#vtools.functions.interpolate.example">(in module vtools.functions.interpolate)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.example2">example2() (in module vtools.functions.error_detect)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.gap.example_gap">example_gap() (in module vtools.data.gap)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.exponential">exponential() (in module vtools.functions.test_filter3)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.sample_series.extra">extra() (in module vtools.data.sample_series)</a>
 </li>
@@ -224,12 +280,16 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.datastore.html#vtools.datastore.download_cimis.fetch_column_names_from_readme">fetch_column_names_from_readme() (in module vtools.datastore.download_cimis)</a>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.f">f() (in module vtools.functions.test_filter3)</a>
 </li>
-      <li><a href="vtools.datastore.html#vtools.datastore.download_cimis.fetch_data">fetch_data() (in module vtools.datastore.download_cimis)</a>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.faulty_output">faulty_output() (in module vtools.datastore.download_noaa)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_cimis.fetch_column_names_from_readme">fetch_column_names_from_readme() (in module vtools.datastore.download_cimis)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_cimis.fetch_data">fetch_data() (in module vtools.datastore.download_cimis)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_cimis.fetch_data_for_year">fetch_data_for_year() (in module vtools.datastore.download_cimis)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_cimis.fetch_station_list">fetch_station_list() (in module vtools.datastore.download_cimis)</a>
@@ -240,7 +300,11 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.gamma">gamma() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.gap.gap_count">gap_count() (in module vtools.data.gap)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.gap_distance">gap_distance() (in module vtools.data.gap)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.gap_size">gap_size() (in module vtools.data.gap)</a>
 
@@ -250,9 +314,17 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.gapdist_test_series">gapdist_test_series() (in module vtools.functions.error_detect)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.filter.generate_godin_fir">generate_godin_fir() (in module vtools.functions.filter)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.geometric">geometric() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.get_state">get_state() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.filter.godin">godin() (in module vtools.functions.filter)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.gumbel">gumbel() (in module vtools.functions.test_filter3)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -263,12 +335,22 @@
       <li><a href="vtools.data.html#vtools.data.vtime.hours">hours() (in module vtools.data.vtime)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.hypergeometric">hypergeometric() (in module vtools.functions.test_filter3)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.icrosscorr">icrosscorr() (in module vtools.functions.lag_cross_correlation)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.interannual.interannual">interannual() (in module vtools.functions.interannual)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.interannual.interannual_sample">interannual_sample() (in module vtools.functions.interannual)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.interpolate.interpolate_to_index">interpolate_to_index() (in module vtools.functions.interpolate)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.sample_series.interval">interval() (in module vtools.data.sample_series)</a>
 </li>
@@ -278,17 +360,29 @@
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_des">is_des() (in module vtools.datastore.read_ts)</a>
 </li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_des_std">is_des_std() (in module vtools.datastore.read_ts)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_dms1">is_dms1() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_ncro_std">is_ncro_std() (in module vtools.datastore.read_ts)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_noaa_file">is_noaa_file() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_usgs1">is_usgs1() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_usgs1_daily">is_usgs1_daily() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_usgs2">is_usgs2() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_usgs_csv1">is_usgs_csv1() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_wdl">is_wdl() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_wdl2">is_wdl2() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.is_wdl3">is_wdl3() (in module vtools.datastore.read_ts)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -304,11 +398,21 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_lag.lag_samples">lag_samples() (in module vtools.functions.test_lag)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.laplace">laplace() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.list_stations">list_stations() (in module vtools.datastore.download_noaa)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.listify">listify() (in module vtools.datastore.read_ts)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.listify">listify() (in module vtools.datastore.read_ts)</a>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.logistic">logistic() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.lognormal">lognormal() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.logseries">logseries() (in module vtools.functions.test_filter3)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.lowpass_cosine_lanczos_filter_coef">lowpass_cosine_lanczos_filter_coef() (in module vtools.functions.filter)</a>
 </li>
@@ -321,15 +425,23 @@
       <li><a href="vtools.datastore.html#vtools.datastore.download_cdec.main">main() (in module vtools.datastore.download_cdec)</a>
 
       <ul>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_ncro.main">(in module vtools.datastore.download_ncro)</a>
+</li>
         <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.main">(in module vtools.datastore.download_noaa)</a>
 </li>
         <li><a href="vtools.datastore.html#vtools.datastore.download_nwis.main">(in module vtools.datastore.download_nwis)</a>
 </li>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_nwis2.main">(in module vtools.datastore.download_nwis2)</a>
+</li>
         <li><a href="vtools.datastore.html#vtools.datastore.download_wdl.main">(in module vtools.datastore.download_wdl)</a>
+</li>
+        <li><a href="vtools.datastore.html#vtools.datastore.station_info.main">(in module vtools.datastore.station_info)</a>
 </li>
         <li><a href="vtools.functions.html#vtools.functions.example.main">(in module vtools.functions.example)</a>
 </li>
         <li><a href="vtools.functions.html#vtools.functions.example2.main">(in module vtools.functions.example2)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.merge.main">(in module vtools.functions.merge)</a>
 </li>
       </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.example.main1">main1() (in module vtools.functions.example)</a>
@@ -338,11 +450,17 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.skill_metrics.mean_error">mean_error() (in module vtools.functions.skill_metrics)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.med_outliers">med_outliers() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.med_outliers2">med_outliers2() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.median_error">median_error() (in module vtools.functions.skill_metrics)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.median_test">median_test() (in module vtools.functions.error_detect)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.median_test_oneside">median_test_oneside() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.mincrosscorr">mincrosscorr() (in module vtools.functions.lag_cross_correlation)</a>
 </li>
@@ -354,23 +472,49 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.mse">mse() (in module vtools.functions.skill_metrics)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.multinomial">multinomial() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.multivariate_normal">multivariate_normal() (in module vtools.functions.test_filter3)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_ncro.ncro_variable_map">ncro_variable_map() (in module vtools.datastore.download_ncro)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.negative_binomial">negative_binomial() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.noaa_data_column">noaa_data_column() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.noaa_download">noaa_download() (in module vtools.datastore.download_noaa)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.noaa_qaqc_selector">noaa_qaqc_selector() (in module vtools.datastore.read_ts)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.error_detect.norepeats">norepeats() (in module vtools.functions.error_detect)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.noncentral_chisquare">noncentral_chisquare() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.noncentral_f">noncentral_f() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.normal">normal() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.nrepeat">nrepeat() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_nwis.nwis_download">nwis_download() (in module vtools.datastore.download_nwis)</a>
+
+      <ul>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_nwis2.nwis_download">(in module vtools.datastore.download_nwis2)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.original_header">original_header() (in module vtools.datastore.read_ts)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -378,18 +522,42 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.pareto">pareto() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_nwis.parse_start_year">parse_start_year() (in module vtools.datastore.download_nwis)</a>
+
+      <ul>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_nwis2.parse_start_year">(in module vtools.datastore.download_nwis2)</a>
+</li>
+      </ul></li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.path_pattern">path_pattern() (in module vtools.datastore.read_ts)</a>
 </li>
-      <li><a href="vtools.datastore.html#vtools.datastore.download_cdec.ping">ping() (in module vtools.datastore.download_cdec)</a>
+      <li><a href="vtools.functions.html#vtools.functions.period_op.period_op">period_op() (in module vtools.functions.period_op)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.permutation">permutation() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.poisson">poisson() (in module vtools.functions.test_filter3)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.functions.html#vtools.functions.filter.process_cutoff">process_cutoff() (in module vtools.functions.filter)</a>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.power">power() (in module vtools.functions.test_filter3)</a>
 </li>
-      <li><a href="vtools.datastore.html#vtools.datastore.download_cdec.process_station_list">process_station_list() (in module vtools.datastore.download_cdec)</a>
+      <li><a href="vtools.datastore.html#vtools.datastore.prep_header.prep_header">prep_header() (in module vtools.datastore.prep_header)</a>
 
       <ul>
-        <li><a href="vtools.datastore.html#vtools.datastore.download_nwis.process_station_list">(in module vtools.datastore.download_nwis)</a>
+        <li><a href="vtools.datastore.html#vtools.datastore.write_ts.prep_header">(in module vtools.datastore.write_ts)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.filter.process_cutoff">process_cutoff() (in module vtools.functions.filter)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.process_station_variable.process_station_list">process_station_list() (in module vtools.datastore.process_station_variable)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_cdec.process_station_list2">process_station_list2() (in module vtools.datastore.download_cdec)</a>
+
+      <ul>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_nwis2.process_station_list2">(in module vtools.datastore.download_nwis2)</a>
+</li>
+        <li><a href="vtools.datastore.html#vtools.datastore.download_wdl.process_station_list2">(in module vtools.datastore.download_wdl)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -398,11 +566,31 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.rand">rand() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.randint">randint() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.randn">randn() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.random">random() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.random_integers">random_integers() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.random_sample">random_sample() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.rayleigh">rayleigh() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_cdec1">read_cdec1() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_cdec2">read_cdec2() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_des">read_des() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_des_std">read_des_std() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_dms1">read_dms1() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_ncro_std">read_ncro_std() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_noaa">read_noaa() (in module vtools.datastore.read_ts)</a>
 </li>
@@ -412,6 +600,10 @@
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_usgs1">read_usgs1() (in module vtools.datastore.read_ts)</a>
 </li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_usgs1_daily">read_usgs1_daily() (in module vtools.datastore.read_ts)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_usgs2">read_usgs2() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_usgs_csv1">read_usgs_csv1() (in module vtools.datastore.read_ts)</a>
@@ -420,13 +612,15 @@
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_wdl">read_wdl() (in module vtools.datastore.read_ts)</a>
 </li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_wdl2">read_wdl2() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_wdl3">read_wdl3() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_yaml_header">read_yaml_header() (in module vtools.datastore.read_ts)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.remove_isolated">remove_isolated() (in module vtools.datastore.read_ts)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.retrieve_csv">retrieve_csv() (in module vtools.datastore.download_noaa)</a>
-</li>
-      <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.retrieve_data">retrieve_data() (in module vtools.datastore.download_noaa)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.retrieve_table">retrieve_table() (in module vtools.datastore.download_noaa)</a>
 </li>
@@ -456,11 +650,41 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.vtime.seconds">seconds() (in module vtools.data.vtime)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.seed">seed() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.set_state">set_state() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.setUp">setUp() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.shuffle">shuffle() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.skill_score">skill_score() (in module vtools.functions.skill_metrics)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.sample_series.small_subtide">small_subtide() (in module vtools.data.sample_series)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.standard_cauchy">standard_cauchy() (in module vtools.functions.test_filter3)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.standard_exponential">standard_exponential() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.standard_gamma">standard_gamma() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.standard_normal">standard_normal() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.standard_t">standard_t() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_ncro.station_dbase">station_dbase() (in module vtools.datastore.download_ncro)</a>
+
+      <ul>
+        <li><a href="vtools.datastore.html#vtools.datastore.station_config.station_dbase">(in module vtools.datastore.station_config)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.datastore.html#vtools.datastore.station_info.station_info">station_info() (in module vtools.datastore.station_info)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.process_station_variable.stationfile_or_stations">stationfile_or_stations() (in module vtools.datastore.process_station_variable)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.steep_then_nan">steep_then_nan() (in module vtools.functions.error_detect)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -468,21 +692,73 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.tearDown">tearDown() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.prep_header.test_block_comment">test_block_comment() (in module vtools.datastore.prep_header)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_butterworth">test_butterworth() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_butterworth_noevenorder">test_butterworth_noevenorder() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_climatology.test_climatology_daily">test_climatology_daily() (in module vtools.functions.test_climatology)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_climatology.test_climatology_round_trip">test_climatology_round_trip() (in module vtools.functions.test_climatology)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_gaussian_filter">test_gaussian_filter() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_godin">test_godin() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_godin_15min">test_godin_15min() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_godin_2d">test_godin_2d() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_lag.test_lag_cross_correlation">test_lag_cross_correlation() (in module vtools.functions.test_lag)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_lanczos_cos_filter_coef">test_lanczos_cos_filter_coef() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_lanczos_cos_filter_len">test_lanczos_cos_filter_len() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_lanczos_cos_filter_len_api">test_lanczos_cos_filter_len_api() (TestFilter method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_lanczos_cos_filter_nan">test_lanczos_cos_filter_nan() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_lanczos_cos_filter_period_freq_api">test_lanczos_cos_filter_period_freq_api() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter.test_lanczos_cos_filter_phase_neutral">test_lanczos_cos_filter_phase_neutral() (TestFilter method)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.prep_header.test_prep_header">test_prep_header() (in module vtools.datastore.prep_header)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.TestFilter">TestFilter (class in vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.error_detect.threshold">threshold() (in module vtools.functions.error_detect)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.timeseries.time_overlap">time_overlap() (in module vtools.data.timeseries)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.tmean_error">tmean_error() (in module vtools.functions.skill_metrics)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.triangular">triangular() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.tridiagonal">tridiagonal() (in module vtools.functions.interpolate)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.filter.ts_gaussian_filter">ts_gaussian_filter() (in module vtools.functions.filter)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.merge.ts_merge">ts_merge() (in module vtools.functions.merge)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.read_multi.ts_multifile_read">ts_multifile_read() (in module vtools.datastore.read_multi)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.merge.ts_splice">ts_splice() (in module vtools.functions.merge)</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.uniform">uniform() (in module vtools.functions.test_filter3)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.usgs_data_columns1">usgs_data_columns1() (in module vtools.datastore.read_ts)</a>
 </li>
@@ -492,6 +768,8 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.vonmises">vonmises() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.vtide_date_parser">vtide_date_parser() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.html#module-vtools">vtools (module)</a>
@@ -512,19 +790,37 @@
 </li>
       <li><a href="vtools.datastore.html#module-vtools.datastore.download_cimis">vtools.datastore.download_cimis (module)</a>
 </li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.download_ncro">vtools.datastore.download_ncro (module)</a>
+</li>
       <li><a href="vtools.datastore.html#module-vtools.datastore.download_noaa">vtools.datastore.download_noaa (module)</a>
 </li>
       <li><a href="vtools.datastore.html#module-vtools.datastore.download_nwis">vtools.datastore.download_nwis (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.download_nwis2">vtools.datastore.download_nwis2 (module)</a>
+</li>
       <li><a href="vtools.datastore.html#module-vtools.datastore.download_wdl">vtools.datastore.download_wdl (module)</a>
 </li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.prep_header">vtools.datastore.prep_header (module)</a>
+</li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.process_station_variable">vtools.datastore.process_station_variable (module)</a>
+</li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.read_multi">vtools.datastore.read_multi (module)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#module-vtools.datastore.read_ts">vtools.datastore.read_ts (module)</a>
 </li>
       <li><a href="vtools.datastore.html#module-vtools.datastore.read_usbr">vtools.datastore.read_usbr (module)</a>
 </li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.station_config">vtools.datastore.station_config (module)</a>
+</li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.station_info">vtools.datastore.station_info (module)</a>
+</li>
+      <li><a href="vtools.datastore.html#module-vtools.datastore.write_ts">vtools.datastore.write_ts (module)</a>
+</li>
       <li><a href="vtools.functions.html#module-vtools.functions">vtools.functions (module)</a>
+</li>
+      <li><a href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology (module)</a>
 </li>
       <li><a href="vtools.functions.html#module-vtools.functions.error_detect">vtools.functions.error_detect (module)</a>
 </li>
@@ -534,13 +830,23 @@
 </li>
       <li><a href="vtools.functions.html#module-vtools.functions.filter">vtools.functions.filter (module)</a>
 </li>
+      <li><a href="vtools.functions.html#module-vtools.functions.interannual">vtools.functions.interannual (module)</a>
+</li>
       <li><a href="vtools.functions.html#module-vtools.functions.interpolate">vtools.functions.interpolate (module)</a>
 </li>
       <li><a href="vtools.functions.html#module-vtools.functions.lag_cross_correlation">vtools.functions.lag_cross_correlation (module)</a>
 </li>
       <li><a href="vtools.functions.html#module-vtools.functions.merge">vtools.functions.merge (module)</a>
 </li>
+      <li><a href="vtools.functions.html#module-vtools.functions.period_op">vtools.functions.period_op (module)</a>
+</li>
       <li><a href="vtools.functions.html#module-vtools.functions.skill_metrics">vtools.functions.skill_metrics (module)</a>
+</li>
+      <li><a href="vtools.functions.html#module-vtools.functions.test_climatology">vtools.functions.test_climatology (module)</a>
+</li>
+      <li><a href="vtools.functions.html#module-vtools.functions.test_filter3">vtools.functions.test_filter3 (module)</a>
+</li>
+      <li><a href="vtools.functions.html#module-vtools.functions.test_lag">vtools.functions.test_lag (module)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -548,15 +854,23 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.wald">wald() (in module vtools.functions.test_filter3)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_wdl.wdl_download">wdl_download() (in module vtools.datastore.download_wdl)</a>
 </li>
-      <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.write_header">write_header() (in module vtools.datastore.download_noaa)</a>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.weibull">weibull() (in module vtools.functions.test_filter3)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.period_op.window_op">window_op() (in module vtools.functions.period_op)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.write_header">write_header() (in module vtools.datastore.download_noaa)</a>
+</li>
       <li><a href="vtools.datastore.html#vtools.datastore.download_noaa.write_table">write_table() (in module vtools.datastore.download_noaa)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.write_ts">write_ts() (in module vtools.datastore.read_ts)</a>
+</li>
+      <li><a href="vtools.datastore.html#vtools.datastore.write_ts.write_ts_csv">write_ts_csv() (in module vtools.datastore.write_ts)</a>
 </li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.write_vtide">write_vtide() (in module vtools.datastore.read_ts)</a>
 </li>
@@ -567,6 +881,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.vtime.years">years() (in module vtools.data.vtime)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.test_filter3.zipf">zipf() (in module vtools.functions.test_filter3)</a>
 </li>
   </ul></td>
 </tr></table>
