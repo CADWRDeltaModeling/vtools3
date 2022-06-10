@@ -44,6 +44,14 @@ vtools.functions.filter module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.frequency\_response module
+-------------------------------------------
+
+.. automodule:: vtools.functions.frequency_response
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.interannual module
 -----------------------------------
 

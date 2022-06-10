@@ -10,10 +10,9 @@ VTools represents a toolset for data acquisition and downloading that the Delta 
    Installation <installation>
    Introduction and concepts <concepts>
    Interpolation <interpolation>
-   Filtering and smoothing <filter>
+   Averaging and Filtering <notebooks/filters.ipynb>
    Downloading scripts (standalone) <download>
-   notebooks/download_examples.ipynb
-   #API Documentation <modules>
+   API Documentation <modules>
    Contributing <contributing>
    Authors <authors>
    History <history>
