@@ -120,7 +120,10 @@ def compare_response2(unit_impulse,cutoff_period):
     ##  default consine_lanczos size
     default_cl_size= int(1.25*2.0/cf)
     for (unit_impulse_response,label) in [(cosine_lanczos(unit_impulse,cutoff_period="40h",filter_len=cl_size1),"C_L,size=%s hours"%cl_size_hours1),\
-                         (cosine_lanczos(unit_impulse,cutoff_period="40h"),"C_L,size=%s default"%default_cl_size)]: 
+                         (cosine_lanczos(unit_impulse,cutoff_period="40h"),"C_L,size=%s default"%default_cl_size),\
+                         (unit_impulse.rolling(96,center=True,min_periods=96).mean(),"boxcar24"),\
+                         (unit_impulse.rolling(99,center=True,min_periods=99).mean(),"boxcar25")]:
+                        #(godin(unit_impulse),"godin")]: 
         b=unit_impulse_response.fillna(0.0)
         w,h =freqz(b.values,worN=worN)
         pw=w[1:]
@@ -136,7 +139,7 @@ def compare_response2(unit_impulse,cutoff_period):
                arrowprops=dict(arrowstyle="->"))
     ax.set_ylabel(r'Magnitude')
     ax.set_xlabel(r'Period(hours)')
-    plt.grid(b=True, which='both', color='0.9', linestyle='-', linewidth=0.5)
+    plt.grid(visible=True, which='both', color='0.9', linestyle='-', linewidth=0.5)
     plt.tight_layout()
     ax.legend(loc="lower right")
     
