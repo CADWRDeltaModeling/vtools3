@@ -126,6 +126,8 @@ def compare_response2(unit_impulse,cutoff_period):
                          (unit_impulse.rolling(99,center=True,min_periods=99).mean(),"boxcar25"),\
                          (godin(unit_impulse),"godin")]: 
         b=unit_impulse_response.fillna(0.0)
+        if((b.iloc[0,0]!=0.0) or (b.iloc[-1,0]!=0.0)):
+            print("warning: unit impulse length for %s is not long enough "%label)
         w,h =freqz(b.values,worN=worN)
         pw=w[1:]
         ## convert frequence to period in hours
