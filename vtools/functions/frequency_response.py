@@ -107,6 +107,20 @@ def unit_impulse_ts(size,interval):
     
 
 def compare_response2(unit_impulse,cutoff_period):
+    """
+    Generate frequency response plot of low pass filter consine_lanczos, boxcar 24h, boxcar 25h, and godin.
+    Parameters
+    ----------
+    unit_impulse : pandas.DataFrame
+        a pandas time series with one at the middle.
+    cutoff_period : int
+        low pass filter cuttoff period in number of hours.
+
+    Returns
+    -------
+    None.
+
+    """
     
     fig = plt.figure(figsize=(6,6),dpi=300)
     ax = fig.add_subplot(1,1,1)
