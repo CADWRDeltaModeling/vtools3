@@ -102,7 +102,8 @@ def unit_impulse_ts(size,interval):
     val=np.zeros(size)
     mid_idx=int(size/2)
     val[mid_idx]=1.0
-    return pd.Series(val,index=idx)
+    #return pd.Series(val,index=idx) # series doesn't works with godin
+    return pd.DataFrame(index=idx,data=val)
     
 
 def compare_response2(unit_impulse,cutoff_period):
@@ -122,8 +123,8 @@ def compare_response2(unit_impulse,cutoff_period):
     for (unit_impulse_response,label) in [(cosine_lanczos(unit_impulse,cutoff_period="40h",filter_len=cl_size1),"C_L,size=%s hours"%cl_size_hours1),\
                          (cosine_lanczos(unit_impulse,cutoff_period="40h"),"C_L,size=%s default"%default_cl_size),\
                          (unit_impulse.rolling(96,center=True,min_periods=96).mean(),"boxcar24"),\
-                         (unit_impulse.rolling(99,center=True,min_periods=99).mean(),"boxcar25")]:
-                        #(godin(unit_impulse),"godin")]: 
+                         (unit_impulse.rolling(99,center=True,min_periods=99).mean(),"boxcar25"),\
+                         (godin(unit_impulse),"godin")]: 
         b=unit_impulse_response.fillna(0.0)
         w,h =freqz(b.values,worN=worN)
         pw=w[1:]
