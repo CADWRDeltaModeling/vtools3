@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.data.gap &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>vtools.data.gap &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -51,18 +51,15 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
@@ -106,8 +103,14 @@
           <div class="body" role="main">
             
   <h1>Source code for vtools.data.gap</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">vtools.datastore.read_ts</span> <span class="kn">import</span> <span class="o">*</span>
 
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 
@@ -135,11 +138,10 @@
 <span class="sd">        pandas :meth:`astype &lt;pandas:pandas.DataFrame.astype&gt;`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>   
-    <span class="n">ts_out</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-        <span class="c1">#test missing values</span>
-        <span class="n">miss</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">column_gap_count</span><span class="p">(</span><span class="n">ser</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
+        <span class="n">tsout</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">miss</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
         <span class="c1">#create consecutive groups that increment each time the &quot;is missing state&quot; (na or not na) changes</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">miss</span><span class="o">.</span><span class="n">ne</span><span class="p">(</span><span class="n">miss</span><span class="o">.</span><span class="n">shift</span><span class="p">())</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
 
@@ -148,12 +150,17 @@
                 
         <span class="c1"># g contains a group index for each member of out, and here</span>
         <span class="c1"># we map g to out which has cumulative time</span>
-        <span class="n">ts_out</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="n">tsout</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="s2">&quot;gap&quot;</span><span class="p">:</span>
-            <span class="n">ts_out</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">miss</span><span class="p">,</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">tsout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">miss</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="s2">&quot;good&quot;</span><span class="p">:</span>
-            <span class="n">ts_out</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">miss</span><span class="p">,</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">return</span> <span class="n">ts_out</span></div>
+            <span class="n">tsout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">miss</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">tsout</span>
+    
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="s2">&quot;columns&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">column_gap_count</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">result_type</span><span class="o">=</span><span class="s1">&#39;broadcast&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">column_gap_count</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span></div>
 
 
 
@@ -227,8 +234,6 @@
         <span class="n">miss</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
         <span class="c1">#create consecutive groups that increment each time the &quot;is missing state&quot; (na or not na) changes</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">miss</span><span class="o">.</span><span class="n">ne</span><span class="p">(</span><span class="n">miss</span><span class="o">.</span><span class="n">shift</span><span class="p">())</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;**&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
         <span class="c1"># identify beginning (min time) of each state</span>
         <span class="n">m1</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
         
@@ -246,7 +251,61 @@
 
 
 
+<div class="viewcode-block" id="gap_distance"><a class="viewcode-back" href="../../../vtools.data.html#vtools.data.gap.gap_distance">[docs]</a><span class="k">def</span> <span class="nf">gap_distance</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">disttype</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="n">to</span> <span class="o">=</span> <span class="s2">&quot;good&quot;</span><span class="p">):</span>
+    
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For each element of ts, count the distance to the nearest good data/or bad data.</span>
+<span class="sd">      </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    </span>
+<span class="sd">    ts : :class:`DataFrame &lt;pandas:pandas.DataFrame&gt;`</span>
+<span class="sd">    </span>
+<span class="sd">    disttype : `str` one of &#39;bad&#39;|&#39;good&#39;</span>
+<span class="sd">    If disttype = &quot;count&quot; this is the number of values. If dist_type=&quot;freq&quot; it is in the units of ts.freq</span>
+<span class="sd">    (so if freq == &quot;15T&quot; it is in minutes&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    to : `str` one of &#39;bad&#39;|&#39;good&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    If to = &quot;good&quot; this is the distance to the nearest good data (which is 0 for good data).</span>
+<span class="sd">    If to = &quot;bad&quot;, this is the distance to the nearest nan (which is 0 for nan). </span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : :class:`DataFrame &lt;pandas:pandas.DataFrame&gt;`</span>
+<span class="sd">        A new regular time series with the same freq as the argument</span>
+<span class="sd">        holding the distance of good/bad data. </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">si</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
+    <span class="n">ts_out</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="k">else</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">ts_out</span><span class="o">.</span><span class="n">columns</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+        <span class="n">id_key</span><span class="o">=</span><span class="kc">True</span>
+        <span class="c1">#test missing values</span>
+        <span class="n">miss</span> <span class="o">=</span> <span class="n">ts_out</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">to</span><span class="o">==</span><span class="s2">&quot;good&quot;</span><span class="p">:</span>
+            <span class="n">ts_out</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="o">~</span><span class="n">miss</span><span class="p">,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">to</span><span class="o">==</span><span class="s2">&quot;bad&quot;</span><span class="p">:</span>
+            <span class="n">ts_out</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">miss</span><span class="p">,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">id_key</span><span class="o">=</span><span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid input to, must be good or bad&quot;</span><span class="p">)</span>
+
+      
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">miss</span><span class="o">==</span><span class="p">(</span><span class="n">id_key</span><span class="p">)):</span>
+            <span class="n">mm</span><span class="o">=</span><span class="n">si</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">miss</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mm</span><span class="p">[</span><span class="n">id_key</span><span class="p">]:</span>
+                <span class="c1">#ts_out.iloc[i][col]=np.min(np.abs(i-mm[not(id_key)]))</span>
+                <span class="n">ts_out</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">si</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="n">mm</span><span class="p">[</span><span class="ow">not</span><span class="p">(</span><span class="n">id_key</span><span class="p">)]))</span>
+                
+                
+    <span class="k">if</span> <span class="n">disttype</span><span class="o">==</span><span class="s2">&quot;count&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ts_out</span>
+    <span class="k">elif</span> <span class="n">disttype</span><span class="o">==</span><span class="s2">&quot;freq&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ts_out</span><span class="o">*</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid input disttype, must be count or freq&quot;</span><span class="p">)</span></div>
 
 
 
@@ -265,8 +324,11 @@
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;vals0&#39;</span><span class="p">:</span><span class="n">vals0</span><span class="p">,</span><span class="s1">&#39;vals1&#39;</span><span class="p">:</span><span class="n">vals1</span><span class="p">,</span><span class="s1">&#39;vals2&#39;</span><span class="p">:</span><span class="n">vals2</span><span class="p">},</span><span class="n">index</span> <span class="o">=</span> <span class="n">ndx</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">gap_count</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    
+    <span class="n">out</span> <span class="o">=</span> <span class="n">gap_distance</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;**&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
-
     
 <span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">example_gap</span><span class="p">()</span>    

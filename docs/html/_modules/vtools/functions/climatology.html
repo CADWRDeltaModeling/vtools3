@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vtools.functions.climatology &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.functions.climatology</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="climatology"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.climatology.climatology">[docs]</a><span class="k">def</span> <span class="nf">climatology</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">freq</span><span class="p">,</span><span class="n">nsmooth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot; Create a climatology on the columns of ts</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        ts: DataFrame or Series</span>
+<span class="sd">        DataStructure to be analyzed. Must have a length of at least 2*freq</span>
+
+<span class="sd">        freq: period [&quot;day&quot;,&quot;month&quot;]</span>
+<span class="sd">        Period over which the climatology is analyzed</span>
+
+<span class="sd">        nsmooth: int</span>
+<span class="sd">           window size (number of values) of pre-smoothing. This may not make sense for series that are not approximately regular.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">           out: DataFrame or Series</span>
+<span class="sd">           Data structure of the same type as ts, with Integer index representing month (Jan=1) or day of year (1:365).</span>
+<span class="sd">           </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">nsmooth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ts_mean</span> <span class="o">=</span> <span class="n">ts</span>
+    <span class="k">else</span><span class="p">:</span>        
+        <span class="n">ts_mean</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">nsmooth</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">min_periods</span><span class="o">=</span><span class="n">nsmooth</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="c1"># moving average</span>
+    
+    <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="n">ts_mean</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">ts_mean</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">day</span><span class="p">]</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">freq</span><span class="o">==</span><span class="s2">&quot;month&quot;</span><span class="p">):</span>
+        <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="n">ts_mean</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">month</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="ow">not</span><span class="p">(</span><span class="n">freq</span><span class="o">==</span><span class="s2">&quot;day&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid frequency, must be &#39;month&#39; or &#39;day&#39;&quot;</span><span class="p">)</span> 
+        
+    
+    <span class="n">mean_data</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">mean_data_size</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">ts_mean</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="p">):</span> 
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">by</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">mo</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="ow">not</span><span class="p">((</span><span class="n">mo</span><span class="o">==</span><span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">dy</span><span class="o">==</span><span class="mi">29</span><span class="p">)):</span>
+                <span class="n">mean_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                <span class="n">mean_data_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="n">mean_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+             <span class="n">mean_data_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+             
+    <span class="n">climatology_data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">mean_data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">indexvals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)</span> <span class="k">if</span> <span class="n">freq</span> <span class="o">==</span> <span class="s2">&quot;month&quot;</span> <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">climatology_data</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">climatology_data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">indexvals</span><span class="p">)</span>
+    <span class="n">climatology_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;month&quot;</span> <span class="k">if</span> <span class="n">freq</span><span class="o">==</span><span class="s2">&quot;month&quot;</span> <span class="k">else</span> <span class="s2">&quot;dayofyear&quot;</span>
+    <span class="k">return</span> <span class="n">climatology_data</span></div>
+            
+
+<div class="viewcode-block" id="climatology_quantiles"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.climatology.climatology_quantiles">[docs]</a><span class="k">def</span> <span class="nf">climatology_quantiles</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">min_day_year</span><span class="p">,</span><span class="n">max_day_year</span><span class="p">,</span>
+                          <span class="n">window_width</span><span class="p">,</span>
+                          <span class="n">quantiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.75</span><span class="p">,</span><span class="mf">0.95</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;&quot; Create windowed quantiles across years on a time series</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        ts: DataFrame or Series</span>
+<span class="sd">        DataStructure to be analyzed. </span>
+<span class="sd">        </span>
+<span class="sd">        min_day_year: int</span>
+<span class="sd">        Minimum Julian day to be considered</span>
+
+<span class="sd">        freq: period [&quot;day&quot;,&quot;month&quot;]</span>
+<span class="sd">        Maximum Julian day to be considered </span>
+<span class="sd">  </span>
+<span class="sd">        window_width: int</span>
+<span class="sd">        Number of days to include, including the central day and days on each side. So for instance window_width=15 would span the central date and 7 days on each side</span>
+
+<span class="sd">        quantiles: array-like</span>
+<span class="sd">           quantiles requested</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">           out: DataFrame or Series</span>
+<span class="sd">           Data structure with Julian day as the index and quantiles as columns.</span>
+<span class="sd">           </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">min_day_year</span> <span class="o">&lt;</span> <span class="n">window_width</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">max_day_year</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">365</span><span class="o">-</span><span class="n">window_width</span><span class="p">)):</span> 
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Time brackets that cross January 1 not implemented yet&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">window_width</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;window_width must be odd&quot;</span><span class="p">)</span>
+    <span class="n">window_half</span> <span class="o">=</span> <span class="p">(</span><span class="n">window_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">day_year</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofyear</span>
+    <span class="n">nquant</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+    <span class="n">clim</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">quantiles</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="n">min_day_year</span><span class="p">,</span><span class="n">max_day_year</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">imid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_day_year</span><span class="p">,</span><span class="n">max_day_year</span><span class="p">):</span>
+        <span class="n">iend</span> <span class="o">=</span> <span class="n">imid</span> <span class="o">+</span> <span class="n">window_half</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The plus one centers the estimate, equal on each side plus one for center</span>
+        <span class="n">istart</span> <span class="o">=</span> <span class="n">imid</span> <span class="o">-</span> <span class="n">window_half</span>
+        <span class="n">usets</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[(</span><span class="n">day_year</span> <span class="o">&gt;</span> <span class="n">istart</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">day_year</span> <span class="o">&lt;</span> <span class="n">iend</span><span class="p">)]</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="n">usets</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>        
+        <span class="n">clim</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">imid</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">clim</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;day_of_year&#39;</span>
+    <span class="k">return</span> <span class="n">clim</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">from</span> <span class="nn">vtools.datastore.read_ts</span> <span class="kn">import</span> <span class="n">read_ts</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/des_twi_405_turbidity_*.csv&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/usgs_lib*turbidity*.rdb&quot;</span>
+    <span class="n">selector</span> <span class="o">=</span> <span class="s2">&quot;16127_63680&quot;</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">read_ts</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">)</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="mi">19</span> <span class="c1"># central day plus 9 on each side</span>
+    <span class="n">clim</span><span class="o">=</span><span class="n">climatology_quantiles</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="mi">182</span><span class="p">,</span><span class="mi">305</span><span class="p">,</span><span class="n">window</span><span class="p">)</span>
+    <span class="n">clim</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="apply_climatology"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.climatology.apply_climatology">[docs]</a><span class="k">def</span> <span class="nf">apply_climatology</span><span class="p">(</span><span class="n">climate</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Apply daily or monthly climatology to a new index </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    climate: DataFrame with integer index representing month of year (Jan=1) or day of year. Must be of size 12 365,366. Day 366 will be inferred from day 365 value</span>
+
+<span class="sd">    index: DatetimeIndex representing locations to be inferred</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DataFrame or Series as given by climate with values extracted from climatology for the month or day   </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">climate</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span><span class="mi">365</span><span class="p">,</span><span class="mi">366</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Length of climatology must be 12,365 or 366&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">climate</span><span class="p">)</span> <span class="o">==</span> <span class="mi">365</span><span class="p">:</span>
+        <span class="n">climate</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">366</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">climate</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">365</span><span class="p">,:]</span>
+     
+    <span class="n">freq</span> <span class="o">=</span> <span class="s2">&quot;month&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">climate</span><span class="p">)</span> <span class="o">==</span> <span class="mi">12</span> <span class="k">else</span> <span class="s2">&quot;day&quot;</span>
+    
+    
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">rowFunc1</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">climate</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">dayofyear</span><span class="p">,:]</span>
+    <span class="k">def</span> <span class="nf">rowFunc2</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">climate</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">month</span><span class="p">,:]</span>
+    
+    <span class="k">if</span> <span class="n">freq</span> <span class="o">==</span> <span class="s2">&quot;day&quot;</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">rowFunc1</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">rowFunc2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+               
+    
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

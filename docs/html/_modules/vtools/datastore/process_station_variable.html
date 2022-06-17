@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vtools.datastore.process_station_variable &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.datastore.process_station_variable</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<div class="viewcode-block" id="stationfile_or_stations"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.process_station_variable.stationfile_or_stations">[docs]</a><span class="k">def</span> <span class="nf">stationfile_or_stations</span><span class="p">(</span><span class="n">stationfile</span><span class="p">,</span><span class="n">stations</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Process stationfile arguments and station arguments </span>
+<span class="sd">        Delivers the one that will be used in process_station_list </span>
+<span class="sd">        including sanity checks both aren&#39;t given&quot;&quot;&quot;</span>
+    
+    <span class="c1"># this works for None or empty lists of strings</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">stations</span> <span class="ow">or</span> <span class="n">stationfile</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either station or stationfile required&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stations</span> <span class="ow">and</span> <span class="n">stationfile</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Station and stationfile inputs are mutually exclusive&quot;</span><span class="p">)</span>    
+    <span class="k">if</span> <span class="n">stationfile</span><span class="p">:</span>  <span class="c1"># stationfile provided, stations not</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stationfile</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only one stationfile may be input&quot;</span><span class="p">)</span>
+        <span class="n">stationfile</span> <span class="o">=</span> <span class="n">stationfile</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">stationfile</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File does not exist: </span><span class="si">{</span><span class="n">stationfile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stationfile</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">stations</span></div>
+
+
+
+<div class="viewcode-block" id="process_station_list"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.process_station_variable.process_station_list">[docs]</a><span class="k">def</span> <span class="nf">process_station_list</span><span class="p">(</span><span class="n">stationlist</span><span class="p">,</span><span class="n">id_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span><span class="n">agency_id_col</span><span class="o">=</span><span class="s2">&quot;agency_id&quot;</span><span class="p">,</span>
+                         <span class="n">param_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">param</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">subloc_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">subloc_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">subloc</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+                         <span class="n">station_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">param_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;cdec&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Process a csv list of station</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    stationlist : str</span>
+<span class="sd">    List of strings of station ids or name of csv file containing the list of request info (id,subloc,param)</span>
+<span class="sd">    </span>
+<span class="sd">    id_col : str</span>
+<span class="sd">    Name of column containing station id. This is expected to be the agency id unless station_lookup is provided</span>
+<span class="sd">    </span>
+<span class="sd">    subloc_col : str</span>
+<span class="sd">    Addional location or program name needed to identify the data stream. An example of location might be upper and lower sensor. An example of program having its own instrument would be the bgc (biogeochemistry) program for USGS in the Bay-Delta. </span>
+<span class="sd">    </span>
+<span class="sd">    param_col : str</span>
+<span class="sd">    Name of column containing the parameter for the query. This is expected to be an agency code/name unless station_lookup is provided. If param is provided, this should be None.</span>
+<span class="sd">    </span>
+<span class="sd">    param : str</span>
+<span class="sd">    Requested parameter. Should be an agency code unless param_lookup is given. This will be used for every station.</span>
+<span class="sd">    </span>
+<span class="sd">    param_lookup: str</span>
+<span class="sd">    Lookup file containing columns &quot;variable_name&quot; and &quot;agency_variable_name&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    station_lookup</span>
+<span class="sd">    Lookup file containing &quot;id&quot; and &quot;agency_id&quot; columns.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    
+    <span class="k">if</span> <span class="n">param_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot use both param_col and param arguments&quot;</span><span class="p">)</span>
+    
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stationlist</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">station_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">stationlist</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stationlist</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+        <span class="n">station_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">stationlist</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">station_df</span> <span class="o">=</span> <span class="n">stationlist</span>
+    
+    <span class="c1"># Rename the parameter column as param to standardize</span>
+    <span class="c1"># If there is no param column, create one and populate all its rows with param.</span>
+    <span class="k">if</span> <span class="n">param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>          <span class="c1"># only one parameter, append as column</span>
+        <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;param&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="n">station_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">param_col</span><span class="p">:</span><span class="s2">&quot;param&quot;</span><span class="p">})</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;subloc&quot;</span> <span class="ow">in</span> <span class="n">station_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span> 
+        <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;subloc&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;default&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;subloc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">subloc</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">station_lookup</span><span class="p">:</span>
+        <span class="n">slookup</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">station_lookup</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="n">id_col</span><span class="p">)</span>
+        <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>       
+        <span class="n">station_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">id_col</span><span class="p">,</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">station_df</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">slookup</span><span class="p">,</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span><span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>       
+        <span class="n">station_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">station_df</span><span class="o">.</span><span class="n">subloc</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">]),</span><span class="s1">&#39;subloc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+        <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;agency_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_df</span><span class="p">[</span><span class="n">agency_id_col</span><span class="p">]</span>
+        <span class="n">no_agency_id</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">agency_id</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">])</span> <span class="o">|</span> <span class="n">station_df</span><span class="o">.</span><span class="n">agency_id</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span>
+        <span class="n">station_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">no_agency_id</span><span class="p">,</span><span class="s1">&#39;agency_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">no_agency_id</span><span class="p">,</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;agency_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+    <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;agency_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;agency_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&#39;</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># Some ids are prepended with &#39; in order to deal with Excel silent coersion.</span>
+
+    <span class="c1"># Replace parameters with lookup values from station_lookup. Failure will leave as-is, in case of mix.</span>
+    <span class="k">if</span> <span class="n">param_lookup</span><span class="p">:</span>
+        <span class="n">vlookup</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">param_lookup</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;var_name&#39;</span><span class="p">,</span><span class="s1">&#39;src_var_id&#39;</span><span class="p">,</span><span class="s1">&#39;src_name&#39;</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">vlookup</span> <span class="o">=</span> <span class="n">vlookup</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">vlookup</span><span class="o">.</span><span class="n">src_name</span> <span class="o">==</span> <span class="n">source</span><span class="p">,:]</span>
+        <span class="n">vlookup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;var_name&quot;</span><span class="p">:</span><span class="s2">&quot;param&quot;</span><span class="p">},</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>       
+        <span class="n">station_df</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">vlookup</span><span class="p">,</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;param&quot;</span><span class="p">,</span><span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+        <span class="n">station_df</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;src_var_id&quot;</span><span class="p">:</span><span class="n">station_df</span><span class="o">.</span><span class="n">param</span><span class="p">})</span>
+
+    <span class="n">station_df</span> <span class="o">=</span> <span class="n">station_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;station_id&quot;</span><span class="p">})</span>
+    <span class="c1"># Any nans in the agency_id indicate a lookup failure. As a backup assume the agency_id was already provided in the id column</span>
+    <span class="n">station_df</span><span class="p">[</span><span class="s2">&quot;agency_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">station_df</span><span class="o">.</span><span class="n">station_id</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">station_df</span>   <span class="c1">#[[&quot;station_id&quot;,&quot;agency_id&quot;,&quot;subloc&quot;,&quot;param&quot;,&quot;src_var_id&quot;]]</span></div>
+            
+
+        
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">slookup</span> <span class="o">=</span> <span class="s2">&quot;d:/delta/BayDeltaSCHISM/data/stations_utm_new.csv&quot;</span>
+    <span class="n">vlookup</span> <span class="o">=</span> <span class="s2">&quot;D:/Delta/data_tools/dms_data_tools/dms_data_tools/variable_mappings.csv&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">process_station_list</span><span class="p">(</span><span class="s2">&quot;slist.csv&quot;</span><span class="p">,</span><span class="n">param</span><span class="o">=</span><span class="s2">&quot;ec&quot;</span><span class="p">,</span><span class="n">station_lookup</span><span class="o">=</span><span class="n">slookup</span><span class="p">,</span><span class="n">agency_id_col</span><span class="o">=</span><span class="s2">&quot;cdec_id&quot;</span><span class="p">,</span>
+                              <span class="n">param_lookup</span><span class="o">=</span><span class="n">vlookup</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+
+
+      
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

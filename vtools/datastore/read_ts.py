@@ -38,11 +38,10 @@ def is_dms1(fname):
     return True
     
 def read_dms1(fpath_pattern,start=None,end=None,selector=None,force_regular=True,nrows=None):
-
     ts = csv_retrieve_ts(fpath_pattern, 
                          start, end, force_regular,
                          format_compatible_fn=is_dms1,
-                         selector="value",
+                         selector=selector,
                          qaqc_selector=None,
                          qaqc_accept=[],
                          parsedates=["datetime"],
@@ -836,8 +835,9 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
 
     if callable(selector):
         selector = selector(matches[0])
-    selector = listify(selector)
-    
+    if selector is not None: selector = listify(selector)
+
+    # Most implementations try hard not to have selector==None, but dms1 uses it    
     if callable(qaqc_selector):
         # todo: this is not efficient for noaa because it keep opening files
         qaqc_selector = [qaqc_selector(x,matches[0]) for x in selector]
@@ -852,17 +852,20 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
         dtypes = {}
 
     # By default, all data selections are float, all flags are str
-    if qaqc_selector is None:        
-        for s in selector:
-            if not s in dtypes:
-                dtypes[s] = float
+    if selector is None:
+        dtypes = float # We don't know what is coming
     else:
-        # This behaves OK if there are extras in selector as with USGS and tz_cd
-        for s,qs in zip(selector,qaqc_selector):
-            if not s in dtypes:
-                dtypes[s] = float
-            if not qs in dtypes:
-                dtypes[qs] = str
+        if qaqc_selector is None:        
+            for s in selector:
+                if not s in dtypes:
+                    dtypes[s] = float
+        else:
+            # This behaves OK if there are extras in selector as with USGS and tz_cd
+            for s,qs in zip(selector,qaqc_selector):
+                if not s in dtypes:
+                    dtypes[s] = float
+                if not qs in dtypes:
+                    dtypes[qs] = str
 
     # The matches are in lexicographical order. Reversing them puts the newer ones
     # higher priority than the older ones for merging
@@ -928,31 +931,33 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
             except:
                 for v,f in zip(selector,qaqc_selector):
                     dset.loc[~dset[f].isin(qaqc_accept), v] = np.nan
-
-        tsm.append(dset[selector])
+        if selector is None:
+            tsm.append(dset)
+        else:
+            tsm.append(dset[selector])
     big_ts = ts_merge(tsm)  # pd.concat(tsm)
     if force_regular: 
         if freq == 'infer': 
             big_ts.index = big_ts.index.round('1min')
             if len(big_ts) < 8: 
-                print(big_ts)
                 f = pd.infer_freq(big_ts.index)
             else:
-                f = pd.infer_freq(big_ts.index[-6:-1])
+                f = pd.infer_freq(big_ts.index[-7:-1])
                 if f is None:
+                    print(big_ts.index[-7:-1])
                     big_ts.index = big_ts.index.round('1min')
                     istrt = 3*len(big_ts)//4
-                    f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
+                    f = pd.infer_freq(big_ts.iloc[istrt:istrt+7].index)
                 if f is None:
                     # Give it one more shot halfway through
                     istrt = len(big_ts)//2
-                    f = pd.infer_freq(big_ts.iloc[istrt:istrt+5,:].index)
+                    f = pd.infer_freq(big_ts.iloc[istrt:istrt+7].index)
                 if f is None:
                     big_ts.index=big_ts.index.round('1min')
-                    f = pd.infer_freq(big_ts.index[0:6])                
+                    f = pd.infer_freq(big_ts.iloc[0:7].index)                
                     #f = minutes(15)
                     if f is None:
-                        raise ValueError("read_ts set to infer frequency, but two attempts failed. Set to string to manually ")
+                        raise ValueError("read_ts set to infer frequency, but multiple attempts failed. Set to string to manually ")
         else: 
             raise NotImplementedError("force_regular with prescribed frequency not implemented yet")
         # Round to neat times, which may cause duplicates

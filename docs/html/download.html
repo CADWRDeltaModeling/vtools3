@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>Download Scripts &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Download Scripts &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -17,8 +18,8 @@
     <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Test for downloading scripts" href="notebooks/download_examples.html" />
-    <link rel="prev" title="Low Pass and Tidal Filtering" href="filter.html" />
+    <link rel="next" title="vtools" href="modules.html" />
+    <link rel="prev" title="Averging, Filtering and Low Passing Data" href="notebooks/filters.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -53,22 +54,19 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Downloading scripts (standalone)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#usgs-nwis-and-web-services">USGS/NWIS and Web Services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#noaa">NOAA</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
@@ -78,8 +76,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="filter.html" title="previous chapter">Low Pass and Tidal Filtering</a></li>
-      <li>Next: <a href="notebooks/download_examples.html" title="next chapter">Test for downloading scripts</a></li>
+      <li>Previous: <a href="notebooks/filters.html" title="previous chapter">Averging, Filtering and Low Passing Data</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">vtools</a></li>
   </ul></li>
 </ul>
 </div>
@@ -111,24 +109,25 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="download-scripts">
+  <section id="download-scripts">
 <h1>Download Scripts<a class="headerlink" href="#download-scripts" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="usgs-nwis-and-web-services">
+<section id="usgs-nwis-and-web-services">
 <h2>USGS/NWIS and Web Services<a class="headerlink" href="#usgs-nwis-and-web-services" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">download_nwis</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">dest</span> <span class="n">DEST_DIR</span><span class="p">]</span> <span class="o">--</span><span class="n">start</span> <span class="n">START</span> <span class="p">[</span><span class="o">--</span><span class="n">end</span> <span class="n">END</span><span class="p">]</span>
-                        <span class="p">[</span><span class="o">--</span><span class="n">param</span> <span class="n">PARAM</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">overwrite</span> <span class="n">OVERWRITE</span><span class="p">]</span>
-                        <span class="n">stationfile</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">param</span> <span class="n">PARAM</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">stations</span> <span class="p">[</span><span class="n">STATIONS</span> <span class="p">[</span><span class="n">STATIONS</span> <span class="o">...</span><span class="p">]]]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">overwrite</span><span class="p">]</span>
+                        <span class="p">[</span><span class="n">stationfile</span> <span class="p">[</span><span class="n">stationfile</span> <span class="o">...</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
+<section id="Positional Arguments">
 <h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>stationfile</kbd></dt>
 <dd><p>CSV-format station file.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="Named Arguments">
+</section>
+<section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>--dest</kbd></dt>
@@ -144,24 +143,36 @@
 <dt><kbd>--param</kbd></dt>
 <dd><p>Parameter(s) to be downloaded, e.g.     00065 = gage height (ft.), 00060 = streamflow (cu ft/sec) and 00010 = water temperature in degrees Celsius.     See “<a class="reference external" href="http://help.waterdata.usgs.gov/codes-and-parameters/parameters">http://help.waterdata.usgs.gov/codes-and-parameters/parameters</a>” for complete listing.     (if not specified, all the available parameters will be downloaded)</p>
 </dd>
+<dt><kbd>--stations</kbd></dt>
+<dd><p>Id or name of one or more stations.</p>
+</dd>
 <dt><kbd>--overwrite</kbd></dt>
 <dd><p>Overwrite existing files (if False they will be skipped, presumably for speed)</p>
 <p>Default: False</p>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="noaa">
+</section>
+</section>
+<section id="noaa">
 <h2>NOAA<a class="headerlink" href="#noaa" title="Permalink to this headline">¶</a></h2>
 <p><p>Script to download NOAA 6 minute water level data</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">download_noaa</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">start</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">end</span> <span class="n">END</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">syear</span> <span class="n">SYEAR</span><span class="p">]</span>
-                        <span class="p">[</span><span class="o">--</span><span class="n">eyear</span> <span class="n">EYEAR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">product</span> <span class="n">PRODUCT</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">eyear</span> <span class="n">EYEAR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">param</span> <span class="n">PARAM</span><span class="p">]</span>
                         <span class="p">[</span><span class="o">--</span><span class="n">stations</span> <span class="p">[</span><span class="n">STATIONS</span> <span class="p">[</span><span class="n">STATIONS</span> <span class="o">...</span><span class="p">]]]</span>
-                        <span class="p">[</span><span class="o">--</span><span class="n">stationfile</span> <span class="n">STATIONFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">list</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">dest</span> <span class="n">DEST_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">list</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">overwrite</span><span class="p">]</span>
+                        <span class="p">[</span><span class="n">stationfile</span> <span class="p">[</span><span class="n">stationfile</span> <span class="o">...</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments">
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>stationfile</kbd></dt>
+<dd><p>CSV-format station file.</p>
+</dd>
+</dl>
+</section>
+<section id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>--start</kbd></dt>
@@ -176,24 +187,28 @@
 <dt><kbd>--eyear</kbd></dt>
 <dd><p>Last year to download, inclusive to end of the year.</p>
 </dd>
-<dt><kbd>--product</kbd></dt>
+<dt><kbd>--param</kbd></dt>
 <dd><p>Product to download: water_level, predictions, water_temperature, conductivity.</p>
-<p>Default: “water_level”</p>
 </dd>
 <dt><kbd>--stations</kbd></dt>
 <dd><p>Id or name of one or more stations.</p>
 </dd>
-<dt><kbd>--stationfile</kbd></dt>
-<dd><p>File listing stations in which the first column is ID number. Must be followed by space</p>
+<dt><kbd>--dest</kbd></dt>
+<dd><p>Destination directory for downloaded files.</p>
+<p>Default: “noaa_download”</p>
 </dd>
 <dt><kbd>--list</kbd></dt>
 <dd><p>List known station ids.</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>--overwrite</kbd></dt>
+<dd><p>Overwrite existing files (if False they will be skipped, presumably for speed</p>
+<p>Default: False</p>
+</dd>
 </dl>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>

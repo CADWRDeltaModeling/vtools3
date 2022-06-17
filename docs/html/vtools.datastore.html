@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>vtools.datastore package &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>vtools.datastore package &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -53,18 +54,15 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">#API Documentation</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="vtools.html">vtools package</a></li>
 </ul>
 </li>
@@ -114,12 +112,15 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="vtools-datastore-package">
+  <section id="vtools-datastore-package">
 <h1>vtools.datastore package<a class="headerlink" href="#vtools-datastore-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
+<section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-vtools.datastore.download_cdec">
+</section>
+<section id="vtools-datastore-cull-module">
+<h2>vtools.datastore.cull module<a class="headerlink" href="#vtools-datastore-cull-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-vtools.datastore.download_cdec">
 <span id="vtools-datastore-download-cdec-module"></span><h2>vtools.datastore.download_cdec module<a class="headerlink" href="#module-vtools.datastore.download_cdec" title="Permalink to this headline">¶</a></h2>
 <p>Download robot for water data library
 The main function in this file is cdec_download.</p>
@@ -127,7 +128,7 @@ The main function in this file is cdec_download.</p>
 python cdec_download.py –help</p>
 <dl class="function">
 <dt id="vtools.datastore.download_cdec.cdec_download">
-<code class="sig-name descname">cdec_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">start</em>, <em class="sig-param">end='Now'</em>, <em class="sig-param">param='ec'</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#cdec_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.cdec_download" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">cdec_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">start</em>, <em class="sig-param">end=None</em>, <em class="sig-param">param=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">freq=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#cdec_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.cdec_download" title="Permalink to this definition">¶</a></dt>
 <dd><p>Download robot for CDEC
 Requires a list of stations, destination directory and start/end date
 These dates are passed on to CDEC … actual return dates can be
@@ -145,19 +146,12 @@ slightly different</p>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="vtools.datastore.download_cdec.ping">
-<code class="sig-name descname">ping</code><span class="sig-paren">(</span><em class="sig-param">host</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#ping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.ping" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if host (str) responds to a ping request.
-Remember that some hosts may not respond to a ping request even if the host name is valid.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="vtools.datastore.download_cdec.process_station_list">
-<code class="sig-name descname">process_station_list</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">cdec_ndx</em>, <em class="sig-param">param_ndx=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#process_station_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.process_station_list" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.datastore.download_cdec.process_station_list2">
+<code class="sig-name descname">process_station_list2</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">cdec_ndx</em>, <em class="sig-param">param_ndx=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cdec.html#process_station_list2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cdec.process_station_list2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-vtools.datastore.download_cimis">
+</section>
+<section id="module-vtools.datastore.download_cimis">
 <span id="vtools-datastore-download-cimis-module"></span><h2>vtools.datastore.download_cimis module<a class="headerlink" href="#module-vtools.datastore.download_cimis" title="Permalink to this headline">¶</a></h2>
 <p>CIMIS provides ETo associated information which is needed for the consumptive use model calculations.</p>
 <dl class="function">
@@ -179,7 +173,7 @@ should be used to retrieve recent data as a dataframe.</p>
 <code class="sig-name descname">fetch_data_for_year</code><span class="sig-paren">(</span><em class="sig-param">sid</em>, <em class="sig-param">year</em>, <em class="sig-param">colnames=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_cimis.html#fetch_data_for_year"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_cimis.fetch_data_for_year" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves daily data from FTP site for a year. Only works for past years. Use fetch_data for
 recent data.</p>
-<p>A readme-ftp-<a href="#id1"><span class="problematic" id="id2">*</span></a>.txt explains the column names. If colnames is None, this readme file is fetched
+<p>A readme-ftp-<a href="#system-message-1"><span class="problematic" id="problematic-1">*</span></a>.txt explains the column names. If colnames is None, this readme file is fetched
 and the column names are extracted from it. One can also call and cache those names by using
 function fetch_column_names_from_readme()</p>
 </dd></dl>
@@ -190,8 +184,41 @@ function fetch_column_names_from_readme()</p>
 <dd><p>Retrieves station list from the FTP site.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-vtools.datastore.download_noaa">
+</section>
+<section id="module-vtools.datastore.download_ncro">
+<span id="vtools-datastore-download-ncro-module"></span><h2>vtools.datastore.download_ncro module<a class="headerlink" href="#module-vtools.datastore.download_ncro" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.download_ncro.download_ncro_inventory">
+<code class="sig-name descname">download_ncro_inventory</code><span class="sig-paren">(</span><em class="sig-param">dest</em>, <em class="sig-param">cache=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_ncro.html#download_ncro_inventory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_ncro.download_ncro_inventory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_ncro.download_ncro_period_record">
+<code class="sig-name descname">download_ncro_period_record</code><span class="sig-paren">(</span><em class="sig-param">inventory, dbase, dest, variables=['flow', 'elev', 'ec', 'temp', 'do', 'ph', 'turbidity', 'cla']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_ncro.html#download_ncro_period_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_ncro.download_ncro_period_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_ncro.download_ncro_por">
+<code class="sig-name descname">download_ncro_por</code><span class="sig-paren">(</span><em class="sig-param">dest</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_ncro.html#download_ncro_por"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_ncro.download_ncro_por" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_ncro.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_ncro.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_ncro.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_ncro.ncro_variable_map">
+<code class="sig-name descname">ncro_variable_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_ncro.html#ncro_variable_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_ncro.ncro_variable_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_ncro.station_dbase">
+<code class="sig-name descname">station_dbase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_ncro.html#station_dbase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_ncro.station_dbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-vtools.datastore.download_noaa">
 <span id="vtools-datastore-download-noaa-module"></span><h2>vtools.datastore.download_noaa module<a class="headerlink" href="#module-vtools.datastore.download_noaa" title="Permalink to this headline">¶</a></h2>
 <p>Script to download NOAA water level data</p>
 <dl class="function">
@@ -204,6 +231,11 @@ function fetch_column_names_from_readme()</p>
 <code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.create_arg_parser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an ArgumentParser</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.faulty_output">
+<code class="sig-name descname">faulty_output</code><span class="sig-paren">(</span><em class="sig-param">text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#faulty_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.faulty_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.download_noaa.list_stations">
@@ -219,34 +251,31 @@ function fetch_column_names_from_readme()</p>
 
 <dl class="function">
 <dt id="vtools.datastore.download_noaa.noaa_download">
-<code class="sig-name descname">noaa_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">product</em>, <em class="sig-param">start</em>, <em class="sig-param">end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#noaa_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.noaa_download" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="vtools.datastore.download_noaa.retrieve_csv">
-<code class="sig-name descname">retrieve_csv</code><span class="sig-paren">(</span><em class="sig-param">url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#retrieve_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.retrieve_csv" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="vtools.datastore.download_noaa.retrieve_data">
-<code class="sig-name descname">retrieve_data</code><span class="sig-paren">(</span><em class="sig-param">station_id</em>, <em class="sig-param">start</em>, <em class="sig-param">end</em>, <em class="sig-param">product=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#retrieve_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.retrieve_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">noaa_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">start</em>, <em class="sig-param">end=None</em>, <em class="sig-param">param=None</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#noaa_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.noaa_download" title="Permalink to this definition">¶</a></dt>
 <dd><p>Download stage data from NOAA tidesandcurrents, and save it to
 NOAA CSV format.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id</strong><span class="classifier">int or str</span></dt><dd><p>station id</p>
 </dd>
+<dt><strong>dest_dir</strong><span class="classifier">str</span></dt><dd></dd>
+<dt><strong>Destination directory for download</strong></dt><dd></dd>
 <dt><strong>start</strong><span class="classifier">datetime.datetime</span></dt><dd><p>first date to download</p>
 </dd>
 <dt><strong>end</strong><span class="classifier">datetime.datetime</span></dt><dd><p>last date to download, inclusive of the date</p>
 </dd>
-<dt><strong>product</strong><span class="classifier">str</span></dt><dd><p>production, it is either water_level or predictions.</p>
+<dt><strong>param</strong><span class="classifier">str</span></dt><dd><p>production, it is either water_level or predictions.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_noaa.retrieve_csv">
+<code class="sig-name descname">retrieve_csv</code><span class="sig-paren">(</span><em class="sig-param">url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#retrieve_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.retrieve_csv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.download_noaa.retrieve_table">
@@ -263,8 +292,8 @@ NOAA CSV format.</p>
 <code class="sig-name descname">write_table</code><span class="sig-paren">(</span><em class="sig-param">table</em>, <em class="sig-param">fname</em>, <em class="sig-param">first</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_noaa.html#write_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_noaa.write_table" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-vtools.datastore.download_nwis">
+</section>
+<section id="module-vtools.datastore.download_nwis">
 <span id="vtools-datastore-download-nwis-module"></span><h2>vtools.datastore.download_nwis module<a class="headerlink" href="#module-vtools.datastore.download_nwis" title="Permalink to this headline">¶</a></h2>
 <p>Download robot for Nationla Water Informaton System (NWIS)
 The main function in this file is nwis_download.</p>
@@ -290,23 +319,74 @@ slightly different</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="vtools.datastore.download_nwis.process_station_list">
-<code class="sig-name descname">process_station_list</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis.html#process_station_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis.process_station_list" title="Permalink to this definition">¶</a></dt>
+<dt id="vtools.datastore.download_nwis.parse_start_year">
+<code class="sig-name descname">parse_start_year</code><span class="sig-paren">(</span><em class="sig-param">txt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis.html#parse_start_year"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis.parse_start_year" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-vtools.datastore.download_wdl">
+</section>
+<section id="module-vtools.datastore.download_nwis2">
+<span id="vtools-datastore-download-nwis2-module"></span><h2>vtools.datastore.download_nwis2 module<a class="headerlink" href="#module-vtools.datastore.download_nwis2" title="Permalink to this headline">¶</a></h2>
+<p>Download robot for Nationla Water Informaton System (NWIS)
+The main function in this file is nwis_download.</p>
+<p>For help/usage:
+python nwis_download.py –help</p>
+<dl class="function">
+<dt id="vtools.datastore.download_nwis2.create_arg_parser">
+<code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis2.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis2.create_arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_nwis2.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis2.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis2.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_nwis2.nwis_download">
+<code class="sig-name descname">nwis_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">start</em>, <em class="sig-param">end=None</em>, <em class="sig-param">param=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">parse_start=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis2.html#nwis_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis2.nwis_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download robot for NWIS
+Requires a list of stations, destination directory and start/end date
+These dates are passed on to CDEC … actual return dates can be
+slightly different</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_nwis2.parse_start_year">
+<code class="sig-name descname">parse_start_year</code><span class="sig-paren">(</span><em class="sig-param">txt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis2.html#parse_start_year"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis2.parse_start_year" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_nwis2.process_station_list2">
+<code class="sig-name descname">process_station_list2</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_nwis2.html#process_station_list2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_nwis2.process_station_list2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-vtools.datastore.download_wdl">
 <span id="vtools-datastore-download-wdl-module"></span><h2>vtools.datastore.download_wdl module<a class="headerlink" href="#module-vtools.datastore.download_wdl" title="Permalink to this headline">¶</a></h2>
 <p>Download robot for water data library
 The main function in this file is wdl_download. Currently takes a list of stations, downloads data.</p>
+<dl class="function">
+<dt id="vtools.datastore.download_wdl.candidate_id">
+<code class="sig-name descname">candidate_id</code><span class="sig-paren">(</span><em class="sig-param">orig</em>, <em class="sig-param">param</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#candidate_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.candidate_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.download_wdl.create_arg_parser">
+<code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.create_arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="function">
 <dt id="vtools.datastore.download_wdl.main">
 <code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.main" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="vtools.datastore.download_wdl.process_station_list2">
+<code class="sig-name descname">process_station_list2</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">id_col=None</em>, <em class="sig-param">param_col=None</em>, <em class="sig-param">param=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#process_station_list2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.process_station_list2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="vtools.datastore.download_wdl.wdl_download">
-<code class="sig-name descname">wdl_download</code><span class="sig-paren">(</span><em class="sig-param">stations</em>, <em class="sig-param">years</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#wdl_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.wdl_download" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">wdl_download</code><span class="sig-paren">(</span><em class="sig-param">station_list</em>, <em class="sig-param">years</em>, <em class="sig-param">dest_dir</em>, <em class="sig-param">syear</em>, <em class="sig-param">eyear</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">expand_id=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/download_wdl.html#wdl_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.download_wdl.wdl_download" title="Permalink to this definition">¶</a></dt>
 <dd><p>Download robot for Water Data Library
 First loads the stations page to see which variables are available 
 from a hardwired list (conductance, gage elevation, flow, etc). 
@@ -314,8 +394,73 @@ Then it downloads all the years from years that are available for
 those variables and adds the data to txt files one per station-variable.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-vtools.datastore.read_ts">
+</section>
+<section id="module-vtools.datastore.prep_header">
+<span id="vtools-datastore-prep-header-module"></span><h2>vtools.datastore.prep_header module<a class="headerlink" href="#module-vtools.datastore.prep_header" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.prep_header.block_comment">
+<code class="sig-name descname">block_comment</code><span class="sig-paren">(</span><em class="sig-param">txt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/prep_header.html#block_comment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.prep_header.block_comment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.prep_header.prep_header">
+<code class="sig-name descname">prep_header</code><span class="sig-paren">(</span><em class="sig-param">metadata</em>, <em class="sig-param">format_version</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/prep_header.html#prep_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.prep_header.prep_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares metadata in the form of a string or yaml data structure for inclusion
+Prep includes making sure that the lines are commented and start with the format: line</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.prep_header.test_block_comment">
+<code class="sig-name descname">test_block_comment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/prep_header.html#test_block_comment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.prep_header.test_block_comment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.prep_header.test_prep_header">
+<code class="sig-name descname">test_prep_header</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/prep_header.html#test_prep_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.prep_header.test_prep_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-vtools.datastore.process_station_variable">
+<span id="vtools-datastore-process-station-variable-module"></span><h2>vtools.datastore.process_station_variable module<a class="headerlink" href="#module-vtools.datastore.process_station_variable" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.process_station_variable.process_station_list">
+<code class="sig-name descname">process_station_list</code><span class="sig-paren">(</span><em class="sig-param">stationlist</em>, <em class="sig-param">id_col='id'</em>, <em class="sig-param">agency_id_col='agency_id'</em>, <em class="sig-param">param_col=None</em>, <em class="sig-param">param=None</em>, <em class="sig-param">subloc_col=None</em>, <em class="sig-param">subloc_lookup=None</em>, <em class="sig-param">subloc='default'</em>, <em class="sig-param">station_lookup=None</em>, <em class="sig-param">param_lookup=None</em>, <em class="sig-param">source='cdec'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/process_station_variable.html#process_station_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.process_station_variable.process_station_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a csv list of station</p>
+<p>Parameters
+stationlist : str
+List of strings of station ids or name of csv file containing the list of request info (id,subloc,param)</p>
+<p>id_col : str
+Name of column containing station id. This is expected to be the agency id unless station_lookup is provided</p>
+<p>subloc_col : str
+Addional location or program name needed to identify the data stream. An example of location might be upper and lower sensor. An example of program having its own instrument would be the bgc (biogeochemistry) program for USGS in the Bay-Delta.</p>
+<p>param_col : str
+Name of column containing the parameter for the query. This is expected to be an agency code/name unless station_lookup is provided. If param is provided, this should be None.</p>
+<p>param : str
+Requested parameter. Should be an agency code unless param_lookup is given. This will be used for every station.</p>
+<p>param_lookup: str
+Lookup file containing columns “variable_name” and “agency_variable_name”</p>
+<p>station_lookup
+Lookup file containing “id” and “agency_id” columns.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.process_station_variable.stationfile_or_stations">
+<code class="sig-name descname">stationfile_or_stations</code><span class="sig-paren">(</span><em class="sig-param">stationfile</em>, <em class="sig-param">stations</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/process_station_variable.html#stationfile_or_stations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.process_station_variable.stationfile_or_stations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process stationfile arguments and station arguments 
+Delivers the one that will be used in process_station_list 
+including sanity checks both aren’t given</p>
+</dd></dl>
+
+</section>
+<section id="module-vtools.datastore.read_multi">
+<span id="vtools-datastore-read-multi-module"></span><h2>vtools.datastore.read_multi module<a class="headerlink" href="#module-vtools.datastore.read_multi" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.read_multi.ts_multifile_read">
+<code class="sig-name descname">ts_multifile_read</code><span class="sig-paren">(</span><em class="sig-param">pats</em>, <em class="sig-param">transforms=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">column_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_multi.html#ts_multifile_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_multi.ts_multifile_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-vtools.datastore.read_ts">
 <span id="vtools-datastore-read-ts-module"></span><h2>vtools.datastore.read_ts module<a class="headerlink" href="#module-vtools.datastore.read_ts" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="vtools.datastore.read_ts.cdec1_date_parser">
@@ -334,7 +479,7 @@ those variables and adds the data to txt files one per station-variable.</p>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.csv_retrieve_ts">
-<code class="sig-name descname">csv_retrieve_ts</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern, start, end, force_regular=True, selector=None, format_compatible_fn=&lt;function &lt;lambda&gt; at 0x000002A15D876558&gt;, qaqc_selector=None, qaqc_accept=['G', 'U'], extra_cols=None, parsedates=None, indexcol=0, skiprows=0, header=0, dateparser=None, comment=None, sep='/s+', extra_na=['m', '---', '', ' '], blank_qaqc_good=True, prefer_age='new', column_names=None, replace_names=None, dtypes=None, freq='infer', **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#csv_retrieve_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.csv_retrieve_ts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">csv_retrieve_ts</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern, start, end, force_regular=True, selector=None, format_compatible_fn=&lt;function &lt;lambda&gt; at 0x000001BBF3F9BAF8&gt;, qaqc_selector=None, qaqc_accept=['G', 'U'], extra_cols=None, parsedates=None, indexcol=0, skiprows=0, header=0, dateparser=None, comment=None, sep='/s+', extra_na=['m', '---', '', ' ', 'Eqp', 'Ssn', 'Dis', 'Mnt', '***', 'ART', 'BRT', 'ZFL'], blank_qaqc_good=True, prefer_age='new', column_names=None, replace_names=None, dtypes=None, freq='infer', nrows=None, **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#csv_retrieve_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.csv_retrieve_ts" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -353,6 +498,21 @@ those variables and adds the data to txt files one per station-variable.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="vtools.datastore.read_ts.is_des_std">
+<code class="sig-name descname">is_des_std</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_des_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_des_std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.is_dms1">
+<code class="sig-name descname">is_dms1</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_dms1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_dms1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.is_ncro_std">
+<code class="sig-name descname">is_ncro_std</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_ncro_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_ncro_std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="vtools.datastore.read_ts.is_noaa_file">
 <code class="sig-name descname">is_noaa_file</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_noaa_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_noaa_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -360,6 +520,11 @@ those variables and adds the data to txt files one per station-variable.</p>
 <dl class="function">
 <dt id="vtools.datastore.read_ts.is_usgs1">
 <code class="sig-name descname">is_usgs1</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_usgs1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_usgs1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.is_usgs1_daily">
+<code class="sig-name descname">is_usgs1_daily</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_usgs1_daily"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_usgs1_daily" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -378,6 +543,16 @@ those variables and adds the data to txt files one per station-variable.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="vtools.datastore.read_ts.is_wdl2">
+<code class="sig-name descname">is_wdl2</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_wdl2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_wdl2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.is_wdl3">
+<code class="sig-name descname">is_wdl3</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#is_wdl3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.is_wdl3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="vtools.datastore.read_ts.listify">
 <code class="sig-name descname">listify</code><span class="sig-paren">(</span><em class="sig-param">inp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#listify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.listify" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -393,39 +568,59 @@ those variables and adds the data to txt files one per station-variable.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="vtools.datastore.read_ts.original_header">
+<code class="sig-name descname">original_header</code><span class="sig-paren">(</span><em class="sig-param">fpath</em>, <em class="sig-param">comment='#'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#original_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.original_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="vtools.datastore.read_ts.path_pattern">
 <code class="sig-name descname">path_pattern</code><span class="sig-paren">(</span><em class="sig-param">path_pattern</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#path_pattern"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.path_pattern" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_cdec1">
-<code class="sig-name descname">read_cdec1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_cdec1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_cdec1" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_cdec1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_cdec1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_cdec1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_cdec2">
-<code class="sig-name descname">read_cdec2</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_cdec2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_cdec2" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_cdec2</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_cdec2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_cdec2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_des">
-<code class="sig-name descname">read_des</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_des"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_des" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_des</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_des"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_des" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_des_std">
+<code class="sig-name descname">read_des_std</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_des_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_des_std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_dms1">
+<code class="sig-name descname">read_dms1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_dms1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_dms1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_ncro_std">
+<code class="sig-name descname">read_ncro_std</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_ncro_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_ncro_std" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_noaa">
-<code class="sig-name descname">read_noaa</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_noaa"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_noaa" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_noaa</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_noaa"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_noaa" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_ts">
-<code class="sig-name descname">read_ts</code><span class="sig-paren">(</span><em class="sig-param">fpath</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">hint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_ts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_ts</code><span class="sig-paren">(</span><em class="sig-param">fpath</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">hint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_ts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a time series from a text file in various formats.
 This function asks readers for different file formats to attempt to read the file.
 The first reader that confirms its appropriateness will be attempted. The order of this
 is not guaranteed..</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>fpath: str</strong></dt><dd><p>a file path to read in</p>
 </dd>
@@ -435,7 +630,7 @@ is not guaranteed..</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>vtools.data.timeseries.TimeSeries</dt><dd><p>the time series from the file</p>
 </dd>
@@ -448,17 +643,22 @@ is not guaranteed..</p>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_usgs1">
-<code class="sig-name descname">read_usgs1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs1" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_usgs1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_usgs1_daily">
+<code class="sig-name descname">read_usgs1_daily</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs1_daily"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs1_daily" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_usgs2">
-<code class="sig-name descname">read_usgs2</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs2" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_usgs2</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_usgs_csv1">
-<code class="sig-name descname">read_usgs_csv1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs_csv1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs_csv1" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_usgs_csv1</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_usgs_csv1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_usgs_csv1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -468,7 +668,22 @@ is not guaranteed..</p>
 
 <dl class="function">
 <dt id="vtools.datastore.read_ts.read_wdl">
-<code class="sig-name descname">read_wdl</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_wdl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_wdl" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_wdl</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_wdl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_wdl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_wdl2">
+<code class="sig-name descname">read_wdl2</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_wdl2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_wdl2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_wdl3">
+<code class="sig-name descname">read_wdl3</code><span class="sig-paren">(</span><em class="sig-param">fpath_pattern</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">selector=None</em>, <em class="sig-param">force_regular=True</em>, <em class="sig-param">nrows=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_wdl3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_wdl3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.read_ts.read_yaml_header">
+<code class="sig-name descname">read_yaml_header</code><span class="sig-paren">(</span><em class="sig-param">fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#read_yaml_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.read_yaml_header" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -496,22 +711,100 @@ is not guaranteed..</p>
 <code class="sig-name descname">write_vtide</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_ts.html#write_vtide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_ts.write_vtide" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-vtools.datastore.read_usbr">
+</section>
+<section id="module-vtools.datastore.read_usbr">
 <span id="vtools-datastore-read-usbr-module"></span><h2>vtools.datastore.read_usbr module<a class="headerlink" href="#module-vtools.datastore.read_usbr" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="vtools.datastore.read_usbr.read_usgs">
 <code class="sig-name descname">read_usgs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/read_usbr.html#read_usgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.read_usbr.read_usgs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="vtools-datastore-test-read-ts-module">
-<h2>vtools.datastore.test_read_ts module<a class="headerlink" href="#vtools-datastore-test-read-ts-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-vtools.datastore">
+</section>
+<section id="module-vtools.datastore.station_config">
+<span id="vtools-datastore-station-config-module"></span><h2>vtools.datastore.station_config module<a class="headerlink" href="#module-vtools.datastore.station_config" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.station_config.config_file">
+<code class="sig-name descname">config_file</code><span class="sig-paren">(</span><em class="sig-param">label</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/station_config.html#config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.station_config.config_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.station_config.configuration">
+<code class="sig-name descname">configuration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/station_config.html#configuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.station_config.configuration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.station_config.station_dbase">
+<code class="sig-name descname">station_dbase</code><span class="sig-paren">(</span><em class="sig-param">dbase_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/station_config.html#station_dbase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.station_config.station_dbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-vtools.datastore.station_info">
+<span id="vtools-datastore-station-info-module"></span><h2>vtools.datastore.station_info module<a class="headerlink" href="#module-vtools.datastore.station_info" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.station_info.create_arg_parser">
+<code class="sig-name descname">create_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/station_info.html#create_arg_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.station_info.create_arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.station_info.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/station_info.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.station_info.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.station_info.station_info">
+<code class="sig-name descname">station_info</code><span class="sig-paren">(</span><em class="sig-param">search</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/station_info.html#station_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.station_info.station_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-vtools.datastore.write_ts">
+<span id="vtools-datastore-write-ts-module"></span><h2>vtools.datastore.write_ts module<a class="headerlink" href="#module-vtools.datastore.write_ts" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vtools.datastore.write_ts.block_comment">
+<code class="sig-name descname">block_comment</code><span class="sig-paren">(</span><em class="sig-param">txt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/write_ts.html#block_comment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.write_ts.block_comment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.write_ts.block_uncomment">
+<code class="sig-name descname">block_uncomment</code><span class="sig-paren">(</span><em class="sig-param">txt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/write_ts.html#block_uncomment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.write_ts.block_uncomment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.write_ts.chunk_bounds">
+<code class="sig-name descname">chunk_bounds</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">block_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/write_ts.html#chunk_bounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.write_ts.chunk_bounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.write_ts.prep_header">
+<code class="sig-name descname">prep_header</code><span class="sig-paren">(</span><em class="sig-param">metadata</em>, <em class="sig-param">format_version</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/write_ts.html#prep_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.write_ts.prep_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares metadata in the form of a string or yaml data structure for inclusion
+Prep includes making sure that the lines are commented and start with the format: line</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.datastore.write_ts.write_ts_csv">
+<code class="sig-name descname">write_ts_csv</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">fpath</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">chunk_years=False</em>, <em class="sig-param">format_version='dwr-dms-1.0'</em>, <em class="sig-param">overwrite_conventions=False</em>, <em class="sig-param">block_size=1</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/datastore/write_ts.html#write_ts_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.datastore.write_ts.write_ts_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write time series to a csv file following a standard format
+Parameters:
+———–
+ts : pandas.DataFrame 
+The time series to write</p>
+<p>fpath : string
+File name to write</p>
+<p>metadata : str or dict
+String that represents valid yaml or a yaml-style data structure of dicts and lists</p>
+<p>chunk_years : bool
+Break data into chunks by year</p>
+<p>dms_data_format : str
+Version number of format. Defaults to current default format</p>
+<p><a href="#system-message-2"><span class="problematic" id="problematic-2">**</span></a>kwargs : other
+Other items that will be passed to write_csv</p>
+</dd></dl>
+
+</section>
+<section id="module-vtools.datastore">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vtools.datastore" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>

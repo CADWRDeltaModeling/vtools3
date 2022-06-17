@@ -3,8 +3,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <title>VTools Documentation &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>VTools Documentation &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -52,18 +53,15 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
@@ -105,30 +103,30 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="vtools-documentation">
+  <section id="vtools-documentation">
 <h1>VTools Documentation<a class="headerlink" href="#vtools-documentation" title="Permalink to this headline">¶</a></h1>
 <p>VTools represents a toolset for data acquisition and downloading that the Delta Modeling Section uses frequently as base functionality for other tools or for analysis. The package contents includes standalone scripts and pandas/numpy-based utilities. Recently we retooled vtools to catch up with Python 3, switched over to Pandas (and soon xarray) data structures, which means that all the data structures for time series are gone and the package is leaner than before. For data provision, we have moved HEC-DSS support completely out of the package, and provided helpers for downloading and reading sources such as NOAA, USGS (NWIS) and (coming soon) NetCDF formats. The functional part includes interpolation, filtering, merging etc that augment Pandas or make its functionality accessible with less work.</p>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#stable-release">Stable release</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#from-sources">From sources</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html#time-series">time-series</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="download.html#usgs-nwis-and-web-services">USGS/NWIS and Web Services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="download.html#noaa">NOAA</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html">Test for downloading scripts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">#API Documentation</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vtools.html">vtools package</a></li>
 </ul>
 </li>
@@ -146,21 +144,21 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">History</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="history.html#id1">3.0.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="history.html#id2">3.0.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="history.html#section-1">3.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="history.html#section-2">3.0.0</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="indices-and-tables">
+</section>
+<section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</div>
+</section>
 
 
           </div>

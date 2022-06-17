@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.datastore.download_nwis &#8212; vtools 3.0.5+1.g8e1bb1d.dirty documentation</title>
+    <title>vtools.datastore.download_nwis &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -51,18 +51,15 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filter.html">Filtering and smoothing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html">Test for downloading scripts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NWIS-Download">Test NWIS Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-WDL-Download">Test WDL Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-NOAA-Download">Test NOAA Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/download_examples.html#Test-CDEC-Download">Test CDEC Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">#API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
@@ -115,7 +112,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">urllib2</span>
 <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -129,6 +126,8 @@
 <span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">vtools.datastore.process_station_variable</span> <span class="kn">import</span> <span class="n">process_station_list</span><span class="p">,</span><span class="n">stationfile_or_stations</span>
+<span class="kn">from</span> <span class="nn">vtools.datastore</span> <span class="kn">import</span> <span class="n">station_config</span>
 
 <div class="viewcode-block" id="create_arg_parser"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_nwis.create_arg_parser">[docs]</a><span class="k">def</span> <span class="nf">create_arg_parser</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
@@ -140,8 +139,10 @@
 <span class="s1">    00065 = gage height (ft.), 00060 = streamflow (cu ft/sec) and 00010 = water temperature in degrees Celsius. </span><span class="se">\</span>
 <span class="s1">    See &quot;http://help.waterdata.usgs.gov/codes-and-parameters/parameters&quot; for complete listing. </span><span class="se">\</span>
 <span class="s1">    (if not specified, all the available parameters will be downloaded)&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;stationfile&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;CSV-format station file.&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--overwrite&#39;</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span>  
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--stations&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Id or name of one or more stations.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;stationfile&#39;</span><span class="p">,</span><span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;CSV-format station file.&#39;</span><span class="p">)</span> 
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--overwrite&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span>  
     <span class="s1">&#39;Overwrite existing files (if False they will be skipped, presumably for speed)&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">parser</span></div>
 
@@ -152,28 +153,43 @@
 <span class="sd">    These dates are passed on to CDEC ... actual return dates can be</span>
 <span class="sd">    slightly different</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">end</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> <span class="n">end</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+        <span class="n">end</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">endfile</span> <span class="o">=</span> <span class="mi">9999</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="n">endfile</span> <span class="o">=</span> <span class="n">end</span><span class="o">.</span><span class="n">year</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span> 
-        
+    
+    
     <span class="n">failures</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">skips</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Downloading station: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">station</span><span class="p">))</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">,</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.rdb&quot;</span><span class="o">%</span> <span class="p">(</span><span class="n">station</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ndx</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">stations</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">agency_id</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">agency_id</span>
+        <span class="n">station</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">station_id</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">src_var_id</span>
+        <span class="n">paramname</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">param</span>
+        <span class="n">subloc</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">subloc</span>
+
+        <span class="n">yearname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">endfile</span><span class="si">}</span><span class="s2">&quot;</span> <span class="c1">#if start.year != end.year else f&quot;{start.year}&quot;</span>
+        <span class="n">outfname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;usgs_</span><span class="si">{</span><span class="n">station</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">paramname</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yearname</span><span class="si">}</span><span class="s2">.rdb&quot;</span>
+        <span class="n">outfname</span> <span class="o">=</span> <span class="n">outfname</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">,</span><span class="n">outfname</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping existing station because file exists: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">station</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Skipping existing station because file exists: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">station</span><span class="p">)</span>
             <span class="n">skips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Attempting to download station: </span><span class="si">{</span><span class="n">station</span><span class="si">}</span><span class="s2"> variable </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>        
         <span class="n">stime</span><span class="o">=</span><span class="n">start</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">etime</span><span class="o">=</span><span class="n">end</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">station_query_base</span> <span class="o">=</span> <span class="s2">&quot;http://nwis.waterservices.usgs.gov/nwis/iv/?sites=</span><span class="si">%s</span><span class="s2">&amp;startDT=</span><span class="si">%s</span><span class="s2">&amp;endDT=</span><span class="si">%s</span><span class="s2">&amp;format=rdb&quot;</span>
+        <span class="n">station_query_base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://nwis.waterservices.usgs.gov/nwis/iv/?sites=</span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2">&amp;startDT=</span><span class="si">{</span><span class="n">stime</span><span class="si">}</span><span class="s2">&amp;endDT=</span><span class="si">{</span><span class="n">etime</span><span class="si">}</span><span class="s2">&amp;format=rdb&quot;</span>
         <span class="k">if</span> <span class="n">param</span><span class="p">:</span>
-            <span class="n">station_query_base</span> <span class="o">=</span> <span class="n">station_query_base</span> <span class="o">+</span> <span class="s1">&#39;&amp;variable=</span><span class="si">%s</span><span class="s1">&#39;</span>
-            <span class="n">station_query</span> <span class="o">=</span> <span class="n">station_query_base</span> <span class="o">%</span> <span class="p">(</span><span class="n">station</span><span class="p">,</span><span class="n">stime</span><span class="p">,</span><span class="n">etime</span><span class="p">,</span><span class="n">param</span><span class="p">)</span>
+            <span class="n">station_query</span> <span class="o">=</span> <span class="n">station_query_base</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;&amp;variable=</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">param</span><span class="p">)</span><span class="si">:</span><span class="s1">05</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="c1">#station_query = station_query_base % (station,stime,etime,param)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">station_query</span> <span class="o">=</span> <span class="n">station_query_base</span> <span class="o">%</span> <span class="p">(</span><span class="n">station</span><span class="p">,</span><span class="n">stime</span><span class="p">,</span><span class="n">etime</span><span class="p">)</span>
+            <span class="n">station_query</span> <span class="o">=</span> <span class="n">station_query_base</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">station_query</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span> 
             <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
@@ -182,8 +198,11 @@
                 <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">station_query</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="n">failures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>    
-            <span class="n">station_html</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">station_html</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">station_html</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="c1"># Catches incomplete read error</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_html</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span> <span class="ow">and</span> <span class="ow">not</span> <span class="s2">&quot;No sites found matching&quot;</span> <span class="ow">in</span> <span class="n">station_html</span><span class="p">:</span>
                 <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -199,14 +218,26 @@
         <span class="k">for</span> <span class="n">failure</span> <span class="ow">in</span> <span class="n">failures</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">failure</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="process_station_list"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_nwis.process_station_list">[docs]</a><span class="k">def</span> <span class="nf">process_station_list</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
-    <span class="n">stations</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-    <span class="n">all_lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_lines</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">stations</span></div>
-                
+<div class="viewcode-block" id="parse_start_year"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_nwis.parse_start_year">[docs]</a><span class="k">def</span> <span class="nf">parse_start_year</span><span class="p">(</span><span class="n">txt</span><span class="p">):</span>
+    <span class="n">date_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">txt</span><span class="p">):</span>
+        <span class="c1"># assume file</span>
+        <span class="k">for</span> <span class="n">iline</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">iline</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">date_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">iline</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">txt</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())):</span>
+            <span class="k">if</span> <span class="n">iline</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>           
+            <span class="n">m</span> <span class="o">=</span> <span class="n">date_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_nwis.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">create_arg_parser</span><span class="p">()</span>
@@ -223,11 +254,12 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">etime</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
     
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">stationfile</span><span class="p">):</span>
-        <span class="n">stations</span> <span class="o">=</span> <span class="n">process_station_list</span><span class="p">(</span><span class="n">stationfile</span><span class="p">)</span>
-        <span class="n">nwis_download</span><span class="p">(</span><span class="n">stations</span><span class="p">,</span><span class="n">destdir</span><span class="p">,</span><span class="n">stime</span><span class="p">,</span><span class="n">etime</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>  
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Station list does not exist&quot;</span><span class="p">)</span></div>
+    <span class="n">stationfile</span><span class="o">=</span><span class="n">stationfile_or_stations</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">stationfile</span><span class="p">,</span><span class="n">args</span><span class="o">.</span><span class="n">stations</span><span class="p">)</span>
+    <span class="n">slookup</span> <span class="o">=</span> <span class="n">station_config</span><span class="o">.</span><span class="n">config_file</span><span class="p">(</span><span class="s2">&quot;station_dbase&quot;</span><span class="p">)</span>
+    <span class="n">vlookup</span> <span class="o">=</span> <span class="n">station_config</span><span class="o">.</span><span class="n">config_file</span><span class="p">(</span><span class="s2">&quot;variable_mappings&quot;</span><span class="p">)</span>            
+    <span class="n">df</span> <span class="o">=</span> <span class="n">process_station_list</span><span class="p">(</span><span class="n">stationfile</span><span class="p">,</span><span class="n">param</span><span class="o">=</span><span class="n">param</span><span class="p">,</span><span class="n">station_lookup</span><span class="o">=</span><span class="n">slookup</span><span class="p">,</span>
+                                  <span class="n">agency_id_col</span><span class="o">=</span><span class="s2">&quot;agency_id&quot;</span><span class="p">,</span><span class="n">param_lookup</span><span class="o">=</span><span class="n">vlookup</span><span class="p">,</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;usgs&#39;</span><span class="p">)</span> 
+    <span class="n">nwis_download</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">destdir</span><span class="p">,</span><span class="n">stime</span><span class="p">,</span><span class="n">etime</span><span class="p">,</span><span class="n">param</span><span class="p">,</span><span class="n">overwrite</span><span class="p">)</span>  </div>
         
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
