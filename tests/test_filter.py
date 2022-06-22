@@ -87,84 +87,6 @@ class TestFilter(unittest.TestCase):
         ts0=rts(data,start,freq)
         self.assertRaises(ValueError,butterworth,ts0,order)
 
-    # def test_boxcar_nan(self):
-        
-        # """ test boxcar performance with a nan in data"""
-                
-        # data=[1.0]*200+[2.0]*100+[1.0]*100
-        # data=np.array(data)
-        # data[201]=np.nan
-        # st=pd.Timestamp(1990,2,3,11, 15)
-        # delta=hours(1)
-        # test_ts=rts(data,st,delta)
-        # nt=boxcar(test_ts,11,12)
-        
-        # ## besides the leading and trailing nan, there will be
-        # ## 24 nan in the middle 
-        # self.assertTrue(np.all(np.isnan(nt.to_numpy()[190:213])))
-        
-        
-    # def test_boxcar(self):
-        
-        # """ test boxcar performance in each steps of a godin filter"""
-                
-        # data=[1.0]*200+[2.0]*100+[1.0]*100
-        # data=np.array(data)
-        # st=pd.Timestamp(1990,2,3,11, 15)
-        # delta=hours(1)
-        # test_ts=rts(data,st,delta)
-        
-        
-        # ## first round of boxcar in 24 (11,12).
-        # nt=boxcar(test_ts,11,12)
-        # self.assertTrue(np.all(np.isnan(nt.to_numpy()[0:11])))
-        # assert_array_almost_equal(nt.to_numpy()[11:188],[1]*177,12)
-        # self.assertTrue(np.all(np.greater(nt.to_numpy()[188:211],1)))
-        # self.assertAlmostEqual(nt.to_numpy()[196],1.375)
-        # assert_array_almost_equal(nt.to_numpy()[211:288],[2]*77,12)
-        # self.assertTrue(np.all(np.greater(nt.to_numpy()[288:311],1)))
-        # self.assertAlmostEqual(nt.to_numpy()[301],1.4166666667)
-        # assert_array_almost_equal(nt.to_numpy()[311:388],[1]*77,12)
-        # self.assertTrue(np.all(np.isnan(nt.to_numpy()[388:400])))
-    
-        # ## second round of boxcar in 24 (12,11)
-        # nt2=boxcar(nt,12,11)
-        # self.assertTrue(np.all(np.isnan(nt2.to_numpy()[0:23])))
-        # assert_array_almost_equal(nt2.to_numpy()[23:177],[1]*154,12)
-        # self.assertTrue(np.all(np.greater(nt2.to_numpy()[177:223],1)))
-        # self.assertAlmostEqual(nt2.to_numpy()[196],1.364583333)
-        # assert_array_almost_equal(nt2.to_numpy()[223:277],[2]*54,12)
-        # self.assertTrue(np.all(np.greater(nt2.to_numpy()[277:323],1)))
-        # self.assertAlmostEqual(nt2.to_numpy()[301],1.439236111)
-        # assert_array_almost_equal(nt2.to_numpy()[323:377],[1]*54,12)
-        # self.assertTrue(np.all(np.isnan(nt2.to_numpy()[377:400])))
-        
-        # ## third round of boxcar.   
-        # nt3=boxcar(nt2,12,12)
-        # self.assertTrue(np.all(np.isnan(nt3.to_numpy()[0:35])))
-        # assert_array_almost_equal(nt3.to_numpy()[35:165],[1]*130,12)
-        # self.assertTrue(np.all(np.greater(nt3.to_numpy()[165:235],1)))
-        # self.assertAlmostEqual(nt3.to_numpy()[196],1.393055556)
-        # assert_array_almost_equal(nt3.to_numpy()[235:265],[2]*30,12)
-        # self.assertTrue(np.all(np.greater(nt3.to_numpy()[265:335],1)))
-        # self.assertAlmostEqual(nt3.to_numpy()[301],1.453819444)
-        # assert_array_almost_equal(nt3.to_numpy()[335:365],[1]*30,12)
-        # self.assertTrue(np.all(np.isnan(nt3.to_numpy()[365:400])))
-
-    # Daily ave not implemented. Very similar to df.resample('D").mean()
-    # def test_daily_average(self):
-        
-        # """ Test godin filter on 2-dimensional data set."""
-        
-        # d1=[1.0]*800+[2.0]*400+[1.0]*400
-        # d2=[1.0]*800+[2.0]*400+[1.0]*400
-        # data=np.array([d1,d2])
-        # data=np.transpose(data)
-        # data[336,:]=np.nan
-        # st=pd.Timestamp(1990,2,3,11, 15)
-        # delta=minutes(15)
-        # test_ts=rts(data,st,delta)
-        # nt3=daily_average(test_ts)
         
     def test_godin(self):
         """ test a godin filter on a series of 1hour interval with four
@@ -217,6 +139,11 @@ class TestFilter(unittest.TestCase):
         self.assertAlmostEqual(npout[1284],1.041451845)
         assert_array_almost_equal(npout[1344:1456],[1.]*112,12)
         self.assertTrue(np.all(np.isnan(npout[1456:1600])))   
+        
+        nt4 = godin(test_ts.squeeze())
+        assert_array_almost_equal(npout[481:656],nt4.to_numpy().ravel()[481:656])        
+
+
                                    
     def test_godin_2d(self):
         

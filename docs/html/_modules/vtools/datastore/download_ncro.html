@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.datastore.download_ncro &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
+    <title>vtools.datastore.download_ncro &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -187,6 +187,7 @@
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span><span class="n">fname</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing: </span><span class="si">{</span><span class="n">agency_id</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sdate</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">edate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">link_url</span><span class="p">)</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">link_url</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
@@ -215,7 +216,8 @@
 
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.download_ncro.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="n">dest</span> <span class="o">=</span> <span class="s2">&quot;//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro&quot;</span>
+    <span class="n">dest</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+    <span class="c1">#dest = &quot;//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro&quot;</span>
     <span class="n">download_ncro_por</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span></div>
     
 

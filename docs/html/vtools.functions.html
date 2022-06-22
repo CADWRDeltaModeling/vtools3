@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>vtools.functions package &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
+    <title>vtools.functions package &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -580,8 +580,21 @@ The comparison includes, squared cosine-Lanczos, Godin and boxcar.</p>
 
 <dl class="function">
 <dt id="vtools.functions.interpolate.interpolate_to_index">
-<code class="sig-name descname">interpolate_to_index</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">dest</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#interpolate_to_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.interpolate_to_index" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">interpolate_to_index</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">dest</em>, <em class="sig-param">method='time'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/interpolate.html#interpolate_to_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.interpolate.interpolate_to_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate DataFrame to a new index based on time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">Pandas.DataFrame</span></dt><dd><p>Source data and times for interpolant</p>
+</dd>
+<dt><strong>dest</strong><span class="classifier">Pandas.Index</span></dt><dd><p>Like index to df.index with destination times or values</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>method, which is passed on to pandas interpolate default is ‘time’</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="vtools.functions.interpolate.monotonic_spline">

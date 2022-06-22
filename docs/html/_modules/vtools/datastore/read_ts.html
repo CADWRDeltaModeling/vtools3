@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.datastore.read_ts &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
+    <title>vtools.datastore.read_ts &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -143,11 +143,10 @@
     <span class="k">return</span> <span class="kc">True</span></div>
     
 <div class="viewcode-block" id="read_dms1"><a class="viewcode-back" href="../../../vtools.datastore.html#vtools.datastore.read_ts.read_dms1">[docs]</a><span class="k">def</span> <span class="nf">read_dms1</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">force_regular</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
     <span class="n">ts</span> <span class="o">=</span> <span class="n">csv_retrieve_ts</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">,</span> 
                          <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">force_regular</span><span class="p">,</span>
                          <span class="n">format_compatible_fn</span><span class="o">=</span><span class="n">is_dms1</span><span class="p">,</span>
-                         <span class="n">selector</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                         <span class="n">selector</span><span class="o">=</span><span class="n">selector</span><span class="p">,</span>
                          <span class="n">qaqc_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">qaqc_accept</span><span class="o">=</span><span class="p">[],</span>
                          <span class="n">parsedates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
@@ -918,14 +917,18 @@
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">os</span>
     <span class="kn">import</span> <span class="nn">fnmatch</span>
+    <span class="kn">import</span> <span class="nn">glob</span>
     <span class="n">fdir</span><span class="p">,</span><span class="n">fpat</span> <span class="o">=</span> <span class="n">path_pattern</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="ow">not</span> <span class="n">fdir</span><span class="p">:</span> <span class="n">fdir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>    
     <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">fdir</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">fpat</span><span class="p">):</span>
-            <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
-
+    <span class="c1">#for root, dirnames, filenames in os.walk(fdir):</span>
+    <span class="c1">#    for filename in fnmatch.filter(filenames, fpat):</span>
+    <span class="c1">#        matches.append(os.path.join(root, filename))</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">fpath_pattern</span><span class="p">)</span>      
+    <span class="n">matches</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+    
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;No matches found for pattern: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpat</span><span class="p">))</span>
 
@@ -941,8 +944,9 @@
 
     <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">selector</span><span class="p">):</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="n">selector</span><span class="p">(</span><span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">selector</span> <span class="o">=</span> <span class="n">listify</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
-    
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">selector</span> <span class="o">=</span> <span class="n">listify</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+
+    <span class="c1"># Most implementations try hard not to have selector==None, but dms1 uses it    </span>
     <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">qaqc_selector</span><span class="p">):</span>
         <span class="c1"># todo: this is not efficient for noaa because it keep opening files</span>
         <span class="n">qaqc_selector</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaqc_selector</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">selector</span><span class="p">]</span>
@@ -957,17 +961,20 @@
         <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="c1"># By default, all data selections are float, all flags are str</span>
-    <span class="k">if</span> <span class="n">qaqc_selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>        
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">selector</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
-                <span class="n">dtypes</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dtypes</span> <span class="o">=</span> <span class="nb">float</span> <span class="c1"># We don&#39;t know what is coming</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># This behaves OK if there are extras in selector as with USGS and tz_cd</span>
-        <span class="k">for</span> <span class="n">s</span><span class="p">,</span><span class="n">qs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span><span class="n">qaqc_selector</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
-                <span class="n">dtypes</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">qs</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
-                <span class="n">dtypes</span><span class="p">[</span><span class="n">qs</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span>
+        <span class="k">if</span> <span class="n">qaqc_selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>        
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">selector</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
+                    <span class="n">dtypes</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This behaves OK if there are extras in selector as with USGS and tz_cd</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span><span class="n">qs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span><span class="n">qaqc_selector</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
+                    <span class="n">dtypes</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">qs</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
+                    <span class="n">dtypes</span><span class="p">[</span><span class="n">qs</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span>
 
     <span class="c1"># The matches are in lexicographical order. Reversing them puts the newer ones</span>
     <span class="c1"># higher priority than the older ones for merging</span>
@@ -1033,31 +1040,33 @@
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span><span class="n">qaqc_selector</span><span class="p">):</span>
                     <span class="n">dset</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">dset</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">qaqc_accept</span><span class="p">),</span> <span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="n">tsm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dset</span><span class="p">[</span><span class="n">selector</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tsm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dset</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tsm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dset</span><span class="p">[</span><span class="n">selector</span><span class="p">])</span>
     <span class="n">big_ts</span> <span class="o">=</span> <span class="n">ts_merge</span><span class="p">(</span><span class="n">tsm</span><span class="p">)</span>  <span class="c1"># pd.concat(tsm)</span>
     <span class="k">if</span> <span class="n">force_regular</span><span class="p">:</span> 
         <span class="k">if</span> <span class="n">freq</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span> 
             <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span> 
-                <span class="nb">print</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span>
                 <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">7</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">7</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                     <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
                     <span class="n">istrt</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span><span class="o">//</span><span class="mi">4</span>
-                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">5</span><span class="p">,:]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># Give it one more shot halfway through</span>
                     <span class="n">istrt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">big_ts</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span>
-                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">5</span><span class="p">,:]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">istrt</span><span class="p">:</span><span class="n">istrt</span><span class="o">+</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1min&#39;</span><span class="p">)</span>
-                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>                
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">big_ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>                
                     <span class="c1">#f = minutes(15)</span>
                     <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;read_ts set to infer frequency, but two attempts failed. Set to string to manually &quot;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;read_ts set to infer frequency, but multiple attempts failed. Set to string to manually &quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span> 
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;force_regular with prescribed frequency not implemented yet&quot;</span><span class="p">)</span>
         <span class="c1"># Round to neat times, which may cause duplicates</span>

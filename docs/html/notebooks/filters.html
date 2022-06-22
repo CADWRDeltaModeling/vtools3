@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Averging, Filtering and Low Passing Data &#8212; vtools 3.6.3+3.ge396566.dirty documentation</title>
+    <title>Averging, Filtering and Low Passing Data &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -330,7 +330,7 @@ div.rendered_html tbody tr:hover {
 <p>VTools provides simple methods for period averaging, filtering and low passing data, particularly tidal data. Basic period averaging and in pareticular daily averaging is easily covered by the regular Pandas API, but can yield unepected results with missing data. Several other tide-compatible filters are available.</p>
 <p>Let’s start by making a single time series with period 12.4 hours. This</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -365,7 +365,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -388,7 +388,7 @@ bad it had to be truncated. The vtools <code class="docutils literal notranslate
 <p>Finally, note that the boxcar and daily average are related. A daily average can be thought of as a boxcar that is resampled once per day and then has its timestamp shifted from the middle of the period to the beginning (or sometimes the end) of the period. We’ve added markers to the VTools daily average to show how daily averages relate to the boxcar. Each green point is a snapshot of the blue boxcar shifted ~12 hours to the left. Sampling the wiggles once per 24 hours causes something called
 “aliasing” where a much lower frequency (14-day signal) is caused by visiting the tidal wiggles once per day in different places in the tide cycle. The main point to keep in mind here is that we’ve added a apparent content … and yes, we’ve seen these spurious signals analyzed as if they were real.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -431,7 +431,7 @@ orange lines,the issues are reduced in the fillowing plot by half.</p>
 <p>Note that both the Godin and cosine-Lanczos filters produce an almost entirely flat response. Both have completely supressed the tide. We’ll worry in a few moments about what good things they may have suppressed as well. As a practical matter, note that the Godin line has fewer missing values at the beginning and end of the series than the cosine-Lanczos. This is because it is a shorter filter that has non-zero weights over a briefer period. Tidal filters often produce nans at the beginning and
 end of the data set</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -450,12 +450,12 @@ end of the data set</p>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x190c4f91c88&gt;
+&lt;matplotlib.legend.Legend at 0x1fb4d212848&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -467,7 +467,7 @@ end of the data set</p>
 </div>
 <p>So at this point we’ve tested the ability of the filters to eliminate the tides, their so-called stopband characteristics. Now what about their ability to capture or “pass” the lower frequencies that are of interest. For this we need to add a subtidal (slow varying) component to the tide. To do this we will use a function called a “chirp” which transitions from a period of 12 days to a period of 4 days – in both cases much longer than a tidal day.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -499,7 +499,7 @@ end of the data set</p>
 <p>Now we attempt to extract the known subtidal signals using some of the tidal averages and filters. Doing so reveals differences that may be significant in some applications. The Godin filter attenuates signals with periods of 3-7 days by as much as 30%. The 25-hour boxcar (which is one of the “ingredients” of the Godin filter) attenuates less, but adds wiggles. The cosine-Lanczos filter is better in both regards, but as we have already mentioned it amplifies gaps and boundary effects. One useful
 step to help minimize this is to interpolate small gaps before applying the filter. The way to do this is shown in the first step in the followoing snippet, but of course it wouldn’t do anything here because there is no missing data.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -543,7 +543,27 @@ step to help minimize this is to interpolate small gaps before applying the filt
 <img alt="../_images/notebooks_filters_10_1.png" src="../_images/notebooks_filters_10_1.png" />
 </div>
 </div>
-<p>VTools also provides a convenient interface to the Butterworth filter. However, Butterworth filters are members of the class of “infinite impulse response” filters. These are kind of hard to use and we are obviously at the point of decreasing return, so these are not covered here in detail. There are good reasons to stick with finite length filters, both in terms of practical usage and locality of the filter.</p>
+<p>The passband, stopband and fidelity of the filters can be compared by looking at their frequency response:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">vtools.functions.frequency_response</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">compare_response</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+
+
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_filters_12_0.png" src="../_images/notebooks_filters_12_0.png" />
+</div>
+</div>
+<p>VTools also provides a simplified interface to the Butterworth filter. However, Butterworth filters are members of the class of “infinite impulse response” filters. These are kind of hard to use for imperfect, gappy data.</p>
 </section>
 
 
