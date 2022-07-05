@@ -812,14 +812,18 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
                     **kwargs):
     import os
     import fnmatch
+    import glob
     fdir,fpat = path_pattern(fpath_pattern)
     
     if not fdir: fdir = "."    
     matches = []
-    for root, dirnames, filenames in os.walk(fdir):
-        for filename in fnmatch.filter(filenames, fpat):
-            matches.append(os.path.join(root, filename))
+    #for root, dirnames, filenames in os.walk(fdir):
+    #    for filename in fnmatch.filter(filenames, fpat):
+    #        matches.append(os.path.join(root, filename))
+    matches = glob.glob(fpath_pattern)      
+    matches.sort()
 
+    
     if len(matches)==0:
         raise IOError("No matches found for pattern: {}".format(fpat))
 
@@ -944,7 +948,6 @@ def csv_retrieve_ts(fpath_pattern,start, end, force_regular=True,selector=None,
             else:
                 f = pd.infer_freq(big_ts.index[-7:-1])
                 if f is None:
-                    print(big_ts.index[-7:-1])
                     big_ts.index = big_ts.index.round('1min')
                     istrt = 3*len(big_ts)//4
                     f = pd.infer_freq(big_ts.iloc[istrt:istrt+7].index)
