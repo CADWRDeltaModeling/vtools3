@@ -81,11 +81,14 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
         station_df["subloc"]="default"
     else:
         station_df["subloc"] = station_df.subloc.astype(str)
+
+
     if station_lookup:
         slookup = pd.read_csv(station_lookup,sep=",",comment="#",header=0,index_col=id_col)
         station_df["station_id"] = station_df[id_col].str.lower()       
-        station_df.set_index(id_col,drop=True,inplace=True)
-
+        station_df.set_index(id_col,drop=True,inplace=True)       
+        if "agency" in slookup.columns and "agency" in station_df.columns:
+            slookup.rename(columns={"agency":"agency_station_db"},inplace=True) 
         station_df = station_df.merge(slookup,on="id",how="left")       
         station_df.loc[station_df.subloc.isin(['nan','']),'subloc'] = "default"
         station_df["agency_id"] = station_df[agency_id_col]
@@ -93,8 +96,9 @@ def process_station_list(stationlist,id_col="id",agency_id_col="agency_id",
         station_df.loc[no_agency_id,'agency_id'] = station_df.loc[no_agency_id,'station_id']
     else: 
         station_df["agency_id"] = station_df["id"]
-    station_df["agency_id"] = station_df["agency_id"].astype(str).str.replace("\'","",regex=True)   # Some ids are prepended with ' in order to deal with Excel silent coersion.
-
+    # Some ids are prepended with ' in order to deal with Excel silent coersion.
+    station_df["agency_id"] = station_df["agency_id"].astype(str).str.replace("\'","",regex=True)   
+    
     # Replace parameters with lookup values from station_lookup. Failure will leave as-is, in case of mix.
     if param_lookup:
         vlookup = pd.read_csv(param_lookup,sep=",",comment="#",header=0,usecols=['var_name','src_var_id','src_name'],dtype=str)
