@@ -98,7 +98,7 @@ def write_ts_csv(ts,fpath,metadata=None,chunk_years=False,format_version="dwr-dm
         ts = ts.copy()
         ts.index.name = "datetime"
     if metadata is None:
-        meta_header = f"# format: {format_version}\ndate_formatted: {pd.Timestamp.now().strftime('%Y-%m-%dT%H:%M:%S')}"
+        meta_header = f"# format: {format_version}\n# date_formatted: {pd.Timestamp.now().strftime('%Y-%m-%dT%H:%M:%S')}\n"
     else:
         meta_header = prep_header(metadata,format_version)
     
