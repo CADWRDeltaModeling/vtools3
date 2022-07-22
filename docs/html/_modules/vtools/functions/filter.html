@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions.filter &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
+    <title>vtools.functions.filter &#8212; vtools 3.6.3+13.g0549812.dirty documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -454,11 +454,14 @@
     <span class="n">nhalffilt</span> <span class="o">=</span> <span class="n">nfilt</span><span class="o">//</span><span class="mi">2</span>
     <span class="c1">#if not (len(ts.columns) == 1):</span>
     <span class="c1">#    raise NotImplementedError(&quot;Godin Filter not functional for multivariate series yet&quot;)</span>
-    <span class="n">dfg</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">godin_ir</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
-    <span class="n">dfg</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span>
-    <span class="n">dfg</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nhalffilt</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-    <span class="n">dfg</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="n">nhalffilt</span><span class="p">:,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="s1">&#39;columns&#39;</span><span class="p">):</span>
+        <span class="n">dfg</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">godin_ir</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="n">dfg</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">dfg</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nhalffilt</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">dfg</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="n">nhalffilt</span><span class="p">:,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c1"># Assume series</span>
+        <span class="n">outdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span><span class="n">v</span><span class="o">=</span><span class="n">godin_ir</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="n">dfg</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">outdata</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dfg</span></div>
 
 <div class="viewcode-block" id="convert_span_to_nstep"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.convert_span_to_nstep">[docs]</a><span class="k">def</span> <span class="nf">convert_span_to_nstep</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span><span class="n">span</span><span class="p">):</span>

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>vtools.functions package &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
+    <title>vtools.functions package &#8212; vtools 3.6.3+13.g0549812.dirty documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -541,6 +541,50 @@ or freq</p>
 <code class="sig-name descname">compare_response</code><span class="sig-paren">(</span><em class="sig-param">cutoff_period</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/frequency_response.html#compare_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.frequency_response.compare_response" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a comparison plot of the frequency response of filters used in tidal work
 The comparison includes, squared cosine-Lanczos, Godin and boxcar.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.frequency_response.compare_response2">
+<code class="sig-name descname">compare_response2</code><span class="sig-paren">(</span><em class="sig-param">unit_impulse</em>, <em class="sig-param">cutoff_period</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/frequency_response.html#compare_response2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.frequency_response.compare_response2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate frequency response plot of low pass filter consine_lanczos, boxcar 24h, boxcar 25h, and godin.
+Parameters
+———-
+unit_impulse : pandas.DataFrame</p>
+<blockquote>
+<div><p>a pandas time series with one at the middle.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>cutoff_period<span class="classifier">int</span></dt><dd><p>low pass filter cuttoff period in number of hours.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>None.</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vtools.functions.frequency_response.unit_impulse_ts">
+<code class="sig-name descname">unit_impulse_ts</code><span class="sig-paren">(</span><em class="sig-param">size</em>, <em class="sig-param">interval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vtools/functions/frequency_response.html#unit_impulse_ts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vtools.functions.frequency_response.unit_impulse_ts" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>size</strong><span class="classifier">int</span></dt><dd><p>Length of impluse time series, odd number.</p>
+</dd>
+<dt><strong>interval</strong><span class="classifier">string</span></dt><dd><p>time series interval, such as “15min”</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.dataframe</dt><dd><p>time sereies value 0.0 except 1 at the middle of time series.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

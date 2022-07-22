@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Averging, Filtering and Low Passing Data &#8212; vtools 3.6.3+5.g9078183.dirty documentation</title>
+    <title>Averging, Filtering and Low Passing Data &#8212; vtools 3.6.3+13.g0549812.dirty documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -424,7 +424,7 @@ wiggles will be about 5cm – detectable but not dominant compared to the 1.5m w
 </section>
 <section id="Filters">
 <h1>Filters<a class="headerlink" href="#Filters" title="Permalink to this headline">¶</a></h1>
-<p>So we have some issues because we are trying to use calendar/solar day tools on a tide that is largely lunar in nature. simplest filter you could use in the above case is a boxcar that is more tuned to the 25.8 lunar period. This would be implemented using an averaging period of 25 values for hourly data or 99 15 minute samples. In the code below I’ve been a bit fussier about the required data, allowing no misisng data and avoiding the “crazy” values at the end. As you can see from the blue and
+<p>So we have some issues because we are trying to use calendar/solar day tools on a tide that is largely lunar in nature. simplest filter you could use in the above case is a boxcar that is more tuned to the 24.8 lunar period. This would be implemented using an averaging period of 25 values for hourly data or 99 15 minute samples. In the code below I’ve been a bit fussier about the required data, allowing no misisng data and avoiding the “crazy” values at the end. As you can see from the blue and
 orange lines,the issues are reduced in the fillowing plot by half.</p>
 <p>We can go a bit further and use a real tidal filter. These filters are like moving averages, but their weights are not equal like a boxcar filter. Below are a couple examples. One is the so-called “Godin” filter which gained popularity because it could be constructed from successive boxcar ingredients – one 25 hour boxcar that is centered on the time point under analysis and two 24 hour boxcars that are staggered to the left and right by one sample so that overall they produce a centered effect.</p>
 <p>The last filter is a cosine_lanczos. More specifically it is a filter with a Lanczos window built around a 40 hour cutoff frequency that is “squared” in the sense that it is applied forward and backward which produces a phase-neutral response and increases the effective order of the filtration.</p>
