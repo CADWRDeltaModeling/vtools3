@@ -21,7 +21,7 @@ build:
     - download_cdec = vtools.datastore.download_cdec:main
     - download_wdl = vtools.datastore.download_wdl:main
     - download_nwis = vtools.datastore.download_nwis:main
-    - station_info = station_info:main
+    - station_info = vtools.datastore.station_info:main
 
 
 requirements:
