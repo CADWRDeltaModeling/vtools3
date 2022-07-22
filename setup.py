@@ -6,7 +6,7 @@ import versioneer
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ["numpy>=1.16,<2", 
+requirements = ["numpy>=1.19,<2", 
                 "pandas>=0.23",
                 "matplotlib",
                 "scikit-learn",
