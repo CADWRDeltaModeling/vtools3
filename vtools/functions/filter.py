@@ -349,11 +349,14 @@ def godin(ts):
     nhalffilt = nfilt//2
     #if not (len(ts.columns) == 1):
     #    raise NotImplementedError("Godin Filter not functional for multivariate series yet")
-    dfg = ts.apply(np.convolve,axis=0,v=godin_ir,mode='same')
-    dfg.columns=ts.columns
-    dfg.iloc[0:nhalffilt,:] = np.nan
-    dfg.iloc[-nhalffilt:,:] = np.nan
-
+    if hasattr(ts,'columns'):
+        dfg = ts.apply(np.convolve,axis=0,v=godin_ir,mode='same')
+        dfg.columns=ts.columns
+        dfg.iloc[0:nhalffilt,:] = np.nan
+        dfg.iloc[-nhalffilt:,:] = np.nan
+    else:   # Assume series
+        outdata = np.convolve(ts.to_numpy(),v=godin_ir,mode='same')
+        dfg = pd.DataFrame(data=outdata,index=ts.index)
     return dfg
 
 def convert_span_to_nstep(freq,span):
