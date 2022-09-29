@@ -43,4 +43,4 @@ def config_file(label):
         if os.path.exists(fname): 
             return fname
         else:
-            raise ValueError(f"Path not found {fname} for label {label}")
+            raise ValueError(f"File not found {fname} for label {label} either on its own or in local directory {localdir}")
