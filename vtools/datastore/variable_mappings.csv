@@ -15,7 +15,7 @@ src_var_name,src_name,src_var_id,var_name,comment
 Specific Conductance,dwr_des,Specific Conductance,ec,Marsh version of variable
 SpC,dwr_des,SpC,ec,EMP version of variable
 Water Temperature,dwr_des,Water Temperature,temp,
-Wind direction,dwr_des,Wind velocity,wind_dir,
+Wind direction,dwr_des,Wind direction,wind_dir,
 Wind velocity,dwr_des,Wind velocity,wind_speed,
 Stage,dwr_des,Stage,elev,
 Turbidity,dwr_des,Turbidity,turbidity,
