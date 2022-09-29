@@ -27,8 +27,8 @@ def ts_merge(series):
     
     # This populates with the values from the highest series 
     # It is a bug for the first series to have a duplicate index
-    series[0] =series[0][~series[0].index.duplicated(keep='first')]
-    dfmerge = series[0].reindex(dfmerge.index)  
+    series0 =series[0][~series[0].index.duplicated(keep='first')]
+    dfmerge = series0.reindex(dfmerge.index)  
 
     # drop duplicate indices
     dfmerge = dfmerge.loc[~dfmerge.index.duplicated(keep='last')]
