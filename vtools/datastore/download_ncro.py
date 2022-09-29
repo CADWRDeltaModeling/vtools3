@@ -23,6 +23,7 @@ def station_dbase():
 def download_ncro_inventory(dest,cache=True):
     url = "https://data.cnra.ca.gov/dataset/fcba3a88-a359-4a71-a58c-6b0ff8fdc53f/resource/cdb5dd35-c344-4969-8ab2-d0e2d6c00821/download/station-trace-download-links.csv"
     idf = pd.read_csv(url,header=0,parse_dates=["first_measurement_date","last_measurement_date"])
+    print(idf)
     idf = idf.loc[(idf.station_type != "Groundwater") & (idf.output_interval == "Raw"),:]
     idf.to_csv(os.path.join(dest,ncro_inventory_file),sep=",",index=False,date_format="%Y-%d%-mT%H:%M")    
     return idf
@@ -37,10 +38,13 @@ mappings = {
     'Water Temperature':'temp',
     'Stage':'elev',
     'Conductivity':'ec',
+    'Electrical Conductivity at 25C':'ec',
+    'Fluorescent Dissolved Organic Matter':'fdom',    
     'Water Temperature ADCP':'temp',
     'Dissolved Oxygen':'do',
     'Chlorophyll':'cla',
-    'Dissolved Oxygen (%)':'do',
+    'Dissolved Oxygen (%)': None,
+    'Dissolved Oxygen Percentage': None,    
     'Velocity':'velocity',
     'pH':'ph',
     'Turbidity':'turbidity',
@@ -48,7 +52,8 @@ mappings = {
     'Salinity':'salinity'
     }
 
-def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev","ec","temp","do","ph","turbidity","cla"]):    
+def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev","ec","temp","do","ph","turbidity","cla"]):
+    global mappings    
     #mappings = ncro_variable_map()
     print(mappings)
     failures = []
@@ -57,8 +62,13 @@ def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev","e
         param = row.parameter
         if param in mappings.keys(): 
             var = mappings[param]
-        else:           
-           raise ValueError(f"No standard mapping for NCRO parameter {param}")
+            if var is None: continue
+        else:
+            print("Problem on row:",row)
+            if type(param) == float:
+                if np.isnan(param): 
+                    continue # todo: this is a fix for an NCRO-end bug. Really the ValueError is best
+            raise ValueError(f"No standard mapping for NCRO parameter {param}.")
 
         #printed.add(param)
         var = mappings[param]
@@ -82,6 +92,7 @@ def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev","e
         fpath = os.path.join(dest,fname)
         print(f"Processing: {agency_id} {param} {sdate} {edate}")
         print(link_url)
+
         try:
             response = urllib.request.urlopen(link_url)
         except:
@@ -105,12 +116,17 @@ def download_ncro_period_record(inventory,dbase,dest,variables=["flow","elev","e
 def download_ncro_por(dest):
     idf = download_ncro_inventory(dest)
     dbase = station_dbase()
-    is_in_dbase = idf.station_number.isin(dbase.agency_id) | idf.station_number.isin(dbase.agency_id+"00") | idf.station_number.isin(dbase.agency_id+"Q")
+    upper_station = idf.station_number.str.upper()
+    is_in_dbase = upper_station.isin(dbase.agency_id) | \
+                  upper_station.isin(dbase.agency_id+"00") | \
+                  upper_station.isin(dbase.agency_id+"Q")
+    
     download_ncro_period_record(idf.loc[is_in_dbase,:],dbase,dest,variables=["flow","elev","ec","temp","do","ph","turbidity","cla"])
 
 
 def main():
-    dest = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro"
+    dest = '.'
+    #dest = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/incoming/dwr_ncro"
     download_ncro_por(dest)
     
 
