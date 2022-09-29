@@ -70,7 +70,6 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
     stations = stations.loc[~subloc_inconsist,:]    
     subloc_inconsist = stations.subloc.isin(["lower","bot","bottom"]) & ~stations.src_var_id.isin([92,102])   # at present, only EC has bottom sensor listed
     stations = stations.loc[~subloc_inconsist,:] 
-    
     for index,row in stations.iterrows():
         station = row.station_id
         try: 
@@ -96,7 +95,7 @@ def cdec_download(stations,dest_dir,start,end=None,param=None,overwrite=False,fr
         stime=start.strftime("%m-%d-%Y")
         etime=end if end == "Now" else end.strftime("%m-%d-%Y")
         found = False
-        
+        print(f"Downloading station {station} parameter {p}")
         zz = [z]
         for code in zz:
             dur_codes = ["E","H","D","M"] if freq is None else [freq]
