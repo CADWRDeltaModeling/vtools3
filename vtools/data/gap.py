@@ -7,7 +7,7 @@ from vtools.datastore.read_ts import *
 import pandas as pd
 import numpy as np
 
-
+__all__ = ['gap_count','gap_size','gap_distance']
 
 def gap_count(ts,state="gap",dtype=int):        
     """ Count missing data
@@ -70,7 +70,7 @@ def gap_size(ts):
     .
     
     Parameters
-    -----------
+    ----------
     
     ts : :class:`DataFrame <pandas:pandas.DataFrame>`
   
@@ -152,9 +152,10 @@ def gap_distance(ts, disttype="count", to = "good"):
     For each element of ts, count the distance to the nearest good data/or bad data.
       
     Parameters
-    -----------
+    ----------
     
     ts : :class:`DataFrame <pandas:pandas.DataFrame>`
+    Time series to analyze
     
     disttype : `str` one of 'bad'|'good'
     If disttype = "count" this is the number of values. If dist_type="freq" it is in the units of ts.freq

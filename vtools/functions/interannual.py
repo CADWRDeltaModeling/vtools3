@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import calendar
 
+all = ['interannual','interannual_ticks_labels']
+
 
 def interannual(ts):
     """ Pivots years of multiyear series to columns and convert index to elapsed time of year
@@ -29,13 +31,33 @@ def interannual(ts):
     out = out.pivot(index="secondofyear",columns="year",values="value")
     return out
 
+
+
+# These labels and ticks are leap-unaware
+def interannual_ticks_labels(freq):
+    """ Convenient ticks and labels for interannual
+
+    Parameters
+    ----------
+    freq : Frequency string for desired spacing. Must be "Q","QS","M","MS" for quarterly or monthly
+    
+    Returns
+    -------
+    ticks_labels : tuple of tick locations and labels
+
+
+    """
+    
+    if freq == "Q" or freq=="QS":
+        quarterly_ticks = [(pd.Timestamp(2001,x,1).dayofyear-1)*86400 for x in [1,4,7,10]]
+        quarterly_labels = ["Jan","Apr","Jul","Oct"]
+        return (quarterly_ticks,quarterly_labels)
+    elif freq == "M" or freq=="MS":
+        monthly_ticks = [(pd.Timestamp(2001,x,1).dayofyear-1)*86400 for x in range(1,13)]
+        monthly_labels = [calendar.month_abbr[i] for i in range(1,13)]
+        return (monthly_ticks,monthly_labels)
+
 def interannual_sample():
     dr = pd.date_range(start = "2008-02-06",end="2018-11-02",freq="15T")
     df = pd.DataFrame(index = dr, data = np.arange(0,len(dr))/1000.)
-    return df
-
-# These labels and ticks are leap-unaware
-quarterly_ticks = [(pd.Timestamp(2001,x,1).dayofyear-1)*86400 for x in [1,4,7,10]]
-quarterly_labels = ["Jan","Apr","Jul","Oct"]
-monthly_ticks = [(pd.Timestamp(2001,x,1).dayofyear-1)*86400 for x in range(1,13)]
-monthly_labels = [calendar.month_abbr[i] for i in range(1,13)]
+    return df        

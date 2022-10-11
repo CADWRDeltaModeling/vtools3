@@ -3,6 +3,9 @@
 
 import pandas as pd
 
+__all__ = ["ts_merge","ts_splice"]
+
+
 def ts_merge(series):
     """ merge a number of timeseries together and return a new ts.
     Similar to concatenate, but provides more control over order in cases of overlap

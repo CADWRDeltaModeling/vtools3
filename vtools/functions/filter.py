@@ -11,8 +11,8 @@ from scipy.signal import lfilter,firwin,filtfilt
 from scipy.signal.filter_design import butter
 from scipy.ndimage import gaussian_filter1d
 
-#__all__=["boxcar","butterworth","daily_average","godin","cosine_lanczos",\
-#         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
+__all__=["cosine_lanczos","butterworth","godin","cosine_lanczos",\
+         "lowpass_cosine_lanczos_filter_coef","ts_gaussian_filter"]
 
 
 
@@ -43,7 +43,7 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
       
         
     Parameters
-    -----------
+    ----------
     
     ts : :class:`DataFrame <pandas:pandas.DataFrame>`
     
@@ -58,9 +58,9 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
         Hence the cutoff frequency argument used here would be
         0.0278/0.5 = 0.056.
                       
-    cutoff_period : string  or  :ref:`time_interval<time_intervals>`
+    cutoff_period : string  or  _time_interval
          Period of cutting off frequency. If input as a string, it must 
-         be  convertible to :ref:`Time interval<time_intervals>`.
+         be  convertible to a _time_interval (Pandas freq).
          cutoff_frequency and cutoff_period can't be specified at the same time.
          
      padtype : str or None, optional
@@ -86,8 +86,8 @@ def cosine_lanczos(ts,cutoff_period=None,cutoff_frequency=None,filter_len=None,
         is used the beigning and ending 4*m resulting data will be set to nan
         to remove edge effect.
         
-    Raise
-    --------
+    Raises
+    ------
     ValueError
         If input timeseries is not regular, 
         or, cutoff_period and cutoff_frequency are given at the same time,
@@ -172,7 +172,7 @@ def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
       
         
     Parameters
-    -----------
+    ----------
     
     
     ts : :class:`DataFrame <pandas:pandas.DataFrame>`
@@ -191,7 +191,7 @@ def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
         Hence the cutoff frequency argument used here would be
         0.0278/0.5 = 0.056.
                       
-    cutoff_period : string  or  :ref:`time_interval<time_intervals>`
+    cutoff_period : string  or  _time_interval
          Period corresponding to cutoff frequency. If input as a string, it must 
          be  convertible to a regular interval using the same rules as a pandas frequency..
          cutoff_frequency and cutoff_period can't be specified at the same time.
@@ -201,8 +201,8 @@ def butterworth(ts,cutoff_period=None,cutoff_frequency=None,order=4):
     result : 
         A new regular time series with the same interval as ts.
         
-    Raise
-    --------
+    Raises
+    ------
     ValueError
         If input order is not even, or input timeseries is not regular, 
         or neither cutoff_period and cutoff_frequency is given while input
@@ -260,7 +260,7 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
     """return the convolution coefficients for low pass lanczos filter.
       
     Parameters
-    -----------
+    ----------
     
     cf: float
       Cutoff frequency expressed as a ratio of a Nyquist frequency.
@@ -269,8 +269,8 @@ def lowpass_cosine_lanczos_filter_coef(cf,m,normalize=True):
       Size of filtering window size.
         
     Returns
-    --------
-    Results: list
+    -------
+    results: list
            Coefficients of filtering window.
     
     """
@@ -322,7 +322,7 @@ def godin(ts):
     
     
     Parameters
-    -----------
+    ----------
     
     ts : :class:`DataFrame <pandas:pandas.DataFrame>`
   
@@ -331,8 +331,8 @@ def godin(ts):
     result : :class:`DataFrame <pandas:pandas.DataFrame>`
         A new regular time series with the same interval of ts. 
         
-    Raise
-    --------
+    Raises
+    ------
     NotImplementedError
         If input time series is not univariate
         
@@ -378,7 +378,7 @@ def ts_gaussian_filter(ts,sigma,order=0,mode='reflect', cval=0.0, truncate=4.0):
     This function has been kept around awaiting irreg as an aspiration but yet to be implemented.
     
     Parameters
-    -----------
+    ----------
     
     ts : :class:`DataFrame <pandas:pandas.DataFrame>`
         The series to be smoothed

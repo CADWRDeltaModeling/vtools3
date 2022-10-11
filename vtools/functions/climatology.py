@@ -4,6 +4,9 @@
 import numpy as np
 import pandas as pd
 
+__all__ = ['climatology','apply_climatology','climatology_quantiles']
+
+
 def climatology(ts,freq,nsmooth=None):
     """" Create a climatology on the columns of ts
 

@@ -7,7 +7,7 @@ from vtools.data.vtime import *
 import datetime as _datetime
 import numpy as np
 
-all = ["gap_size","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
+__all__ = ["time_overlap","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
 
 
 def time_overlap(ts0,ts1,valid=True):
@@ -37,9 +37,8 @@ def rts(data,start,freq,columns=None,props=None):
         start : :class:`Pandas.Timestamp`
             Timestamp or a string or type that can be coerced to one.
         
-        interval : :ref:`time_interval<time_intervals>`
-            Can also be a string representing an interval that is
-            understood by :func:`vools.vtime.parse_interval`. 
+        interval : _time_interval
+            Can also be a string representing a pandas `freq`. 
 
         Returns
         -------
@@ -69,7 +68,7 @@ def rts_formula(start,end,freq,valfunc=np.nan):
         end : :class:`Pandas.Timestamp`
             Ending Timestamp or a string or type that can be coerced to one.
         
-        freq : :ref:`time_interval<time_intervals>`
+        freq : _time_interval
             Can also be a string representing an interval. 
             
         valfunc : dict
@@ -188,7 +187,7 @@ def datetime_elapsed(index_or_ts,reftime=None,dtype="d",inplace=False):
     """Convert a time series or DatetimeIndex to an integer/double series of elapsed time
 
     Parameters
-    -----------
+    ----------
     
     index_or_ts : :class:`DatatimeIndex <pandas:pandas.DatetimeIndex> or :class:`DataFrame <pandas:pandas.DataFrame>`
         Time series or index to be transformed
@@ -238,7 +237,7 @@ def elapsed_datetime(index_or_ts,reftime=None,time_unit='s',inplace=False):
     """Convert a time series or numerical Index to a Datetime index or series
 
     Parameters
-    -----------
+    ----------
     
     index_or_ts : :class:`DatatimeIndex <pandas:pandas.Int64Index> or float or TimedeltaIndex :class:`DataFrame <pandas:pandas.DataFrame>`
         Time series or index to be transformed with index in elapsed seconds from `reftime`

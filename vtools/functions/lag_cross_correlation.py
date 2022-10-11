@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+__all__=['calculate_lag']
 
 def icrosscorr(lag,ts0, ts1):
     """ Lag-N cross correlation. 

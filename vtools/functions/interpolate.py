@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from vtools.functions._monotonic_spline import _monotonic_spline
 
-
+__all__ = ["rhistinterp","monotonic_spline"]
 
 def interpolate_to_index(df,dest):
     return df.reindex(df.index.union(dest)).interpolate(method='time').reindex(dest)
