@@ -23,6 +23,15 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+def autodoc_skip_member_handler(app, what, name, obj, skip, options):
+    # Basic approach; you might want a regex instead
+    return ("test_" in name)
+
+# Automatically called by sphinx at startup
+def setup(app):
+    # Connect the autodoc-skip-member event from apidoc to the callback
+    app.connect('autodoc-skip-member', autodoc_skip_member_handler)
+
 
 # -- General configuration ---------------------------------------------
 
@@ -79,7 +88,7 @@ release = vtools.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

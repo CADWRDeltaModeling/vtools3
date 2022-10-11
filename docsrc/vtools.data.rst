@@ -28,14 +28,6 @@ vtools.data.timeseries module
    :undoc-members:
    :show-inheritance:
 
-vtools.data.timeseries3 module
-------------------------------
-
-.. automodule:: vtools.data.timeseries3
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 vtools.data.vtime module
 ------------------------
 
@@ -43,7 +35,6 @@ vtools.data.vtime module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -1,20 +1,20 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions.error_detect &#8212; vtools 3.6.3+13.g0549812.dirty documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.error_detect &#8212; vtools 3.6.6+1.g092ced5.dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -51,14 +51,13 @@
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
@@ -78,12 +77,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -172,11 +171,11 @@
 <span class="sd">            Output:         time series object with outliers replaced by NaNs</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="k">def</span> <span class="nf">_nrepeat</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
+<div class="viewcode-block" id="_nrepeat"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect._nrepeat">[docs]</a><span class="k">def</span> <span class="nf">_nrepeat</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Series-only version&quot;&quot;&quot;</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">ne</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">shift</span><span class="p">())</span>
     <span class="n">counts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">cumsum</span><span class="p">())</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">counts</span>
+    <span class="k">return</span> <span class="n">counts</span></div>
 
 
 <div class="viewcode-block" id="nrepeat"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect.nrepeat">[docs]</a><span class="k">def</span> <span class="nf">nrepeat</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
@@ -208,7 +207,7 @@
 <div class="viewcode-block" id="median_test"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect.median_test">[docs]</a><span class="k">def</span> <span class="nf">median_test</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">level</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">filt_len</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">(</span><span class="mf">0.005</span><span class="p">,</span><span class="mf">0.095</span><span class="p">),</span><span class="n">copy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">med_outliers</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span><span class="n">filt_len</span><span class="o">=</span><span class="n">filt_len</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="n">quantiles</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">as_anomaly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="median_test_oneside"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect.median_test_oneside">[docs]</a><span class="k">def</span> <span class="nf">median_test_oneside</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">level</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">filt_len</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">(</span><span class="mf">0.005</span><span class="p">,</span><span class="mf">0.095</span><span class="p">),</span>
+<span class="k">def</span> <span class="nf">median_test_oneside</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">level</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">filt_len</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">(</span><span class="mf">0.005</span><span class="p">,</span><span class="mf">0.095</span><span class="p">),</span>
                         <span class="n">copy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">kappa</span> <span class="o">=</span> <span class="n">filt_len</span><span class="o">//</span><span class="mi">2</span>
     <span class="n">ts</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;forward.csv&quot;</span><span class="p">)</span>
@@ -239,7 +238,7 @@
         <span class="c1">#print(&quot;vals&quot;,vals.loc[pd.Timestamp(2003,3,26,18),:])</span>
 
     <span class="c1">#anomaly=anomaly #.astype(int)</span>
-    <span class="k">return</span> <span class="n">anomaly</span></div>
+    <span class="k">return</span> <span class="n">anomaly</span>
 
 <div class="viewcode-block" id="med_outliers"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect.med_outliers">[docs]</a><span class="k">def</span> <span class="nf">med_outliers</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mf">4.</span><span class="p">,</span><span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>\
                  <span class="n">filt_len</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
@@ -309,14 +308,14 @@
     <span class="k">return</span> <span class="n">ts_out</span></div>
 
 
-<div class="viewcode-block" id="gapdist_test_series"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect.gapdist_test_series">[docs]</a><span class="k">def</span> <span class="nf">gapdist_test_series</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">smallgaplen</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">gapdist_test_series</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">smallgaplen</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="n">test_gap</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">gapcount</span> <span class="o">=</span> <span class="n">gap_count</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
     <span class="n">testgapnull</span> <span class="o">=</span> <span class="n">test_gap</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span>
     <span class="n">is_small_gap</span> <span class="o">=</span> <span class="p">(</span><span class="n">gapcount</span> <span class="o">&lt;=</span> <span class="n">smallgaplen</span><span class="p">)</span>
     <span class="n">smallgap</span> <span class="o">=</span> <span class="n">testgapnull</span> <span class="o">&amp;</span> <span class="n">is_small_gap</span>
     <span class="n">test_gap</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">smallgap</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">99999999.</span>
-    <span class="k">return</span> <span class="n">test_gap</span></div>
+    <span class="k">return</span> <span class="n">test_gap</span>
 
 <div class="viewcode-block" id="steep_then_nan"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.error_detect.steep_then_nan">[docs]</a><span class="k">def</span> <span class="nf">steep_then_nan</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mf">4.</span><span class="p">,</span><span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>\
                  <span class="n">filt_len</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span><span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
@@ -537,7 +536,7 @@
       &copy;2019, California Department of Water Resources.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

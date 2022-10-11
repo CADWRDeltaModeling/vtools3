@@ -1,0 +1,1729 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>scipy.ndimage.filters &#8212; vtools 3.6.6+1.g092ced5.dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for scipy.ndimage.filters</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2003-2005 Peter J. Verveer</span>
+<span class="c1">#</span>
+<span class="c1"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c1"># modification, are permitted provided that the following conditions</span>
+<span class="c1"># are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright</span>
+<span class="c1">#    notice, this list of conditions and the following disclaimer.</span>
+<span class="c1">#</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above</span>
+<span class="c1">#    copyright notice, this list of conditions and the following</span>
+<span class="c1">#    disclaimer in the documentation and/or other materials provided</span>
+<span class="c1">#    with the distribution.</span>
+<span class="c1">#</span>
+<span class="c1"># 3. The name of the author may not be used to endorse or promote</span>
+<span class="c1">#    products derived from this software without specific prior</span>
+<span class="c1">#    written permission.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS&#39;&#39; AND ANY EXPRESS</span>
+<span class="c1"># OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED</span>
+<span class="c1"># WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE</span>
+<span class="c1"># ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY</span>
+<span class="c1"># DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL</span>
+<span class="c1"># DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE</span>
+<span class="c1"># GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS</span>
+<span class="c1"># INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,</span>
+<span class="c1"># WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">from</span> <span class="nn">numpy.core.multiarray</span> <span class="kn">import</span> <span class="n">normalize_axis_index</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_ni_support</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_nd_image</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_ni_docstrings</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;correlate1d&#39;</span><span class="p">,</span> <span class="s1">&#39;convolve1d&#39;</span><span class="p">,</span> <span class="s1">&#39;gaussian_filter1d&#39;</span><span class="p">,</span> <span class="s1">&#39;gaussian_filter&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;prewitt&#39;</span><span class="p">,</span> <span class="s1">&#39;sobel&#39;</span><span class="p">,</span> <span class="s1">&#39;generic_laplace&#39;</span><span class="p">,</span> <span class="s1">&#39;laplace&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;gaussian_laplace&#39;</span><span class="p">,</span> <span class="s1">&#39;generic_gradient_magnitude&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;gaussian_gradient_magnitude&#39;</span><span class="p">,</span> <span class="s1">&#39;correlate&#39;</span><span class="p">,</span> <span class="s1">&#39;convolve&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;uniform_filter1d&#39;</span><span class="p">,</span> <span class="s1">&#39;uniform_filter&#39;</span><span class="p">,</span> <span class="s1">&#39;minimum_filter1d&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;maximum_filter1d&#39;</span><span class="p">,</span> <span class="s1">&#39;minimum_filter&#39;</span><span class="p">,</span> <span class="s1">&#39;maximum_filter&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;rank_filter&#39;</span><span class="p">,</span> <span class="s1">&#39;median_filter&#39;</span><span class="p">,</span> <span class="s1">&#39;percentile_filter&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;generic_filter1d&#39;</span><span class="p">,</span> <span class="s1">&#39;generic_filter&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_invalid_origin</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">lenw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">origin</span> <span class="o">&lt;</span> <span class="o">-</span><span class="p">(</span><span class="n">lenw</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">origin</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">lenw</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_complex_via_real_components</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Complex convolution via a linear combination of real convolutions.&quot;&quot;&quot;</span>
+    <span class="n">complex_input</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="n">complex_weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="k">if</span> <span class="n">complex_input</span> <span class="ow">and</span> <span class="n">complex_weights</span><span class="p">:</span>
+        <span class="c1"># real component of the output</span>
+        <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">real</span><span class="p">,</span>
+             <span class="n">cval</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">real</span> <span class="o">-=</span> <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">cval</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># imaginary component of the output</span>
+        <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span>
+             <span class="n">cval</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">imag</span> <span class="o">+=</span> <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">cval</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">complex_input</span><span class="p">:</span>
+        <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span>
+             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span>
+             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="n">cval</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot provide a complex-valued cval when the &quot;</span>
+                             <span class="s2">&quot;input is real.&quot;</span><span class="p">)</span>
+        <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">func</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+                <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a 1-D correlation along the given axis.</span>
+
+<span class="sd">    The lines of the array along the given axis are correlated with the</span>
+<span class="sd">    given weights.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    weights : array</span>
+<span class="sd">        1-D sequence of numbers.</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import correlate1d</span>
+<span class="sd">    &gt;&gt;&gt; correlate1d([2, 8, 0, 4, 1, 9, 9, 0], weights=[1, 3])</span>
+<span class="sd">    array([ 8, 26,  8, 12,  7, 28, 36,  9])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+    <span class="n">complex_input</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="n">complex_weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="k">if</span> <span class="n">complex_input</span> <span class="ow">or</span> <span class="n">complex_weights</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">complex_weights</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">complex128</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">complex_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_complex_via_real_components</span><span class="p">(</span><span class="n">correlate1d</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span>
+                                            <span class="n">output</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;no filter weights given&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">weights</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_invalid_origin</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid origin; origin must satisfy &#39;</span>
+                         <span class="s1">&#39;-(len(weights) // 2) &lt;= origin &lt;= &#39;</span>
+                         <span class="s1">&#39;(len(weights)-1) // 2&#39;</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">_nd_image</span><span class="o">.</span><span class="n">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                          <span class="n">origin</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">convolve1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+               <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a 1-D convolution along the given axis.</span>
+
+<span class="sd">    The lines of the array along the given axis are convolved with the</span>
+<span class="sd">    given weights.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    weights : ndarray</span>
+<span class="sd">        1-D sequence of numbers.</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    convolve1d : ndarray</span>
+<span class="sd">        Convolved array with same shape as input</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import convolve1d</span>
+<span class="sd">    &gt;&gt;&gt; convolve1d([2, 8, 0, 4, 1, 9, 9, 0], weights=[1, 3])</span>
+<span class="sd">    array([14, 24,  4, 13, 12, 36, 27,  0])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="o">-</span><span class="n">origin</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">origin</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span>
+        <span class="c1"># pre-conjugate here to counteract the conjugation in correlate1d</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_gaussian_kernel1d</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes a 1-D Gaussian convolution kernel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;order must be non-negative&#39;</span><span class="p">)</span>
+    <span class="n">exponent_range</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sigma2</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">sigma</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">phi_x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">/</span> <span class="n">sigma2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">phi_x</span> <span class="o">=</span> <span class="n">phi_x</span> <span class="o">/</span> <span class="n">phi_x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">phi_x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># f(x) = q(x) * phi(x) = q(x) * exp(p(x))</span>
+        <span class="c1"># f&#39;(x) = (q&#39;(x) + q(x) * p&#39;(x)) * phi(x)</span>
+        <span class="c1"># p&#39;(x) = -1 / sigma ** 2</span>
+        <span class="c1"># Implement q&#39;(x) + q(x) * p&#39;(x) as a matrix operator and apply to the</span>
+        <span class="c1"># coefficients of q(x)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">exponent_range</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># D @ q(x) = q&#39;(x)</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">order</span><span class="p">)</span><span class="o">/-</span><span class="n">sigma2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># P @ q(x) = q(x) * p&#39;(x)</span>
+        <span class="n">Q_deriv</span> <span class="o">=</span> <span class="n">D</span> <span class="o">+</span> <span class="n">P</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span><span class="p">):</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="n">Q_deriv</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">**</span> <span class="n">exponent_range</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q</span> <span class="o">*</span> <span class="n">phi_x</span>
+
+
+<div class="viewcode-block" id="gaussian_filter1d"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.filter.gaussian_filter1d">[docs]</a><span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">gaussian_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;1-D Gaussian filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    sigma : scalar</span>
+<span class="sd">        standard deviation for Gaussian kernel</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    order : int, optional</span>
+<span class="sd">        An order of 0 corresponds to convolution with a Gaussian</span>
+<span class="sd">        kernel. A positive order corresponds to convolution with</span>
+<span class="sd">        that derivative of a Gaussian.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    truncate : float, optional</span>
+<span class="sd">        Truncate the filter at this many standard deviations.</span>
+<span class="sd">        Default is 4.0.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gaussian_filter1d : ndarray</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import gaussian_filter1d</span>
+<span class="sd">    &gt;&gt;&gt; gaussian_filter1d([1.0, 2.0, 3.0, 4.0, 5.0], 1)</span>
+<span class="sd">    array([ 1.42704095,  2.06782203,  3.        ,  3.93217797,  4.57295905])</span>
+<span class="sd">    &gt;&gt;&gt; gaussian_filter1d([1.0, 2.0, 3.0, 4.0, 5.0], 4)</span>
+<span class="sd">    array([ 2.91948343,  2.95023502,  3.        ,  3.04976498,  3.08051657])</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; rng = np.random.default_rng()</span>
+<span class="sd">    &gt;&gt;&gt; x = rng.standard_normal(101).cumsum()</span>
+<span class="sd">    &gt;&gt;&gt; y3 = gaussian_filter1d(x, 3)</span>
+<span class="sd">    &gt;&gt;&gt; y6 = gaussian_filter1d(x, 6)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x, &#39;k&#39;, label=&#39;original data&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(y3, &#39;--&#39;, label=&#39;filtered, sigma=3&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(y6, &#39;:&#39;, label=&#39;filtered, sigma=6&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.legend()</span>
+<span class="sd">    &gt;&gt;&gt; plt.grid()</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
+    <span class="c1"># make the radius of the filter equal to truncate standard deviations</span>
+    <span class="n">lw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truncate</span> <span class="o">*</span> <span class="n">sd</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="c1"># Since we are calling correlate, not convolve, revert the kernel</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">_gaussian_kernel1d</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">lw</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">gaussian_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multidimensional Gaussian filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    sigma : scalar or sequence of scalars</span>
+<span class="sd">        Standard deviation for Gaussian kernel. The standard</span>
+<span class="sd">        deviations of the Gaussian filter are given for each axis as a</span>
+<span class="sd">        sequence, or as a single number, in which case it is equal for</span>
+<span class="sd">        all axes.</span>
+<span class="sd">    order : int or sequence of ints, optional</span>
+<span class="sd">        The order of the filter along each axis is given as a sequence</span>
+<span class="sd">        of integers, or as a single number. An order of 0 corresponds</span>
+<span class="sd">        to convolution with a Gaussian kernel. A positive order</span>
+<span class="sd">        corresponds to convolution with that derivative of a Gaussian.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    truncate : float</span>
+<span class="sd">        Truncate the filter at this many standard deviations.</span>
+<span class="sd">        Default is 4.0.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gaussian_filter : ndarray</span>
+<span class="sd">        Returned array of same shape as `input`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The multidimensional filter is implemented as a sequence of</span>
+<span class="sd">    1-D convolution filters. The intermediate arrays are</span>
+<span class="sd">    stored in the same data type as the output. Therefore, for output</span>
+<span class="sd">    types with a limited precision, the results may be imprecise</span>
+<span class="sd">    because intermediate results may be stored with insufficient</span>
+<span class="sd">    precision.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import gaussian_filter</span>
+<span class="sd">    &gt;&gt;&gt; a = np.arange(50, step=2).reshape((5,5))</span>
+<span class="sd">    &gt;&gt;&gt; a</span>
+<span class="sd">    array([[ 0,  2,  4,  6,  8],</span>
+<span class="sd">           [10, 12, 14, 16, 18],</span>
+<span class="sd">           [20, 22, 24, 26, 28],</span>
+<span class="sd">           [30, 32, 34, 36, 38],</span>
+<span class="sd">           [40, 42, 44, 46, 48]])</span>
+<span class="sd">    &gt;&gt;&gt; gaussian_filter(a, sigma=1)</span>
+<span class="sd">    array([[ 4,  6,  8,  9, 11],</span>
+<span class="sd">           [10, 12, 14, 15, 17],</span>
+<span class="sd">           [20, 22, 24, 25, 27],</span>
+<span class="sd">           [29, 31, 33, 34, 36],</span>
+<span class="sd">           [35, 37, 39, 40, 42]])</span>
+
+<span class="sd">    &gt;&gt;&gt; from scipy import misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = gaussian_filter(ascent, sigma=5)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">orders</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">sigmas</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">axes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">sigmas</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">orders</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span> <span class="k">if</span> <span class="n">sigmas</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">1e-15</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+            <span class="n">gaussian_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span>
+                              <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">truncate</span><span class="p">)</span>
+            <span class="nb">input</span> <span class="o">=</span> <span class="n">output</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">prewitt</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a Prewitt filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.prewitt(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span> <span class="k">if</span> <span class="n">ii</span> <span class="o">!=</span> <span class="n">axis</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">correlate1d</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ii</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span> <span class="mi">0</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">sobel</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a Sobel filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.sobel(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span> <span class="k">if</span> <span class="n">ii</span> <span class="o">!=</span> <span class="n">axis</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">correlate1d</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ii</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">generic_laplace</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">derivative2</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+                    <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">extra_arguments</span><span class="o">=</span><span class="p">(),</span>
+                    <span class="n">extra_keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    N-D Laplace filter using a provided second derivative function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    derivative2 : callable</span>
+<span class="sd">        Callable with the following signature::</span>
+
+<span class="sd">            derivative2(input, axis, output, mode, cval,</span>
+<span class="sd">                        *extra_arguments, **extra_keywords)</span>
+
+<span class="sd">        See `extra_arguments`, `extra_keywords` below.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(extra_keywords)s</span>
+<span class="sd">    %(extra_arguments)s</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">extra_keywords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extra_keywords</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span>
+        <span class="n">derivative2</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">output</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span>
+                    <span class="o">*</span><span class="n">extra_arguments</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_keywords</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">derivative2</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">output</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span>
+                              <span class="o">*</span><span class="n">extra_arguments</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_keywords</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="n">tmp</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">laplace</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;N-D Laplace filter based on approximate second derivatives.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.laplace(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">derivative2</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">correlate1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">generic_laplace</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">derivative2</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">gaussian_laplace</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+                     <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multidimensional Laplace filter using Gaussian second derivatives.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    sigma : scalar or sequence of scalars</span>
+<span class="sd">        The standard deviations of the Gaussian filter are given for</span>
+<span class="sd">        each axis as a sequence, or as a single number, in which case</span>
+<span class="sd">        it is equal for all axes.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    Extra keyword arguments will be passed to gaussian_filter().</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+
+<span class="sd">    &gt;&gt;&gt; result = ndimage.gaussian_laplace(ascent, sigma=1)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(result)</span>
+
+<span class="sd">    &gt;&gt;&gt; result = ndimage.gaussian_laplace(ascent, sigma=3)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">derivative2</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="n">order</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">generic_laplace</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">derivative2</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                           <span class="n">extra_arguments</span><span class="o">=</span><span class="p">(</span><span class="n">sigma</span><span class="p">,),</span>
+                           <span class="n">extra_keywords</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">generic_gradient_magnitude</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                               <span class="n">extra_arguments</span><span class="o">=</span><span class="p">(),</span> <span class="n">extra_keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gradient magnitude using a provided gradient function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    derivative : callable</span>
+<span class="sd">        Callable with the following signature::</span>
+
+<span class="sd">            derivative(input, axis, output, mode, cval,</span>
+<span class="sd">                       *extra_arguments, **extra_keywords)</span>
+
+<span class="sd">        See `extra_arguments`, `extra_keywords` below.</span>
+<span class="sd">        `derivative` can assume that `input` and `output` are ndarrays.</span>
+<span class="sd">        Note that the output from `derivative` is modified inplace;</span>
+<span class="sd">        be careful to copy important inputs before returning them.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(extra_keywords)s</span>
+<span class="sd">    %(extra_arguments)s</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">extra_keywords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extra_keywords</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span>
+        <span class="n">derivative</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">output</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span>
+                   <span class="o">*</span><span class="n">extra_arguments</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_keywords</span><span class="p">)</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">derivative</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">output</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">cval</span><span class="p">,</span>
+                             <span class="o">*</span><span class="n">extra_arguments</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_keywords</span><span class="p">)</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="n">tmp</span>
+        <span class="c1"># This allows the sqrt to work with a different default casting</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">casting</span><span class="o">=</span><span class="s1">&#39;unsafe&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">gaussian_gradient_magnitude</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multidimensional gradient magnitude using Gaussian derivatives.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    sigma : scalar or sequence of scalars</span>
+<span class="sd">        The standard deviations of the Gaussian filter are given for</span>
+<span class="sd">        each axis as a sequence, or as a single number, in which case</span>
+<span class="sd">        it is equal for all axes.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    Extra keyword arguments will be passed to gaussian_filter().</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gaussian_gradient_magnitude : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.gaussian_gradient_magnitude(ascent, sigma=5)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="n">order</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                               <span class="n">cval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">generic_gradient_magnitude</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                                      <span class="n">cval</span><span class="p">,</span> <span class="n">extra_arguments</span><span class="o">=</span><span class="p">(</span><span class="n">sigma</span><span class="p">,),</span>
+                                      <span class="n">extra_keywords</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_correlate_or_convolve</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span>
+                           <span class="n">convolution</span><span class="p">):</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+    <span class="n">complex_input</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="n">complex_weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="k">if</span> <span class="n">complex_input</span> <span class="ow">or</span> <span class="n">complex_weights</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">complex_weights</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">convolution</span><span class="p">:</span>
+            <span class="c1"># As for numpy.correlate, conjugate weights rather than input.</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span> <span class="n">convolution</span><span class="o">=</span><span class="n">convolution</span>
+        <span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">complex_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_complex_via_real_components</span><span class="p">(</span><span class="n">_correlate_or_convolve</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span>
+                                            <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">origins</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">wshape</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wshape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;filter weights array has incorrect shape.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convolution</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">weights</span><span class="o">.</span><span class="n">ndim</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">origins</span><span class="p">)):</span>
+            <span class="n">origins</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">origins</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">origins</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">origin</span><span class="p">,</span> <span class="n">lenw</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">origins</span><span class="p">,</span> <span class="n">wshape</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_invalid_origin</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">lenw</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid origin; origin must satisfy &#39;</span>
+                             <span class="s1">&#39;-(weights.shape[k] // 2) &lt;= origin[k] &lt;= &#39;</span>
+                             <span class="s1">&#39;(weights.shape[k]-1) // 2&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">weights</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">temp_needed</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">may_share_memory</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">temp_needed</span><span class="p">:</span>
+        <span class="c1"># input and output arrays cannot share memory</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;A sequence of modes is not supported&quot;</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">_nd_image</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">origins</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">temp_needed</span><span class="p">:</span>
+        <span class="n">temp</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">temp</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">correlate</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;reflect&#39;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+              <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Multidimensional correlation.</span>
+
+<span class="sd">    The array is correlated with the given kernel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    weights : ndarray</span>
+<span class="sd">        array of weights, same number of dimensions as input</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : ndarray</span>
+<span class="sd">        The result of correlation of `input` with `weights`.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    convolve : Convolve an image with a kernel.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Correlation is the process of moving a filter mask often referred to</span>
+<span class="sd">    as kernel over the image and computing the sum of products at each location.</span>
+
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import correlate</span>
+<span class="sd">    &gt;&gt;&gt; input_img = np.arange(25).reshape(5,5)</span>
+<span class="sd">    &gt;&gt;&gt; print(input_img)</span>
+<span class="sd">    [[ 0  1  2  3  4]</span>
+<span class="sd">    [ 5  6  7  8  9]</span>
+<span class="sd">    [10 11 12 13 14]</span>
+<span class="sd">    [15 16 17 18 19]</span>
+<span class="sd">    [20 21 22 23 24]]</span>
+
+<span class="sd">    Define a kernel (weights) for correlation. In this example, it is for sum of</span>
+<span class="sd">    center and up, down, left and right next elements.</span>
+
+<span class="sd">    &gt;&gt;&gt; weights = [[0, 1, 0],</span>
+<span class="sd">    ...            [1, 1, 1],</span>
+<span class="sd">    ...            [0, 1, 0]]</span>
+
+<span class="sd">    We can calculate a correlation result:</span>
+<span class="sd">    For example, element ``[2,2]`` is ``7 + 11 + 12 + 13 + 17 = 60``.</span>
+
+<span class="sd">    &gt;&gt;&gt; correlate(input_img, weights)</span>
+<span class="sd">    array([[  6,  10,  15,  20,  24],</span>
+<span class="sd">        [ 26,  30,  35,  40,  44],</span>
+<span class="sd">        [ 51,  55,  60,  65,  69],</span>
+<span class="sd">        [ 76,  80,  85,  90,  94],</span>
+<span class="sd">        [ 96, 100, 105, 110, 114]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_correlate_or_convolve</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                                  <span class="n">origin</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">convolve</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;reflect&#39;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+             <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Multidimensional convolution.</span>
+
+<span class="sd">    The array is convolved with the given kernel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    weights : array_like</span>
+<span class="sd">        Array of weights, same number of dimensions as input</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    cval : scalar, optional</span>
+<span class="sd">        Value to fill past edges of input if `mode` is &#39;constant&#39;. Default</span>
+<span class="sd">        is 0.0</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : ndarray</span>
+<span class="sd">        The result of convolution of `input` with `weights`.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    correlate : Correlate an image with a kernel.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Each value in result is :math:`C_i = \\sum_j{I_{i+k-j} W_j}`, where</span>
+<span class="sd">    W is the `weights` kernel,</span>
+<span class="sd">    j is the N-D spatial index over :math:`W`,</span>
+<span class="sd">    I is the `input` and k is the coordinate of the center of</span>
+<span class="sd">    W, specified by `origin` in the input parameters.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Perhaps the simplest case to understand is ``mode=&#39;constant&#39;, cval=0.0``,</span>
+<span class="sd">    because in this case borders (i.e., where the `weights` kernel, centered</span>
+<span class="sd">    on any one value, extends beyond an edge of `input`) are treated as zeros.</span>
+
+<span class="sd">    &gt;&gt;&gt; a = np.array([[1, 2, 0, 0],</span>
+<span class="sd">    ...               [5, 3, 0, 4],</span>
+<span class="sd">    ...               [0, 0, 0, 7],</span>
+<span class="sd">    ...               [9, 3, 0, 0]])</span>
+<span class="sd">    &gt;&gt;&gt; k = np.array([[1,1,1],[1,1,0],[1,0,0]])</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage</span>
+<span class="sd">    &gt;&gt;&gt; ndimage.convolve(a, k, mode=&#39;constant&#39;, cval=0.0)</span>
+<span class="sd">    array([[11, 10,  7,  4],</span>
+<span class="sd">           [10,  3, 11, 11],</span>
+<span class="sd">           [15, 12, 14,  7],</span>
+<span class="sd">           [12,  3,  7,  0]])</span>
+
+<span class="sd">    Setting ``cval=1.0`` is equivalent to padding the outer edge of `input`</span>
+<span class="sd">    with 1.0&#39;s (and then extracting only the original region of the result).</span>
+
+<span class="sd">    &gt;&gt;&gt; ndimage.convolve(a, k, mode=&#39;constant&#39;, cval=1.0)</span>
+<span class="sd">    array([[13, 11,  8,  7],</span>
+<span class="sd">           [11,  3, 11, 14],</span>
+<span class="sd">           [16, 12, 14, 10],</span>
+<span class="sd">           [15,  6, 10,  5]])</span>
+
+<span class="sd">    With ``mode=&#39;reflect&#39;`` (the default), outer values are reflected at the</span>
+<span class="sd">    edge of `input` to fill in missing values.</span>
+
+<span class="sd">    &gt;&gt;&gt; b = np.array([[2, 0, 0],</span>
+<span class="sd">    ...               [1, 0, 0],</span>
+<span class="sd">    ...               [0, 0, 0]])</span>
+<span class="sd">    &gt;&gt;&gt; k = np.array([[0,1,0], [0,1,0], [0,1,0]])</span>
+<span class="sd">    &gt;&gt;&gt; ndimage.convolve(b, k, mode=&#39;reflect&#39;)</span>
+<span class="sd">    array([[5, 0, 0],</span>
+<span class="sd">           [3, 0, 0],</span>
+<span class="sd">           [1, 0, 0]])</span>
+
+<span class="sd">    This includes diagonally at the corners.</span>
+
+<span class="sd">    &gt;&gt;&gt; k = np.array([[1,0,0],[0,1,0],[0,0,1]])</span>
+<span class="sd">    &gt;&gt;&gt; ndimage.convolve(b, k)</span>
+<span class="sd">    array([[4, 2, 0],</span>
+<span class="sd">           [3, 2, 0],</span>
+<span class="sd">           [1, 1, 0]])</span>
+
+<span class="sd">    With ``mode=&#39;nearest&#39;``, the single nearest value in to an edge in</span>
+<span class="sd">    `input` is repeated as many times as needed to match the overlapping</span>
+<span class="sd">    `weights`.</span>
+
+<span class="sd">    &gt;&gt;&gt; c = np.array([[2, 0, 1],</span>
+<span class="sd">    ...               [1, 0, 0],</span>
+<span class="sd">    ...               [0, 0, 0]])</span>
+<span class="sd">    &gt;&gt;&gt; k = np.array([[0, 1, 0],</span>
+<span class="sd">    ...               [0, 1, 0],</span>
+<span class="sd">    ...               [0, 1, 0],</span>
+<span class="sd">    ...               [0, 1, 0],</span>
+<span class="sd">    ...               [0, 1, 0]])</span>
+<span class="sd">    &gt;&gt;&gt; ndimage.convolve(c, k, mode=&#39;nearest&#39;)</span>
+<span class="sd">    array([[7, 0, 3],</span>
+<span class="sd">           [5, 0, 2],</span>
+<span class="sd">           [3, 0, 1]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_correlate_or_convolve</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                                  <span class="n">origin</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">uniform_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a 1-D uniform filter along the given axis.</span>
+
+<span class="sd">    The lines of the array along the given axis are filtered with a</span>
+<span class="sd">    uniform filter of given size.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    size : int</span>
+<span class="sd">        length of uniform filter</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import uniform_filter1d</span>
+<span class="sd">    &gt;&gt;&gt; uniform_filter1d([2, 8, 0, 4, 1, 9, 9, 0], size=3)</span>
+<span class="sd">    array([4, 3, 4, 1, 4, 6, 6, 3])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;incorrect filter size&#39;</span><span class="p">)</span>
+    <span class="n">complex_output</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span>
+                                     <span class="n">complex_output</span><span class="o">=</span><span class="n">complex_output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">complex_output</span><span class="p">:</span>
+        <span class="n">_nd_image</span><span class="o">.</span><span class="n">uniform_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                                   <span class="n">origin</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_nd_image</span><span class="o">.</span><span class="n">uniform_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                                   <span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span> <span class="n">origin</span><span class="p">)</span>
+        <span class="n">_nd_image</span><span class="o">.</span><span class="n">uniform_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                                   <span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">cval</span><span class="p">),</span> <span class="n">origin</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">uniform_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+                   <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multidimensional uniform filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    size : int or sequence of ints, optional</span>
+<span class="sd">        The sizes of the uniform filter are given for each axis as a</span>
+<span class="sd">        sequence, or as a single number, in which case the size is</span>
+<span class="sd">        equal for all axes.</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    uniform_filter : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The multidimensional filter is implemented as a sequence of</span>
+<span class="sd">    1-D uniform filters. The intermediate arrays are stored</span>
+<span class="sd">    in the same data type as the output. Therefore, for output types</span>
+<span class="sd">    with a limited precision, the results may be imprecise because</span>
+<span class="sd">    intermediate results may be stored with insufficient precision.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.uniform_filter(ascent, size=20)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span>
+                                     <span class="n">complex_output</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;c&#39;</span><span class="p">)</span>
+    <span class="n">sizes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">origins</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">axes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">sizes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">origins</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span> <span class="k">if</span> <span class="n">sizes</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+            <span class="n">uniform_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">),</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                             <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
+            <span class="nb">input</span> <span class="o">=</span> <span class="n">output</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">minimum_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a 1-D minimum filter along the given axis.</span>
+
+<span class="sd">    The lines of the array along the given axis are filtered with a</span>
+<span class="sd">    minimum filter of given size.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    size : int</span>
+<span class="sd">        length along which to calculate 1D minimum</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin)s</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function implements the MINLIST algorithm [1]_, as described by</span>
+<span class="sd">    Richard Harter [2]_, and has a guaranteed O(n) performance, `n` being</span>
+<span class="sd">    the `input` length, regardless of filter size.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.2777</span>
+<span class="sd">    .. [2] http://www.richardhartersworld.com/cri/2001/slidingmin.html</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import minimum_filter1d</span>
+<span class="sd">    &gt;&gt;&gt; minimum_filter1d([2, 8, 0, 4, 1, 9, 9, 0], size=3)</span>
+<span class="sd">    array([2, 0, 0, 0, 1, 1, 0, 0])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Complex type not supported&#39;</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;incorrect filter size&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">_nd_image</span><span class="o">.</span><span class="n">min_or_max_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                                  <span class="n">origin</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">maximum_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a 1-D maximum filter along the given axis.</span>
+
+<span class="sd">    The lines of the array along the given axis are filtered with a</span>
+<span class="sd">    maximum filter of given size.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    size : int</span>
+<span class="sd">        Length along which to calculate the 1-D maximum.</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    maximum1d : ndarray, None</span>
+<span class="sd">        Maximum-filtered array with same shape as input.</span>
+<span class="sd">        None if `output` is not None</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function implements the MAXLIST algorithm [1]_, as described by</span>
+<span class="sd">    Richard Harter [2]_, and has a guaranteed O(n) performance, `n` being</span>
+<span class="sd">    the `input` length, regardless of filter size.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.2777</span>
+<span class="sd">    .. [2] http://www.richardhartersworld.com/cri/2001/slidingmin.html</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.ndimage import maximum_filter1d</span>
+<span class="sd">    &gt;&gt;&gt; maximum_filter1d([2, 8, 0, 4, 1, 9, 9, 0], size=3)</span>
+<span class="sd">    array([8, 8, 8, 4, 9, 9, 9, 9])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Complex type not supported&#39;</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;incorrect filter size&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">_nd_image</span><span class="o">.</span><span class="n">min_or_max_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                                  <span class="n">origin</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="k">def</span> <span class="nf">_min_or_max_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                       <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">minimum</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">footprint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;ignoring size because footprint is set&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">structure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">footprint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;no footprint provided&quot;</span><span class="p">)</span>
+            <span class="n">separable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">footprint</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">footprint</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All-zero footprint is not supported.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">footprint</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">footprint</span><span class="o">.</span><span class="n">shape</span>
+                <span class="n">footprint</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">separable</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">separable</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">separable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">footprint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">footprint</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Complex type not supported&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">temp_needed</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">may_share_memory</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">temp_needed</span><span class="p">:</span>
+        <span class="c1"># input and output arrays cannot share memory</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">origins</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">separable</span><span class="p">:</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="n">modes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">axes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">sizes</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">origins</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">modes</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span> <span class="k">if</span> <span class="n">sizes</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">minimum</span><span class="p">:</span>
+            <span class="n">filter_</span> <span class="o">=</span> <span class="n">minimum_filter1d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filter_</span> <span class="o">=</span> <span class="n">maximum_filter1d</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+                <span class="n">filter_</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">),</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fshape</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">footprint</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fshape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;footprint array has incorrect shape.&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">origin</span><span class="p">,</span> <span class="n">lenf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">origins</span><span class="p">,</span> <span class="n">fshape</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">lenf</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">lenf</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span> <span class="n">lenf</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">footprint</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">:</span>
+            <span class="n">footprint</span> <span class="o">=</span> <span class="n">footprint</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">structure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;structure array has incorrect shape&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">structure</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">:</span>
+                <span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;A sequence of modes is not supported for non-separable &quot;</span>
+                <span class="s2">&quot;footprints&quot;</span><span class="p">)</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">_nd_image</span><span class="o">.</span><span class="n">min_or_max_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span>
+                                    <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">origins</span><span class="p">,</span> <span class="n">minimum</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">temp_needed</span><span class="p">:</span>
+        <span class="n">temp</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">temp</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">minimum_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a multidimensional minimum filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    %(size_foot)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    minimum_filter : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    A sequence of modes (one per axis) is only supported when the footprint is</span>
+<span class="sd">    separable. Otherwise, a single mode string must be provided.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.minimum_filter(ascent, size=20)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_min_or_max_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                              <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">maximum_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a multidimensional maximum filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    %(size_foot)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_multiple)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    maximum_filter : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    A sequence of modes (one per axis) is only supported when the footprint is</span>
+<span class="sd">    separable. Otherwise, a single mode string must be provided.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.maximum_filter(ascent, size=20)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_min_or_max_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                              <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">_rank_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;rank&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">footprint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;ignoring size because footprint is set&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Complex type not supported&#39;</span><span class="p">)</span>
+    <span class="n">origins</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">footprint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;no footprint or filter size provided&quot;</span><span class="p">)</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">footprint</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">fshape</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">footprint</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fshape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;filter footprint array has incorrect shape.&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">origin</span><span class="p">,</span> <span class="n">lenf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">origins</span><span class="p">,</span> <span class="n">fshape</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">lenf</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">lenf</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span> <span class="n">lenf</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">footprint</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">:</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">footprint</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">filter_size</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">footprint</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+        <span class="n">rank</span> <span class="o">=</span> <span class="n">filter_size</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;percentile&#39;</span><span class="p">:</span>
+        <span class="n">percentile</span> <span class="o">=</span> <span class="n">rank</span>
+        <span class="k">if</span> <span class="n">percentile</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">percentile</span> <span class="o">+=</span> <span class="mf">100.0</span>
+        <span class="k">if</span> <span class="n">percentile</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">percentile</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;invalid percentile&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">percentile</span> <span class="o">==</span> <span class="mf">100.0</span><span class="p">:</span>
+            <span class="n">rank</span> <span class="o">=</span> <span class="n">filter_size</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">filter_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">percentile</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rank</span> <span class="o">+=</span> <span class="n">filter_size</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">rank</span> <span class="o">&gt;=</span> <span class="n">filter_size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;rank not within filter footprint size&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">minimum_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                              <span class="n">origins</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">rank</span> <span class="o">==</span> <span class="n">filter_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">maximum_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                              <span class="n">origins</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+        <span class="n">temp_needed</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">may_share_memory</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">temp_needed</span><span class="p">:</span>
+            <span class="c1"># input and output arrays cannot share memory</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">output</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;A sequence of modes is not supported by non-separable rank &quot;</span>
+                <span class="s2">&quot;filters&quot;</span><span class="p">)</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">_nd_image</span><span class="o">.</span><span class="n">rank_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                              <span class="n">origins</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">temp_needed</span><span class="p">:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">temp</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">rank_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a multidimensional rank filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    rank : int</span>
+<span class="sd">        The rank parameter may be less then zero, i.e., rank = -1</span>
+<span class="sd">        indicates the largest element.</span>
+<span class="sd">    %(size_foot)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rank_filter : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.rank_filter(ascent, rank=42, size=20)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">rank</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_rank_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                        <span class="n">origin</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">median_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate a multidimensional median filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    %(size_foot)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    median_filter : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    scipy.signal.medfilt2d</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For 2-dimensional images with ``uint8``, ``float32`` or ``float64`` dtypes</span>
+<span class="sd">    the specialised function `scipy.signal.medfilt2d` may be faster. It is</span>
+<span class="sd">    however limited to constant mode with ``cval=0``.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.median_filter(ascent, size=20)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_rank_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span>
+                        <span class="n">origin</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">percentile_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a multidimensional percentile filter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    percentile : scalar</span>
+<span class="sd">        The percentile parameter may be less then zero, i.e.,</span>
+<span class="sd">        percentile = -20 equals percentile = 80</span>
+<span class="sd">    %(size_foot)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    percentile_filter : ndarray</span>
+<span class="sd">        Filtered array. Has the same shape as `input`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import ndimage, misc</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">    &gt;&gt;&gt; plt.gray()  # show the filtered result in grayscale</span>
+<span class="sd">    &gt;&gt;&gt; ax1 = fig.add_subplot(121)  # left side</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = fig.add_subplot(122)  # right side</span>
+<span class="sd">    &gt;&gt;&gt; ascent = misc.ascent()</span>
+<span class="sd">    &gt;&gt;&gt; result = ndimage.percentile_filter(ascent, percentile=20, size=20)</span>
+<span class="sd">    &gt;&gt;&gt; ax1.imshow(ascent)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.imshow(result)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_rank_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                        <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="s1">&#39;percentile&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">generic_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">extra_arguments</span><span class="o">=</span><span class="p">(),</span> <span class="n">extra_keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a 1-D filter along the given axis.</span>
+
+<span class="sd">    `generic_filter1d` iterates over the lines of the array, calling the</span>
+<span class="sd">    given function at each line. The arguments of the line are the</span>
+<span class="sd">    input line, and the output line. The input and output lines are 1-D</span>
+<span class="sd">    double arrays. The input line is extended appropriately according</span>
+<span class="sd">    to the filter size and origin. The output line must be modified</span>
+<span class="sd">    in-place with the result.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    function : {callable, scipy.LowLevelCallable}</span>
+<span class="sd">        Function to apply along given axis.</span>
+<span class="sd">    filter_size : scalar</span>
+<span class="sd">        Length of the filter.</span>
+<span class="sd">    %(axis)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin)s</span>
+<span class="sd">    %(extra_arguments)s</span>
+<span class="sd">    %(extra_keywords)s</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function also accepts low-level callback functions with one of</span>
+<span class="sd">    the following signatures and wrapped in `scipy.LowLevelCallable`:</span>
+
+<span class="sd">    .. code:: c</span>
+
+<span class="sd">       int function(double *input_line, npy_intp input_length,</span>
+<span class="sd">                    double *output_line, npy_intp output_length,</span>
+<span class="sd">                    void *user_data)</span>
+<span class="sd">       int function(double *input_line, intptr_t input_length,</span>
+<span class="sd">                    double *output_line, intptr_t output_length,</span>
+<span class="sd">                    void *user_data)</span>
+
+<span class="sd">    The calling function iterates over the lines of the input and output</span>
+<span class="sd">    arrays, calling the callback function at each line. The current line</span>
+<span class="sd">    is extended according to the border conditions set by the calling</span>
+<span class="sd">    function, and the result is copied into the array that is passed</span>
+<span class="sd">    through ``input_line``. The length of the input line (after extension)</span>
+<span class="sd">    is passed through ``input_length``. The callback function should apply</span>
+<span class="sd">    the filter and store the result in the array passed through</span>
+<span class="sd">    ``output_line``. The length of the output line is passed through</span>
+<span class="sd">    ``output_length``. ``user_data`` is the data pointer provided</span>
+<span class="sd">    to `scipy.LowLevelCallable` as-is.</span>
+
+<span class="sd">    The callback function must return an integer error status that is zero</span>
+<span class="sd">    if something went wrong and one otherwise. If an error occurs, you should</span>
+<span class="sd">    normally set the python error status with an informative message</span>
+<span class="sd">    before returning, otherwise a default error message is set by the</span>
+<span class="sd">    calling function.</span>
+
+<span class="sd">    In addition, some other low-level function pointer specifications</span>
+<span class="sd">    are accepted, but these are for backward compatibility only and should</span>
+<span class="sd">    not be used in new code.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">extra_keywords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extra_keywords</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Complex type not supported&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filter_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;invalid filter size&#39;</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">filter_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">filter_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span>
+                                           <span class="n">filter_size</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">_nd_image</span><span class="o">.</span><span class="n">generic_filter1d</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span>
+                               <span class="n">mode</span><span class="p">,</span> <span class="n">cval</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">extra_arguments</span><span class="p">,</span>
+                               <span class="n">extra_keywords</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="nd">@_ni_docstrings</span><span class="o">.</span><span class="n">docfiller</span>
+<span class="k">def</span> <span class="nf">generic_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                   <span class="n">extra_arguments</span><span class="o">=</span><span class="p">(),</span> <span class="n">extra_keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a multidimensional filter using the given function.</span>
+
+<span class="sd">    At each element the provided function is called. The input values</span>
+<span class="sd">    within the filter footprint at that element are passed to the function</span>
+<span class="sd">    as a 1-D array of double values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(input)s</span>
+<span class="sd">    function : {callable, scipy.LowLevelCallable}</span>
+<span class="sd">        Function to apply at each element.</span>
+<span class="sd">    %(size_foot)s</span>
+<span class="sd">    %(output)s</span>
+<span class="sd">    %(mode_reflect)s</span>
+<span class="sd">    %(cval)s</span>
+<span class="sd">    %(origin_multiple)s</span>
+<span class="sd">    %(extra_arguments)s</span>
+<span class="sd">    %(extra_keywords)s</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function also accepts low-level callback functions with one of</span>
+<span class="sd">    the following signatures and wrapped in `scipy.LowLevelCallable`:</span>
+
+<span class="sd">    .. code:: c</span>
+
+<span class="sd">       int callback(double *buffer, npy_intp filter_size,</span>
+<span class="sd">                    double *return_value, void *user_data)</span>
+<span class="sd">       int callback(double *buffer, intptr_t filter_size,</span>
+<span class="sd">                    double *return_value, void *user_data)</span>
+
+<span class="sd">    The calling function iterates over the elements of the input and</span>
+<span class="sd">    output arrays, calling the callback function at each element. The</span>
+<span class="sd">    elements within the footprint of the filter at the current element are</span>
+<span class="sd">    passed through the ``buffer`` parameter, and the number of elements</span>
+<span class="sd">    within the footprint through ``filter_size``. The calculated value is</span>
+<span class="sd">    returned in ``return_value``. ``user_data`` is the data pointer provided</span>
+<span class="sd">    to `scipy.LowLevelCallable` as-is.</span>
+
+<span class="sd">    The callback function must return an integer error status that is zero</span>
+<span class="sd">    if something went wrong and one otherwise. If an error occurs, you should</span>
+<span class="sd">    normally set the python error status with an informative message</span>
+<span class="sd">    before returning, otherwise a default error message is set by the</span>
+<span class="sd">    calling function.</span>
+
+<span class="sd">    In addition, some other low-level function pointer specifications</span>
+<span class="sd">    are accepted, but these are for backward compatibility only and should</span>
+<span class="sd">    not be used in new code.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">footprint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;ignoring size because footprint is set&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">extra_keywords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extra_keywords</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Complex type not supported&#39;</span><span class="p">)</span>
+    <span class="n">origins</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">footprint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;no footprint or filter size provided&quot;</span><span class="p">)</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_normalize_sequence</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">footprint</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">fshape</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">footprint</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fshape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">input</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;filter footprint array has incorrect shape.&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">origin</span><span class="p">,</span> <span class="n">lenf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">origins</span><span class="p">,</span> <span class="n">fshape</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">lenf</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">lenf</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">&gt;=</span> <span class="n">lenf</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid origin&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">footprint</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">contiguous</span><span class="p">:</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">footprint</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_get_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">_ni_support</span><span class="o">.</span><span class="n">_extend_mode_to_code</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">_nd_image</span><span class="o">.</span><span class="n">generic_filter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">footprint</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                             <span class="n">cval</span><span class="p">,</span> <span class="n">origins</span><span class="p">,</span> <span class="n">extra_arguments</span><span class="p">,</span> <span class="n">extra_keywords</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

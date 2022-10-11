@@ -20,14 +20,6 @@ vtools.functions.error\_detect module
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.example module
--------------------------------
-
-.. automodule:: vtools.functions.example
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 vtools.functions.example2 module
 --------------------------------
 
@@ -76,14 +68,6 @@ vtools.functions.lag\_cross\_correlation module
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.medianAD module
---------------------------------
-
-.. automodule:: vtools.functions.medianAD
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 vtools.functions.merge module
 -----------------------------
 
@@ -100,14 +84,6 @@ vtools.functions.period\_op module
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.regression\_test module
-----------------------------------------
-
-.. automodule:: vtools.functions.regression_test
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 vtools.functions.skill\_metrics module
 --------------------------------------
 
@@ -115,55 +91,6 @@ vtools.functions.skill\_metrics module
    :members:
    :undoc-members:
    :show-inheritance:
-
-vtools.functions.test\_climatology module
------------------------------------------
-
-.. automodule:: vtools.functions.test_climatology
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.test\_error\_detect module
--------------------------------------------
-
-.. automodule:: vtools.functions.test_error_detect
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.test\_filter module
-------------------------------------
-
-.. automodule:: vtools.functions.test_filter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.test\_filter3 module
--------------------------------------
-
-.. automodule:: vtools.functions.test_filter3
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.test\_lag module
----------------------------------
-
-.. automodule:: vtools.functions.test_lag
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.test\_medianAD module
---------------------------------------
-
-.. automodule:: vtools.functions.test_medianAD
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------

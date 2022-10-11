@@ -1,25 +1,24 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
-    <title>vtools &#8212; vtools 3.6.3+13.g0549812.dirty documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools &#8212; vtools 3.6.6+1.g092ced5.dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="vtools package" href="vtools.html" />
-    <link rel="prev" title="Download Scripts" href="download.html" />
+    <link rel="prev" title="Averging, Filtering and Low Passing Data" href="notebooks/filters.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -54,14 +53,13 @@
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vtools.html">vtools package</a></li>
 </ul>
@@ -75,7 +73,7 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="download.html" title="previous chapter">Download Scripts</a></li>
+      <li>Previous: <a href="notebooks/filters.html" title="previous chapter">Averging, Filtering and Low Passing Data</a></li>
       <li>Next: <a href="vtools.html" title="next chapter">vtools package</a></li>
   </ul></li>
 </ul>
@@ -84,12 +82,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -108,8 +106,8 @@
 
           <div class="body" role="main">
             
-  <section id="vtools">
-<h1>vtools<a class="headerlink" href="#vtools" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="vtools">
+<h1>vtools<a class="headerlink" href="#vtools" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="vtools.html">vtools package</a><ul>
@@ -119,29 +117,13 @@
 <li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.gap">vtools.data.gap module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.sample_series">vtools.data.sample_series module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.timeseries">vtools.data.timeseries module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools-data-timeseries3-module">vtools.data.timeseries3 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.vtime">vtools.data.vtime module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.datastore.html">vtools.datastore package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#vtools-datastore-cull-module">vtools.datastore.cull module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_cdec">vtools.datastore.download_cdec module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_cimis">vtools.datastore.download_cimis module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_ncro">vtools.datastore.download_ncro module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_noaa">vtools.datastore.download_noaa module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_nwis">vtools.datastore.download_nwis module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_nwis2">vtools.datastore.download_nwis2 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.download_wdl">vtools.datastore.download_wdl module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.prep_header">vtools.datastore.prep_header module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.process_station_variable">vtools.datastore.process_station_variable module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.read_multi">vtools.datastore.read_multi module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.read_ts">vtools.datastore.read_ts module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.read_usbr">vtools.datastore.read_usbr module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.station_config">vtools.datastore.station_config module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.station_info">vtools.datastore.station_info module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.write_ts">vtools.datastore.write_ts module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore">Module contents</a></li>
 </ul>
 </li>
@@ -149,24 +131,15 @@
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.error_detect">vtools.functions.error_detect module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.example">vtools.functions.example module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.example2">vtools.functions.example2 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.filter">vtools.functions.filter module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.frequency_response">vtools.functions.frequency_response module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interannual">vtools.functions.interannual module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interpolate">vtools.functions.interpolate module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.lag_cross_correlation">vtools.functions.lag_cross_correlation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools-functions-medianad-module">vtools.functions.medianAD module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.merge">vtools.functions.merge module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.period_op">vtools.functions.period_op module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools-functions-regression-test-module">vtools.functions.regression_test module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.skill_metrics">vtools.functions.skill_metrics module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.test_climatology">vtools.functions.test_climatology module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools-functions-test-error-detect-module">vtools.functions.test_error_detect module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools-functions-test-filter-module">vtools.functions.test_filter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.test_filter3">vtools.functions.test_filter3 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.test_lag">vtools.functions.test_lag module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools-functions-test-medianad-module">vtools.functions.test_medianAD module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions">Module contents</a></li>
 </ul>
 </li>
@@ -177,7 +150,7 @@
 </li>
 </ul>
 </div>
-</section>
+</div>
 
 
           </div>
@@ -190,7 +163,7 @@
       &copy;2019, California Department of Water Resources.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

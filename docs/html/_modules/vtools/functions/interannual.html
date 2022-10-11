@@ -1,20 +1,20 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>vtools.functions.interannual &#8212; vtools 3.6.3+13.g0549812.dirty documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.interannual &#8212; vtools 3.6.6+1.g092ced5.dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -51,14 +51,13 @@
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Downloading scripts (standalone)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
@@ -78,12 +77,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -111,6 +110,8 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">calendar</span>
 
+<span class="nb">all</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;interannual&#39;</span><span class="p">,</span><span class="s1">&#39;interannual_ticks_labels&#39;</span><span class="p">]</span>
+
 
 <div class="viewcode-block" id="interannual"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.interannual.interannual">[docs]</a><span class="k">def</span> <span class="nf">interannual</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Pivots years of multiyear series to columns and convert index to elapsed time of year</span>
@@ -134,16 +135,36 @@
     <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">&quot;secondofyear&quot;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;year&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
+
+
+<span class="c1"># These labels and ticks are leap-unaware</span>
+<div class="viewcode-block" id="interannual_ticks_labels"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.interannual.interannual_ticks_labels">[docs]</a><span class="k">def</span> <span class="nf">interannual_ticks_labels</span><span class="p">(</span><span class="n">freq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convenient ticks and labels for interannual</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    freq : Frequency string for desired spacing. Must be &quot;Q&quot;,&quot;QS&quot;,&quot;M&quot;,&quot;MS&quot; for quarterly or monthly</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ticks_labels : tuple of tick locations and labels</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">freq</span> <span class="o">==</span> <span class="s2">&quot;Q&quot;</span> <span class="ow">or</span> <span class="n">freq</span><span class="o">==</span><span class="s2">&quot;QS&quot;</span><span class="p">:</span>
+        <span class="n">quarterly_ticks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dayofyear</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">86400</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">10</span><span class="p">]]</span>
+        <span class="n">quarterly_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Jan&quot;</span><span class="p">,</span><span class="s2">&quot;Apr&quot;</span><span class="p">,</span><span class="s2">&quot;Jul&quot;</span><span class="p">,</span><span class="s2">&quot;Oct&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">quarterly_ticks</span><span class="p">,</span><span class="n">quarterly_labels</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">freq</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span> <span class="ow">or</span> <span class="n">freq</span><span class="o">==</span><span class="s2">&quot;MS&quot;</span><span class="p">:</span>
+        <span class="n">monthly_ticks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dayofyear</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">86400</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)]</span>
+        <span class="n">monthly_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">calendar</span><span class="o">.</span><span class="n">month_abbr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">monthly_ticks</span><span class="p">,</span><span class="n">monthly_labels</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="interannual_sample"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.interannual.interannual_sample">[docs]</a><span class="k">def</span> <span class="nf">interannual_sample</span><span class="p">():</span>
     <span class="n">dr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span> <span class="o">=</span> <span class="s2">&quot;2008-02-06&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;2018-11-02&quot;</span><span class="p">,</span><span class="n">freq</span><span class="o">=</span><span class="s2">&quot;15T&quot;</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">dr</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dr</span><span class="p">))</span><span class="o">/</span><span class="mf">1000.</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">df</span></div>
-
-<span class="c1"># These labels and ticks are leap-unaware</span>
-<span class="n">quarterly_ticks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dayofyear</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">86400</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">10</span><span class="p">]]</span>
-<span class="n">quarterly_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Jan&quot;</span><span class="p">,</span><span class="s2">&quot;Apr&quot;</span><span class="p">,</span><span class="s2">&quot;Jul&quot;</span><span class="p">,</span><span class="s2">&quot;Oct&quot;</span><span class="p">]</span>
-<span class="n">monthly_ticks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dayofyear</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">86400</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)]</span>
-<span class="n">monthly_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">calendar</span><span class="o">.</span><span class="n">month_abbr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">df</span>        </div>
 </pre></div>
 
           </div>
@@ -156,7 +177,7 @@
       &copy;2019, California Department of Water Resources.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

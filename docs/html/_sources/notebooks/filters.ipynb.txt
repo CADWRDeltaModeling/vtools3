@@ -6,14 +6,14 @@
    "source": [
     "# Averging, Filtering and Low Passing Data\n",
     "\n",
-    "VTools provides simple methods for period averaging, filtering and low passing data, particularly tidal data. Basic period averaging and in pareticular daily averaging is easily covered by the regular Pandas API, but can yield unepected results with missing data. Several other tide-compatible filters are available.\n",
+    "VTools provides simple methods for period averaging, filtering and low passing data, particularly tidal data. Basic period averaging and in pareticular daily averaging is easily covered by the regular Pandas API, but some of the most common tools can distort tidal data or yield unepected results with missing data. \n",
     "\n",
-    "Let's start by making a single time series with period 12.4 hours. This "
+    "As an introduction to the topic let's start by making a single time series with three of the most common tidal constituents. This produces a series that is complex enough to be interesting and realistic, but it doesn't have any low frequencies in it, so a reasonable tidal filtration should look like a flat line at zero. "
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 24,
+   "execution_count": 37,
    "metadata": {},
    "outputs": [
     {
@@ -22,7 +22,7 @@
        "Text(0, 0.5, 'm')"
       ]
      },
-     "execution_count": 24,
+     "execution_count": 37,
      "metadata": {},
      "output_type": "execute_result"
     },
@@ -72,19 +72,19 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Now let's work on averaging or filtering the data. create several versions of a daily average on these values. Note that a reasonable/desired outcome is just a line at zero. \n",
+    "Now consider the ways you might averaging or filtering this data. Again note that a reasonable/desired outcome is just a line at zero. \n",
     "\n",
-    "One approach is a 24-hour boxcar average. A boxcar average is one that puts the same weight in all the points in the window. This is not really a daily average because it is a moving window. The output is defined/recalculated at each the original 15min points. The timing won't be centered perfectly even if you calculate the average with the \"center\" option, because there are an even number of samples in 24 hours. Note that in anticipation of missing data in a real signal, the `min_periods` argument is used and set to a number fairly close to the 96 samples per day.\n",
+    "One approach is a 24-hour boxcar average. A boxcar average is moving window average, that puts equal weight in all the points in the window. This is not the same as a daily average because the output is defined/recalculated at each the original 15min points. There is no way to center a 24 hour average so that it is centered perfectly, because there are an even number of samples in 24 hours. The fact that odd numbers are needed for a centered filter may be unintuitive, but just think of your hand -- there is only a middle finger because you have an odd number of fingers. \n",
     "\n",
-    "A true daily average results in one value per day. Pandas can do this with `df.resample('D').mean()`. The time part of the result won't have meaning in this case and you have to consider whether to do something with the index. You also have to watch out for missing data and boundary effects. Pandas may attempt to complete the average with just a few values even though this can cause absurd values near data boundaries or missing data. An example is showin in the plot below, and the value is so bad it had to be truncated. The vtools `period_op` allows you to specify the fraction of allowed missing data which should be set fairly low, say between 0.0 and 0.1. The fact that Pandas doesn't have a switch for this is uncharacteristic -- they  often have arguments in their interfaces (like min_periods for `rolling()` operations) that will help you specify a minimum number of data.  \n",
+    "A true daily average results in one value per day. Pandas can do this with `df.resample('D').mean()`. The time centering of the result won't have much meaning in this case. You also have to watch out for missing data and boundary effects. Pandas may attempt to complete the average even if given just a few values even though this can cause absurd values near data boundaries or missing data. An example is showin in the plot below, and the value is so bad it had to be truncated. The vtools `period_op` allows you to specify the fraction of allowed missing data which should be set fairly low, say between 0.0 and 0.1. The fact that Pandas doesn't have a switch for this is uncharacteristic of their programming interface -- they  often have arguments in a lot of their functions (like min_periods for `rolling()` operations) that will help you specify a minimum number of data.  \n",
     "\n",
-    "Finally, note that the boxcar and daily average are related. A daily average can be thought of as a boxcar that is resampled once per day and then has its timestamp shifted from the middle of the period to the beginning (or sometimes the end) of the period. We've added markers to the VTools daily average to show how daily averages relate to the boxcar. Each green point is a snapshot of the blue boxcar shifted ~12 hours to the left. Sampling the wiggles once per 24 hours causes something called \"aliasing\" where a much lower frequency (14-day signal) is caused by visiting the tidal wiggles once per day in different places in the tide cycle. The main point to keep in mind here is that we've added a apparent content ... and yes, we've seen these spurious signals analyzed as if they were real.\n",
+    "Finally, note that the boxcar and daily average are related. A daily average can be thought of as a boxcar that is subsequently resampled once per day and then had its timestamp shifted from the middle of the period to the beginning (or sometimes the end) of the period. We've added markers to the VTools daily average in the plot below to show the idea of this resampling.  Each green point is a snapshot of the blue boxcar shifted ~12 hours to the left. Sampling the wiggles once per 24 hours causes something called \"aliasing\" where a spurious frequency (14-day signal) is caused by visiting the tidal wiggles once per day in different places in the tide cycle ... and yes, we've seen these spurious signals analyzed as if they were real.\n",
     "\n"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 25,
+   "execution_count": 38,
    "metadata": {},
    "outputs": [
     {
@@ -133,7 +133,7 @@
    "metadata": {},
    "source": [
     "# Filters\n",
-    "So we have some issues because we are trying to use calendar/solar day tools on a tide that is largely lunar in nature. simplest filter you could use in the above case is a boxcar that is more tuned to the 24.8 lunar period. This would be implemented using an averaging period of 25 values for hourly data or 99 15 minute samples. In the code below I've been a bit fussier about the required data, allowing no misisng data and avoiding the \"crazy\" values at the end. As you can see from the blue and orange lines,the issues are reduced in the fillowing plot by half. \n",
+    "Both daily averaging and 24-hour moving averages are problematic for tidal quantities because they are calendar/solar day methods being applied to a signal that is largely lunar in nature. simplest filter you could use in the above case is a boxcar that is more tuned to the 24.8 lunar period. This might be implemented using an averaging period of 25 values for hourly data or 99 15 minute samples. In the code below I've been a bit fussier about the required data, allowing no misisng data and avoiding the \"crazy\" values at the end. As you can see from the blue and orange lines,the issues are reduced in the fillowing plot by half. \n",
     "\n",
     "We can go a bit further and use a real tidal filter. These filters are like moving averages, but their weights are not equal like a boxcar filter. Below are a couple examples. One is the so-called \"Godin\" filter which gained popularity because it could be constructed from successive boxcar ingredients -- one 25 hour boxcar that is centered on the time point under analysis and two 24 hour boxcars that are staggered to the left and right by one sample so that overall they produce a centered effect.\n",
     "\n",
@@ -144,16 +144,16 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 26,
+   "execution_count": 39,
    "metadata": {},
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x1fb4d212848>"
+       "<matplotlib.legend.Legend at 0x1fb4dc7e448>"
       ]
      },
-     "execution_count": 26,
+     "execution_count": 39,
      "metadata": {},
      "output_type": "execute_result"
     },
@@ -193,7 +193,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 27,
+   "execution_count": 40,
    "metadata": {},
    "outputs": [
     {
@@ -236,7 +236,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 28,
+   "execution_count": 41,
    "metadata": {},
    "outputs": [
     {
@@ -299,7 +299,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 30,
+   "execution_count": 42,
    "metadata": {},
    "outputs": [
     {
