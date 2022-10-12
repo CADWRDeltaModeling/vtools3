@@ -1,0 +1,35 @@
+﻿vtools.data.timeseries
+======================
+
+.. automodule:: vtools.data.timeseries
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      datetime_elapsed
+      elapsed_datetime
+      example
+      extrapolate_ts
+      rts
+      rts_formula
+      time_overlap
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

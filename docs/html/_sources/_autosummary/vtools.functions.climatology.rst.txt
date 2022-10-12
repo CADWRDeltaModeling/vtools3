@@ -1,0 +1,31 @@
+vtools.functions.climatology
+============================
+
+.. automodule:: vtools.functions.climatology
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      apply_climatology
+      climatology
+      climatology_quantiles
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,4 +1,4 @@
-"""Top-level package for vtools"""
+"""Top-level package for vtools. Most functions can be directly imported from vtools namespace"""
 
 __author__ = """Eli Ateljevich, Nicky Sandhu, Kijin Nam"""
 __email__ = 'eli@water.ca.gov'

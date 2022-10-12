@@ -1,0 +1,6 @@
+﻿vtools.apply\_climatology
+=========================
+
+.. currentmodule:: vtools
+
+.. autofunction:: apply_climatology

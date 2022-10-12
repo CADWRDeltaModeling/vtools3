@@ -1,0 +1,30 @@
+﻿vtools.functions.period\_op
+===========================
+
+.. automodule:: vtools.functions.period_op
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      period_op
+      window_op
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

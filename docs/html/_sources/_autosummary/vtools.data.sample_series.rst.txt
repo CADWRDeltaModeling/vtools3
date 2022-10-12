@@ -1,0 +1,33 @@
+﻿vtools.data.sample\_series
+==========================
+
+.. automodule:: vtools.data.sample_series
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      bessel_df
+      extra
+      interval
+      jay_flinchem_chirptest
+      small_subtide
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

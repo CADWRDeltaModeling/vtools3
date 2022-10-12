@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vtools &#8212; vtools 3.6.6+1.g092ced5.dirty documentation</title>
+    <title>API Reference &#8212; vtools 3.6.6+5.gc6738b3.dirty documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -17,8 +17,8 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="vtools package" href="vtools.html" />
-    <link rel="prev" title="Averging, Filtering and Low Passing Data" href="notebooks/filters.html" />
+    <link rel="next" title="vtools" href="_autosummary/vtools.html" />
+    <link rel="prev" title="Credits" href="authors.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -60,21 +60,24 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vtools.html">vtools package</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/climatology.html">Fitting and using a climatology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/vtools.html">vtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/vtools.climatology.html">vtools.climatology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/vtools.climatology_quantiles.html">vtools.climatology_quantiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/vtools.apply_climatology.html">vtools.apply_climatology</a></li>
+</ul>
+</li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="notebooks/filters.html" title="previous chapter">Averging, Filtering and Low Passing Data</a></li>
-      <li>Next: <a href="vtools.html" title="next chapter">vtools package</a></li>
+      <li>Previous: <a href="authors.html" title="previous chapter">Credits</a></li>
+      <li>Next: <a href="_autosummary/vtools.html" title="next chapter">vtools</a></li>
   </ul></li>
 </ul>
 </div>
@@ -106,50 +109,28 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="vtools">
-<h1>vtools<a class="headerlink" href="#vtools" title="Permalink to this heading">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="vtools.html">vtools package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vtools.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vtools.data.html">vtools.data package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.gap">vtools.data.gap module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.sample_series">vtools.data.sample_series module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.timeseries">vtools.data.timeseries module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.vtime">vtools.data.vtime module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vtools.datastore.html">vtools.datastore package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.read_ts">vtools.datastore.read_ts module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html">vtools.functions package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.error_detect">vtools.functions.error_detect module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.example2">vtools.functions.example2 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.filter">vtools.functions.filter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.frequency_response">vtools.functions.frequency_response module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interannual">vtools.functions.interannual module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interpolate">vtools.functions.interpolate module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.lag_cross_correlation">vtools.functions.lag_cross_correlation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.merge">vtools.functions.merge module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.period_op">vtools.functions.period_op module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.skill_metrics">vtools.functions.skill_metrics module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vtools.html#module-vtools">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h1>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/vtools.html#module-vtools" title="vtools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vtools</span></code></a></p></td>
+<td><p>Top-level package for vtools.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/vtools.climatology.html#vtools.climatology" title="vtools.climatology"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vtools.climatology</span></code></a>(ts, freq[, nsmooth])</p></td>
+<td><p>&quot; Create a climatology on the columns of ts</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/vtools.climatology_quantiles.html#vtools.climatology_quantiles" title="vtools.climatology_quantiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vtools.climatology_quantiles</span></code></a>(ts, ...[, ...])</p></td>
+<td><p>&quot; Create windowed quantiles across years on a time series</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/vtools.apply_climatology.html#vtools.apply_climatology" title="vtools.apply_climatology"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vtools.apply_climatology</span></code></a>(climate, index)</p></td>
+<td><p>Apply daily or monthly climatology to a new index</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 
 

@@ -1,7 +1,19 @@
-vtools
-======
+API Reference
+=============
 
-.. toctree::
-   :maxdepth: 4
+
+
+
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
 
    vtools
+   vtools.climatology
+   vtools.climatology_quantiles
+   vtools.apply_climatology
+   
+
+   
+   
+

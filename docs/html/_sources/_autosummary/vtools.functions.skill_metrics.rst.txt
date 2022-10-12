@@ -1,0 +1,36 @@
+﻿vtools.functions.skill\_metrics
+===============================
+
+.. automodule:: vtools.functions.skill_metrics
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      _main
+      corr_coefficient
+      mean_error
+      median_error
+      mse
+      rmse
+      skill_score
+      tmean_error
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

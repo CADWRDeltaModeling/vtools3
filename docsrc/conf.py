@@ -42,16 +42,20 @@ def setup(app):
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['nbsphinx', 'sphinx.ext.mathjax',
-          'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
+          'sphinx.ext.viewcode',
           'matplotlib.sphinxext.mathmpl',
           'matplotlib.sphinxext.plot_directive',
           'sphinx.ext.intersphinx',
           'sphinx.ext.autodoc',
+          'sphinx.ext.autosummary',
           'sphinxarg.ext',
           'sphinx.ext.doctest',
           'numpydoc']
 
 autodoc_member_order = 'alphabetical'
+autosummary_generate = True
+autosummary_imported_members = False
+          
           
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -104,6 +108,7 @@ exclude_patterns = ['*test*','_build','**.ipynb_checkpoints']
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
 add_module_names = False
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 

@@ -11,10 +11,13 @@ VTools represents a toolset for time series processing that the Delta Modeling S
    Introduction and concepts <concepts>
    Interpolation <interpolation>
    Averaging and Filtering <notebooks/filters.ipynb>
-   API Documentation <modules>
+   Fitting and using a climatology <notebooks/climatology.ipynb>
    Contributing <contributing>
    Authors <authors>
-   History <history>
+   API Reference <modules>
+
+
+
 
 Indices and tables
 ==================

@@ -1,0 +1,37 @@
+﻿vtools.functions.filter
+=======================
+
+.. automodule:: vtools.functions.filter
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      _gf1d
+      butterworth
+      convert_span_to_nstep
+      cosine_lanczos
+      generate_godin_fir
+      godin
+      lowpass_cosine_lanczos_filter_coef
+      process_cutoff
+      ts_gaussian_filter
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

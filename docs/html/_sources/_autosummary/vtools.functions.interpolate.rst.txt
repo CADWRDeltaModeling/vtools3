@@ -1,0 +1,38 @@
+﻿vtools.functions.interpolate
+============================
+
+.. automodule:: vtools.functions.interpolate
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      _ratsp1
+      example
+      interpolate_to_index
+      monotonic_spline
+      rhist
+      rhist_bound
+      rhist_coef
+      rhist_val
+      rhistinterp
+      tridiagonal
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

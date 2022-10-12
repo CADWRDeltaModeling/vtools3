@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vtools.functions.climatology &#8212; vtools 3.6.6+1.g092ced5.dirty documentation</title>
+    <title>vtools.functions.climatology &#8212; vtools 3.6.6+5.gc6738b3.dirty documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -58,10 +58,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
 </ul>
 
 <div class="relations">
@@ -111,7 +111,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;climatology&#39;</span><span class="p">,</span><span class="s1">&#39;apply_climatology&#39;</span><span class="p">,</span><span class="s1">&#39;climatology_quantiles&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="climatology"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.climatology.climatology">[docs]</a><span class="k">def</span> <span class="nf">climatology</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">freq</span><span class="p">,</span><span class="n">nsmooth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="climatology"><a class="viewcode-back" href="../../../_autosummary/vtools.climatology.html#vtools.climatology">[docs]</a><span class="k">def</span> <span class="nf">climatology</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">freq</span><span class="p">,</span><span class="n">nsmooth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;&quot; Create a climatology on the columns of ts</span>
 
 <span class="sd">        Parameters</span>
@@ -124,7 +124,7 @@
 <span class="sd">        Period over which the climatology is analyzed</span>
 
 <span class="sd">        nsmooth: int</span>
-<span class="sd">           window size (number of values) of pre-smoothing. This may not make sense for series that are not approximately regular.</span>
+<span class="sd">           window size (number of values) of pre-smoothing. This may not make sense for series that are not approximately regular. An odd number is usually best.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">           out: DataFrame or Series</span>
@@ -163,7 +163,7 @@
     <span class="k">return</span> <span class="n">climatology_data</span></div>
             
 
-<div class="viewcode-block" id="climatology_quantiles"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.climatology.climatology_quantiles">[docs]</a><span class="k">def</span> <span class="nf">climatology_quantiles</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">min_day_year</span><span class="p">,</span><span class="n">max_day_year</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">climatology_quantiles</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="n">min_day_year</span><span class="p">,</span><span class="n">max_day_year</span><span class="p">,</span>
                           <span class="n">window_width</span><span class="p">,</span>
                           <span class="n">quantiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.75</span><span class="p">,</span><span class="mf">0.95</span><span class="p">]):</span>
     <span class="sd">&quot;&quot;&quot;&quot; Create windowed quantiles across years on a time series</span>
@@ -208,7 +208,7 @@
         <span class="n">qs</span> <span class="o">=</span> <span class="n">usets</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>        
         <span class="n">clim</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">imid</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">clim</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;day_of_year&#39;</span>
-    <span class="k">return</span> <span class="n">clim</span></div>
+    <span class="k">return</span> <span class="n">clim</span>
 
 <span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -223,7 +223,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="apply_climatology"><a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.climatology.apply_climatology">[docs]</a><span class="k">def</span> <span class="nf">apply_climatology</span><span class="p">(</span><span class="n">climate</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">apply_climatology</span><span class="p">(</span><span class="n">climate</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot; Apply daily or monthly climatology to a new index </span>
 
@@ -259,7 +259,7 @@
         <span class="n">out</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">rowFunc2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                
     
-    <span class="k">return</span> <span class="n">out</span></div>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 </pre></div>

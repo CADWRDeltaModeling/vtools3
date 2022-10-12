@@ -20,7 +20,7 @@ def climatology(ts,freq,nsmooth=None):
         Period over which the climatology is analyzed
 
         nsmooth: int
-           window size (number of values) of pre-smoothing. This may not make sense for series that are not approximately regular.
+           window size (number of values) of pre-smoothing. This may not make sense for series that are not approximately regular. An odd number is usually best.
 
         Returns:
            out: DataFrame or Series

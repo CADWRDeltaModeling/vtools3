@@ -1,0 +1,32 @@
+﻿vtools.data.gap
+===============
+
+.. automodule:: vtools.data.gap
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      example_gap
+      gap_count
+      gap_distance
+      gap_size
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

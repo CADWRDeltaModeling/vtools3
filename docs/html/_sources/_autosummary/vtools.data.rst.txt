@@ -1,0 +1,34 @@
+vtools.data
+===========
+
+.. automodule:: vtools.data
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   vtools.data.gap
+   vtools.data.sample_series
+   vtools.data.timeseries
+   vtools.data.vtime
+

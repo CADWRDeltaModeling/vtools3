@@ -1,0 +1,35 @@
+vtools.data.vtime
+=================
+
+.. automodule:: vtools.data.vtime
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      days
+      dst_to_standard_naive
+      hours
+      minutes
+      months
+      seconds
+      years
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

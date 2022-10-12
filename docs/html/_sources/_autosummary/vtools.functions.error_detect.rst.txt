@@ -1,0 +1,39 @@
+﻿vtools.functions.error\_detect
+==============================
+
+.. automodule:: vtools.functions.error_detect
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      _nrepeat
+      despike
+      example
+      example2
+      med_outliers
+      med_outliers2
+      median_test
+      nrepeat
+      rolling_window
+      steep_then_nan
+      threshold
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
