@@ -17,11 +17,9 @@ build:
   script: {{ PYTHON }} -m pip install --no-deps --ignore-installed -vv .
   noarch: python
   entry_points:
-    - download_noaa = vtools.datastore.download_noaa:main
-    - download_cdec = vtools.datastore.download_cdec:main
-    - download_wdl = vtools.datastore.download_wdl:main
-    - download_nwis = vtools.datastore.download_nwis:main
-    - station_info = vtools.datastore.station_info:main
+  {% for entry in data['entry_points']['console_scripts'] %}
+    - {{ entry.split('=')[0].strip() }} = {{ entry.split('=')[1].strip() }}
+  {% endfor %}
 
 
 requirements:
