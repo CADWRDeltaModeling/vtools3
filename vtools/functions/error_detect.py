@@ -203,6 +203,80 @@ def med_outliers(ts,level=4.,scale = None,\
     warnings.resetwarnings()
     return ts_out
 
+def med_outliers7(ts,level=4.,scale = None,\
+                 filt_len=7,range=(None,None),
+                 quantiles = (0.01,0.99),
+                 copy = True,as_anomaly=False):
+    """
+    Detect outliers by running a median filter, subtracting it
+    from the original series and comparing the resulting residuals
+    to a global robust range of scale (the interquartile range).
+    Individual time points are rejected if the residual at that time point is more than level times the range of scale. 
+
+    The original concept comes from Basu & Meckesheimer (2007)
+    Automatic outlier detection for time series: an application to sensor data
+    although they didn't use the interquartile range but rather
+    expert judgment. To use this function effectively, you need to
+    be thoughtful about what the interquartile range will be. For instance,
+    for a strongly tidal flow station it is likely to 
+    
+    level: Number of times the scale or interquantile range the data has to be
+           to be rejected.d
+
+    scale: Expert judgment of the scale of maximum variation over a time step.
+           If None, the interquartile range will be used. Note that for a 
+           strongly tidal station the interquartile range may substantially overestimate the reasonable variation over a single time step, in which case the filter will work fine, but level should be set to 
+           a number (less than one) accordingly.
+
+    filt_len: length of median filter, default is 5
+    
+    quantiles : tuple of quantiles defining the measure of scale. Ignored
+          if scale is given directly. Default is interquartile range, and
+          this is almost always a reasonable choice.
+
+    copy: if True, a copy is made leaving original series intact
+
+    You can also specify rejection of  values based on a simple range
+
+    Returns: copy of series with outliers replaced by nan
+    """
+    import warnings
+    ts_out = ts.copy() if copy else ts
+    warnings.filterwarnings("ignore")
+    
+    if range is not None:
+        threshold(ts_out,range,copy=False)
+
+    vals = ts_out.to_numpy()
+    #if ts_out.ndim == 1:
+    #    filt = medfilt(vals,filt_len)
+    #else:
+    #    filt = np.apply_along_axis(medfilt,0,vals,filt_len)
+    
+    def mseq(flen):
+        halflen = flen//2
+        a = np.arange(0,halflen)
+        b = np.arange(halflen+1,flen)
+        return np.concatenate((a,b))
+    medseq = mseq(filt_len)
+    filt = ts_out.rolling(filt_len,center=True,axis=0).apply(lambda x: np.nanmedian(x[medseq]))
+
+    res = ts_out - filt
+
+
+    if scale is None:
+        qq = res.quantile( q=quantiles)
+        scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
+
+    anomaly = (res.abs() > level*scale) | (res.abs() < -level*scale)
+    if as_anomaly: 
+        return anomaly   
+    # apply anomaly by setting values to nan
+    values = np.where(anomaly,np.nan,ts_out.values)
+    ts_out.iloc[:]= values
+    warnings.resetwarnings()
+    return ts_out
+
 
 def gapdist_test_series(ts,smallgaplen=0):
     test_gap = ts.copy()
