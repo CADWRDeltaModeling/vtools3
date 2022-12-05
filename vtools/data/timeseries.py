@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """ Time series module
 Helpers for creating regular and irregular time series, transforming irregular to regular
 and analyzing gaps.
 """
 import sys
+import numpy as np
+import pandas as pd
 from vtools.data.vtime import *
 import datetime as _datetime
-import numpy as np
+
 
 __all__ = ["time_overlap","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
 
@@ -253,7 +258,8 @@ def elapsed_datetime(index_or_ts,reftime=None,time_unit='s',inplace=False):
     result : 
         A new index using DatetimeIndex inferred from elapsed time from `reftime` as its value and of type `dtype`
         
-    """        
+    """
+
     try:
         ndx = index_or_ts.index
         input_index = False
