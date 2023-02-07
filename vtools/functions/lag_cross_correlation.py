@@ -98,7 +98,7 @@ def calculate_lag(lagged,base,max_lag,res,
     try:
         lagres = brent(mincrosscorr,args=(base,lagged_hr),brack=bracket)
     except ValueError as e0:
-        if "bracketing" in str(e0):
+        if "bracketing" in str(e0).lower():
             arglist = list(e0.args)
             arglist[0] = e0.args[0]+" Argument max_interval may not contain a maximizing lag"
             e0.args = tuple(arglist)
