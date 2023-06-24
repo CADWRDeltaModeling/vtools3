@@ -13,12 +13,12 @@ with open('README.md') as readme_file:
 #                "scipy>=1.2", 
 #                "beautifulsoup4>=4.8"]
 
-requirements = [numpy, 
-                pandas, 
-                xarray, 
-                matplotlib, 
-                scikit-learn, 
-                scipy]
+requirements = ["numpy", 
+                "pandas", 
+                "xarray", 
+                "matplotlib", 
+                "scikit-learn", 
+                "scipy"]
 
 
 
