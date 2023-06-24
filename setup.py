@@ -6,12 +6,21 @@ import versioneer
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ["numpy>=1.19,<2", 
-                "pandas>=0.23",
-                "matplotlib",
-                "scikit-learn",
-                "scipy>=1.2", 
-                "beautifulsoup4>=4.8"]
+#requirements = ["numpy>=1.19,<2", 
+#                "pandas>=0.23",
+#                "matplotlib",
+#                "scikit-learn",
+#                "scipy>=1.2", 
+#                "beautifulsoup4>=4.8"]
+
+requirements = [numpy, 
+                pandas, 
+                xarray, 
+                matplotlib, 
+                scikit-learn, 
+                scipy]
+
+
 
 extras = {"tests":"pytest",
           "docs": ["nbsphinx","sphinx-argparse","numpydoc"]}
