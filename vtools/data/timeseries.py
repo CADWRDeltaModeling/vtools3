@@ -12,8 +12,14 @@ from vtools.data.vtime import *
 import datetime as _datetime
 
 
-__all__ = ["time_overlap","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime"]
+__all__ = ["time_overlap","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime","to_dataframe"]
 
+def to_dataframe(ts):
+    if isinstance(ts,pd.DataFrame):
+        return ts
+    else:
+        return ts.to_frame()
+      
 
 def time_overlap(ts0,ts1,valid=True):
     """Check for overlapping time coverage between series
