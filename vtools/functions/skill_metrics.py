@@ -91,6 +91,35 @@ def skill_score(predictions,targets,ref=None):
         ref = targets.mean()
             
     return 1.0 - (mse(predictions,targets)/mse(ref,targets))
+    
+    
+def willmott_score(predictions,targets,ref=None):
+    """Calculate a Nash-Sutcliffe-like skill score based on mean squared error
+       
+       As per the discussion in Murphy (1988) other reference forecasts (climatology, 
+       harmonic tide, etc.) are possible.
+       
+       Parameters
+       ----------
+       predictions, targets : array_like
+           Time series or arrays to be analyzed
+       
+       Returns
+       -------
+       rmse : float
+           Root mean squared error
+    """
+    if not ref:
+        ref = targets.mean()
+    n=len(predictions)        
+    a=mse(predictions,targets)
+    b=mse(ref,targets)
+    c=mse(ref,predictions)
+    e=np.abs(mean_error(predictions,ref,None))
+    f=np.abs(mean_error(targets,ref,None))
+    
+    score=1.0-a/(b+c+2*e*f*n)
+    return score
 
     
 def tmean_error(predictions,targets,limits=None,inclusive=[True,True]):
