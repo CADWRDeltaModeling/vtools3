@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+import dask.dataframe as dd
 import numpy as np
 import numpy.ma as ma
 import pandas as pd
@@ -12,6 +13,7 @@ from scipy.stats.mstats import mquantiles
 from scipy.stats import iqr as scipy_iqr
 
 from vtools.data.gap import *
+from vtools.data.timeseries import to_dataframe
 
 
 '''
@@ -100,28 +102,42 @@ def threshold(ts,bounds,copy=True):
             ts_out.mask(ts_out > bounds[1],inplace=True)  
     return ts_out
 
+def bounds_test(ts,bounds):
+    anomaly = pd.DataFrame(dtype=bool).reindex_like(ts)
+    anomaly[:] = False
+    if bounds is not None:
+        if bounds[0] is not None:
+            anomaly |= ts < bounds[0]
+        if bounds[1] is not None:
+            anomaly |= ts > bounds[1]           
+    return anomaly
+
+
 def median_test(ts, level = 4, filt_len = 7, quantiles=(0.005,0.095),copy = True):
     return med_outliers(ts,level=level,filt_len=filt_len, quantiles=quantiles,copy=False,as_anomaly=True)
 
+
 def median_test_oneside(ts, scale=None,level = 4, filt_len = 6, quantiles=(0.005,0.095),
-                        copy = True,reverse=False):
+                        copy = True,reverse=False):    
+    if copy: 
+        ts=ts.copy()
     kappa = filt_len//2
-    ts.to_csv("forward.csv")
     if reverse:
         original_index = ts.index
         vals = ts[::-1] 
-        #vals.reset_index(inplace=True,drop=True)
     else: 
         vals = ts
-    vals = vals.to_frame()
+    vals = to_dataframe(vals)
     vals.columns=["ts"]
 
     vals["z"]=vals.ts.diff()
     min_periods = kappa*2 - 1
-    vals['my']= vals['ts'].shift().rolling(kappa*2,min_periods=min_periods).median()
-    vals['mz'] =vals.z.shift().rolling(kappa*2,min_periods=min_periods).median()
-    vals['pred'] = vals.my + kappa*vals.mz
-    res = vals.ts - vals.pred
+    
+    dds = dd.from_pandas(vals,npartitions=50)
+    dds['my'] = dds['ts'].shift().rolling(kappa*2,min_periods=min_periods).median()
+    dds['mz'] = dds.z.shift().rolling(kappa*2,min_periods=min_periods).median()
+    dds['pred'] = dds.my + kappa*dds.mz    
+    res = (dds.ts - dds.pred).compute()
     if scale is None:
         qq = res.quantile( q=quantiles)
         scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
@@ -130,11 +146,10 @@ def median_test_oneside(ts, scale=None,level = 4, filt_len = 6, quantiles=(0.005
     if reverse: 
         anomaly = anomaly[::-1]
         anomaly.index = original_index
-        #print("anomaly",reverse,anomaly.loc[pd.Timestamp(2003,3,26,18)])
-        #print("vals",vals.loc[pd.Timestamp(2003,3,26,18),:])
 
-    #anomaly=anomaly #.astype(int)
     return anomaly
+
+
 
 def med_outliers(ts,level=4.,scale = None,\
                  filt_len=7,range=(None,None),
@@ -203,10 +218,12 @@ def med_outliers(ts,level=4.,scale = None,\
     warnings.resetwarnings()
     return ts_out
 
-def med_outliers7(ts,level=4.,scale = None,\
-                 filt_len=7,range=(None,None),
+
+
+def median_test_twoside(ts,level=4.,scale = None,\
+                 filt_len=7,
                  quantiles = (0.01,0.99),
-                 copy = True,as_anomaly=False):
+                 copy = True,as_anomaly=True):
     """
     Detect outliers by running a median filter, subtracting it
     from the original series and comparing the resulting residuals
@@ -243,9 +260,7 @@ def med_outliers7(ts,level=4.,scale = None,\
     import warnings
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
-    
-    if range is not None:
-        threshold(ts_out,range,copy=False)
+
 
     vals = ts_out.to_numpy()
     #if ts_out.ndim == 1:
@@ -259,16 +274,16 @@ def med_outliers7(ts,level=4.,scale = None,\
         b = np.arange(halflen+1,flen)
         return np.concatenate((a,b))
     medseq = mseq(filt_len)
-    filt = ts_out.rolling(filt_len,center=True,axis=0).apply(lambda x: np.nanmedian(x[medseq]))
-
-    res = ts_out - filt
-
+    
+    dds = dd.from_pandas(ts_out,npartitions=50)
+    filt = dds.rolling(filt_len,center=True,axis=0).apply(lambda x: np.nanmedian(x[medseq]),raw=True,engine='numba').compute()
+    res = (ts_out - filt)
 
     if scale is None:
         qq = res.quantile( q=quantiles)
         scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
 
-    anomaly = (res.abs() > level*scale) | (res.abs() < -level*scale)
+    anomaly = ((res.abs() > level*scale) | (res.abs() < -level*scale))
     if as_anomaly: 
         return anomaly   
     # apply anomaly by setting values to nan
@@ -284,7 +299,7 @@ def gapdist_test_series(ts,smallgaplen=0):
     testgapnull = test_gap.isnull()
     is_small_gap = (gapcount <= smallgaplen)
     smallgap = testgapnull & is_small_gap
-    test_gap.loc[smallgap] = -99999999.
+    test_gap.where(~smallgap,-99999999.,inplace=True)
     return test_gap
 
 def steep_then_nan(ts,level=4.,scale = None,\
@@ -371,77 +386,12 @@ def steep_then_nan(ts,level=4.,scale = None,\
     if not as_anomaly:
         values = np.where(outlier,np.nan,ts_out.values)
         ts_out.iloc[:]= values
-
     warnings.resetwarnings()
-    
-    
     return outlier if as_anomaly else ts_out
 
 
 
 
-def med_outliers2(ts,secfilt=True,level=3.0,scale=None,filt_len=7,
-                 quantiles=(25,75),seclevel=3.0,secscale=None,
-                 secfilt_len=241,secquantiles=(25,75),copy=True):
-
-    import warnings
-    ts_out = ts.copy() if copy else ts
-    warnings.filterwarnings("ignore")
-    
-    #Secondary filter - median filter is first applied on a larger scale
-    # todo: reroute to scipy.ndimage.median_filter
-    if secfilt:
-        if ts_out.ndim == 1:
-            filt = medfilt(ts_out,secfilt_len)
-        else:
-            filt = np.apply_along_axis(medfilt,0,ts_out,secfilt_len)
-        res = ts_out - filt
-
-
-        for k in range(len(ts.data)):
-            if not secscale:
-                slicelow = int(max(0, k-((secfilt_len - 1)/2)))
-                slicehigh = int(min(len(ts.data), k + ((secfilt_len - 1)/2) + 1))
-                rwindow = ts.data[slicelow:slicehigh]
-                iqr = scipy_iqr(rwindow[~np.isnan(rwindow)], None, secquantiles)
-            else:
-                iqr = secscale
-                
-            if (res[k] > seclevel*iqr) or (res[k] < -seclevel*iqr):
-                ts_out.data[k]= np.nan
-
-    #Main filter - performs a median filter on the data
-    #ts_out.data = ts_out.data.flatten()
-    if ts_out.ndim == 1:
-        filt = medfilt(ts_out.values,filt_len)
-    else:
-        filt = np.apply_along_axis(medfilt,0,ts_out.values,filt_len)
-    res = ts_out - filt
-
-    for k in range(len(ts.data)):
-        if not scale:
-            slicelow = int(max(0, k-((filt_len - 1)/2)))
-            slicehigh = int(min(len(ts.data), k + ((filt_len - 1)/2) + 1))
-            rwindow = ts.data[slicelow:slicehigh]
-            iqr = scipy_iqr(rwindow[~np.isnan(rwindow)], None, secquantiles)
-            #low,high = mquantiles(rwindow[~ np.isnan(rwindow)],quantiles)
-            #iqr = high - low
-        else:
-            iqr = scale
-
-        if (res[k] > level*iqr) or (res[k] < -level*iqr):
-            ts_out.iloc[:,k]= np.nan
-
-    warnings.resetwarnings()
-
-    filt = None #rts(filt,ts.start,ts.interval)
-
-    return ts_out
-
-def rolling_window(data, block):
-    shape = data.shape[:-1] + (data.shape[-1] - block + 1, block)
-    strides = data.strides + (data.strides[-1],)
-    return np.lib.stride_tricks.as_strided(data, shape=shape, strides=strides)
 
 
 def despike(arr, n1=2, n2=20, block=10):

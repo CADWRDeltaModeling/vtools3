@@ -4,6 +4,7 @@
 import numpy as np
 import pandas as pd
 
+
 __all__ = ['climatology','apply_climatology','climatology_quantiles']
 
 
@@ -108,7 +109,7 @@ def climatology_quantiles(ts,min_day_year,max_day_year,
 
 if __name__=='__main__':
     import matplotlib.pyplot as plt
-    from vtools.datastore.read_ts import read_ts
+    from dms_datastore.read_ts import read_ts
     fname = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/des_twi_405_turbidity_*.csv"
     fname = "//cnrastore-bdo/Modeling_Data/continuous_station_repo/raw/usgs_lib*turbidity*.rdb"
     selector = "16127_63680"

@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from vtools.datastore import download_cimis
+from dms_datastore import download_cimis
 
 def test_download_davis():
     davisdf=download_cimis.fetch_data(6)

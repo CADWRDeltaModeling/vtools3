@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import matplotlib.pyplot as plt
-from vtools.datastore.read_ts import *
+from dms_datastore.read_ts import *
 
 import pandas as pd
 import numpy as np
