@@ -6,7 +6,6 @@ from numpy import abs
 import pandas as pd
 import numpy as np
 from vtools.data.vtime import seconds, minutes, hours
-from scipy import array as sciarray
 from scipy.signal import lfilter,firwin,filtfilt
 from scipy.signal.filter_design import butter
 from scipy.ndimage import gaussian_filter1d
