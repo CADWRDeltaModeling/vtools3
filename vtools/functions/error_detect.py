@@ -437,7 +437,7 @@ def example():
 
 def example2():
     data = np.arange(32)*2. + np.cos(np.arange(32)*2*np.pi/24.)
-    ndx = pd.date_range(pd.Timestamp(2000,1,1),periods = len(data),freq="15T")
+    ndx = pd.date_range(pd.Timestamp(2000,1,1),periods = len(data),freq="15min")
     df = pd.DataFrame(data=data,index=ndx)
     median_test_oneside(df,quantiles=(0.25,0.75),level=2)
 
