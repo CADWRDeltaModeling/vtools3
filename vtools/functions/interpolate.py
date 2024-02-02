@@ -51,7 +51,7 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
         ndx_left = ts.index.to_timestamp(how='s')
     except AttributeError:
         raise ValueError("Time series to interpolate must have PeriodIndex") 
-    ndx_right = ts.index.to_timestamp(how='e').round('S')
+    ndx_right = ts.index.to_timestamp(how='e').round('s')
     ndx = ndx_left.union(ndx_right)
 
     strt = ndx[0] 
