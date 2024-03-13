@@ -200,7 +200,7 @@ def med_outliers(ts,level=4.,scale = None,\
     #    filt = medfilt(vals,filt_len)
     #else:
     #    filt = np.apply_along_axis(medfilt,0,vals,filt_len)
-    filt = ts_out.rolling(filt_len,center=True,axis=0).median()
+    filt = ts_out.rolling(filt_len,center=True).median()
 
     res = ts_out - filt
 
@@ -276,7 +276,7 @@ def median_test_twoside(ts,level=4.,scale = None,\
     medseq = mseq(filt_len)
     
     dds = dd.from_pandas(ts_out,npartitions=50)
-    filt = dds.rolling(filt_len,center=True,axis=0).apply(lambda x: np.nanmedian(x[medseq]),raw=True,engine='numba').compute()
+    filt = dds.rolling(filt_len,center=True).apply(lambda x: np.nanmedian(x[medseq]),raw=True,engine='numba').compute()
     res = (ts_out - filt)
 
     if scale is None:
