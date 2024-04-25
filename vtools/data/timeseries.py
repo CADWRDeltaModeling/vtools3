@@ -280,7 +280,7 @@ def elapsed_datetime(index_or_ts,reftime=None,time_unit='s',inplace=False):
         elif time_unit.lower()=="d": ndx=ndx*86400.
         elif time_unit.lower()=="s": pass
         else: raise ValueError("time unit must be 's','h',or 'd'")
-        dtndx = reftime + pd.TimedeltaIndex(data=ndx,unit='s')
+        dtndx = reftime + pd.to_timedelta(arg=ndx, unit="s")
 
     if input_index: 
         return dtndx
