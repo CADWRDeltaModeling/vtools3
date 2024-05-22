@@ -62,7 +62,6 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
         dest = pd.date_range(start = strt, end = end, freq = dest)
     xnew = (dest-strt).total_seconds().to_numpy()
     
-    
     try:
         cols = ts.columns
     except:
@@ -73,15 +72,24 @@ def rhistinterp(ts,dest, p=2., lowbound=None, tolbound=1.e-3,maxiter=5):
         out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
         result = pd.Series(data=out,index = dest) 
     else:
-        result = pd.DataFrame([],index=dest)
+        def col_interpolator(col,x,xnew,dest,lbound,p,maxiter):
+            print(col.shape)
+            #x = (ndx - strt).total_seconds().to_numpy()
+            y = col
+            return rhist_bound(x,y,xnew=xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
+        res = []
         for col in cols:
             y = ts[col].to_numpy()
-            try:
-                out = rhist_bound(x,y,xnew,y0=y[0],yn=y[-1],lbound=lowbound,p=p,maxiter=maxiter)
-            except:
-                raise ValueError("In rhist_bound, error or could not meet lower bound in column {}".format(col))
-            result[col] = out
-        result = result[cols]
+            interpolated = rhist_bound(x,y,xnew=xnew,y0=y[0],yn=y[-1],
+                               lbound=lowbound,p=p,maxiter=maxiter)
+            result = pd.Series(data=interpolated,index=dest,name=col)
+            res.append(result)
+        
+        result = pd.concat(res,axis=1)
+        #result = ts.apply(col_interpolator,raw=True,
+        #                  x=x,xnew=xnew,dest=dest,lbound=lowbound,p=p,maxiter=maxiter)
+        #result = pd.DataFrame([],index=dest)
+        result.index = dest
    
     return result    
 
@@ -139,8 +147,9 @@ def rhist_bound(x,y,xnew,y0,yn,p,lbound=None,
         Array that interpolates the original data, on a curve that conserves mass and strictly observes the lower bound.
 
     """
-    if type(p) == float:
-        p = np.ones_like(y)*p
+    if type(p) in (int, float):
+        p = np.ones_like(y,dtype=float)*p
+    
     q=p
     ynew = rhist(x,y,xnew,y0,yn,p,q)
     if lbound != None:
@@ -156,12 +165,14 @@ def rhist_bound(x,y,xnew,y0,yn,p,lbound=None,
             q[bad_ndx_left] *= pfactor
             ynew = rhist(x,y,xnew,y0,yn,p,q)
             bound_viol = lbound - ynew.min()
+            
         if bound_viol <= floor_eps:
             if bound_viol < 0.: 
                 return ynew
             else:
                 return np.maximum(ynew,lbound)
         else:
+            print(ynew.min())
             raise Exception("Failed to meet lower bound criterion within maxiter iterations")
     return ynew
 
