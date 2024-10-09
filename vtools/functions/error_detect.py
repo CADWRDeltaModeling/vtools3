@@ -275,7 +275,7 @@ def median_test_twoside(ts,level=4.,scale = None,\
         return np.concatenate((a,b))
     medseq = mseq(filt_len)
     
-    dds = dd.from_pandas(ts_out,npartitions=50)
+    dds = dd.from_pandas(ts_out,npartitions=1)
     filt = dds.rolling(filt_len,center=True).apply(lambda x: np.nanmedian(x[medseq]),raw=True,engine='numba').compute()
     res = (ts_out - filt)
 
