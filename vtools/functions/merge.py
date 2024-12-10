@@ -6,14 +6,24 @@ import pandas as pd
 __all__ = ["ts_merge","ts_splice"]
 
 
-def ts_merge(series):
+def ts_merge(series, names=None):
     """ merge a number of timeseries together and return a new ts.
-    Similar to concatenate, but provides more control over order in cases of overlap
+    Similar to concatenate, but provides more control over priorities in cases of overlap. In the present case, the series
+    are used in order of priority, but all of them could potentially be used to fill a particular point. This is often not what you
+    might want, particularly for irregular time series with slightly different stamps, in which case ts_splice is the right tool
 
     Parameters
     ----------
-    series  :  tuple(:class:`DataFrame <pandas:pandas.DataFrame>`) or tuple(:class:`DataArray) <xarray:xarray.DataArray>`
-        Series ranked from hight to low priority              
+    series  :  tuple(:class:`DataFrame <pandas:pandas.DataFrame>`) 
+        Series ranked from high to low priority
+
+    names : str or list or iterable of str representing column names. 
+        If None, the default, the input series must share common names across all columns and not doing so will raise a ValueError.
+    Otherwise if a string, all the DataFrame inputs must have the same number of columns as `names`, the outputs will be merged based on position as if these
+    were the column names. Note that this may be an inherently dangerous operation if you aren't sure the columns line up. It is a big convenience for 
+    univariate series
+    
+        
     Returns
     -------    
     merged : :class:`DataFrame <pandas:pandas.DataFrame>`
@@ -26,11 +36,11 @@ def ts_merge(series):
     # this concatenates, leaving redundant indices in df0, df1, df2
     # we are not doing the real work yet, just getting the right indexes
     # this doesn't seem super efficient, but good enough for a start     
-    dfmerge = pd.concat(series, sort=True)
+    dfmerge = pd.concat(series, axis=0, sort=True)
     
     # This populates with the values from the highest series 
     # It is a bug for the first series to have a duplicate index
-    series0 =series[0][~series[0].index.duplicated(keep='first')]
+    series0 =series[0].loc[~series[0].index.duplicated(keep='first')]
     dfmerge = series0.reindex(dfmerge.index)  
 
     # drop duplicate indices
@@ -40,16 +50,23 @@ def ts_merge(series):
         dfmerge = dfmerge.combine_first(ddf)
     return dfmerge
     
-def ts_splice(tss,transition="prefer_last",floor_dates=False):
-    """ splice a number of timeseries together in a non-overlapping way. 
+def ts_splice(tss,names=None,transition="prefer_last",floor_dates=False):
+    """ splice a number of timeseries together in a chronological, non-overlapping way. 
     The function supports three methods of positioning the breakpoints
     between series.
 
     Parameters
     ----------
     series  :  tuple(:class:`DataFrame <pandas:pandas.DataFrame>`)
-        Series ranked from first to last in time. Must have identical column structure
-        or unexpected results may occur during concatenate.
+    Series ranked from first to last in time. Must have identical column structure
+        or unexpected results may occur during concatenate. See `names` below
+
+    names : str 
+        names : str or list or iterable of str representing column names. 
+    If None, the default, the input series must share common names across all columns and not doing so will raise a ValueError
+    If a string, all the DataFrame inputs must have the same number of columns as `names`, the outputs will be merged based on position as if these
+    were the column names. Note that this may be an inherently dangerous operation if you aren't sure the columns line up. It is a big convenience for 
+    univariate series
 
     transition : 'prefer_first' | 'prefer_last' | list(pd.Datetime)
         Description of how to switch between series. If prefer_first, the
