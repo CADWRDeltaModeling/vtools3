@@ -172,220 +172,240 @@ dfs = []
 names = ["a", "value", "value"]
 ts_len = 9
 overlap = 2
-dfs = get_test_dataframes(names, ts_len, overlap)
-ts_long = ts_merge(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-
-assert ts_long.name == "value"
-assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
-# result should honor input priority when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long.loc[overlap_index] == \
-        dfs[i-1][names[i-1]].loc[overlap_index]
-    assert compare.all()
-
-ts_long = ts_splice(dfs, names="value", transition="prefer_first")
-assert ts_long.name == "value"
-assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
-# result should chose first input when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long.loc[overlap_index] == \
-        dfs[i-1][names[i-1]].loc[overlap_index]
-    assert compare.all()
-
-with pytest.raises(ValueError):
-    ts_long = ts_splice(dfs, names="value", transition="badinput")
-
-ts_long = ts_splice(dfs, names="value", transition="prefer_last")
-assert ts_long.name == "value"
-assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
-# result should choose last input when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long.loc[overlap_index] == \
-        dfs[i][names[i]].loc[overlap_index]
-    assert compare.all()
-
-
-names = ["a", "value", "value"]
-dfs = get_test_series(names, ts_len, overlap)
-ts_long = ts_merge(dfs, names="value")
-assert ts_long.name == "value"
-assert type(ts_long) is pd.Series
-# original input data should not changed
-for i in range(len(names)):
-    assert dfs[i].name == names[i]
-# result should honor input priority when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long.loc[overlap_index] == dfs[i-1].loc[overlap_index]
-    assert compare.all()
-
-ts_long = ts_splice(dfs, names="value", transition="prefer_first")
-assert ts_long.name == "value"
-assert type(ts_long) is pd.Series
-# result should chose first when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long.loc[overlap_index] == dfs[i-1].loc[overlap_index]
-    assert compare.all()
-
-ts_long = ts_splice(dfs, names="value", transition="prefer_last")
-assert ts_long.name == "value"
-assert type(ts_long) is pd.Series
-# result should chose first when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long.loc[overlap_index] == dfs[i].loc[overlap_index]
-    assert compare.all()
-
-
-# mixed series and dataframe not allowed
-dfs = get_test_series_dataframes(names, ts_len, overlap)
-with pytest.raises(ValueError):
+def test_merge_splice1():
+    
+    dfs = get_test_dataframes(names, ts_len, overlap)
     ts_long = ts_merge(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    
+    assert ts_long.name == "value"
+    assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
+    # result should honor input priority when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long.loc[overlap_index] == \
+            dfs[i-1][names[i-1]].loc[overlap_index]
+        assert compare.all()
+    
+    ts_long = ts_splice(dfs, names="value", transition="prefer_first")
+    assert ts_long.name == "value"
+    assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
+    # result should chose first input when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long.loc[overlap_index] == \
+            dfs[i-1][names[i-1]].loc[overlap_index]
+        assert compare.all()
+    
+    with pytest.raises(ValueError):
+        ts_long = ts_splice(dfs, names="value", transition="badinput")
+    
+    ts_long = ts_splice(dfs, names="value", transition="prefer_last")
+    assert ts_long.name == "value"
+    assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
+    # result should choose last input when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long.loc[overlap_index] == \
+            dfs[i][names[i]].loc[overlap_index]
+        assert compare.all()
+
+def test_merge_splice2():
+    names = ["a", "value", "value"]
+    dfs = get_test_series(names, ts_len, overlap)
+    ts_long = ts_merge(dfs, names="value")
+    assert ts_long.name == "value"
+    assert type(ts_long) is pd.Series
+    # original input data should not changed
+    for i in range(len(names)):
+        assert dfs[i].name == names[i]
+    # result should honor input priority when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long.loc[overlap_index] == dfs[i-1].loc[overlap_index]
+        assert compare.all()
+    
+    ts_long = ts_splice(dfs, names="value", transition="prefer_first")
+    assert ts_long.name == "value"
+    assert type(ts_long) is pd.Series
+    # result should chose first when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long.loc[overlap_index] == dfs[i-1].loc[overlap_index]
+        assert compare.all()
+    
+    ts_long = ts_splice(dfs, names="value", transition="prefer_last")
+    assert ts_long.name == "value"
+    assert type(ts_long) is pd.Series
+    # result should chose first when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long.loc[overlap_index] == dfs[i].loc[overlap_index]
+        assert compare.all()
 
 
-dfs = get_test_series_dataframes(names, ts_len, overlap)
-with pytest.raises(ValueError):
-    ts_long = ts_splice(dfs, names="value")
+def test_merge_splice4():
+    # mixed series and dataframe not allowed
+    dfs = get_test_series_dataframes(names, ts_len, overlap)
+    with pytest.raises(ValueError):
+        ts_long = ts_merge(dfs, names="value")
+    
+    
+    dfs = get_test_series_dataframes(names, ts_len, overlap)
+    with pytest.raises(ValueError):
+        ts_long = ts_splice(dfs, names="value")
 
 ############################################################
-dfs = []
-names = [["a", "b", "c"], ["a", "b", "c", "d"],
-         ["a", "b", "c"], ["a", "b", "c", "f"]]
-ts_len = 18
-overlap = 5
-dfs = get_test_dataframes(names, ts_len, overlap)
-long_name = ["a", "b", "c"]
-ts_long = ts_merge(dfs, names=long_name)
-# original input data should  not changed
-for i in range(len(names)):
-    assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
-assert [a[0] for a in ts_long.columns.to_list()] == long_name
-assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
-# result should honor input priority when duplicate record
-# exist in input series
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long[long_name].loc[overlap_index] == \
-        dfs[i-1][long_name].loc[overlap_index]
-    assert compare.all().all()
 
-ts_long = ts_splice(dfs, names=["a", "b", "c"],
-                    transition='prefer_last', floor_dates=False)
-for i in range(len(names)):
-    assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
-assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
-assert [a[0] for a in ts_long.columns.to_list()] == long_name
-for i in range(1, len(names)):
-    overlap_index = dfs[i-1].index[-overlap:-1]
-    n = 1
-    overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
-    compare = ts_long[long_name].loc[overlap_index] == \
-        dfs[i][long_name].loc[overlap_index]
-    assert compare.all().all()
+def test_merge_splice5():
+    dfs = []
+    names = [["a", "b", "c"], ["a", "b", "c", "d"],
+             ["a", "b", "c"], ["a", "b", "c", "f"]]
+    ts_len = 18
+    overlap = 5
+    dfs = get_test_dataframes(names, ts_len, overlap)
+    long_name = ["a", "b", "c"]
+    ts_long = ts_merge(dfs, names=long_name)
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
+    assert [a[0] for a in ts_long.columns.to_list()] == long_name
+    assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
+    # result should honor input priority when duplicate record
+    # exist in input series
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long[long_name].loc[overlap_index] == \
+            dfs[i-1][long_name].loc[overlap_index]
+        assert compare.all().all()
+    
+    ts_long = ts_splice(dfs, names=["a", "b", "c"],
+                        transition='prefer_last', floor_dates=False)
+    for i in range(len(names)):
+        assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
+    assert len(ts_long) == (len(names)*ts_len-(len(names)-1)*overlap)
+    assert [a[0] for a in ts_long.columns.to_list()] == long_name
+    for i in range(1, len(names)):
+        overlap_index = dfs[i-1].index[-overlap:-1]
+        n = 1
+        overlap_index = overlap_index.union(overlap_index.shift(n)[-n:])
+        compare = ts_long[long_name].loc[overlap_index] == \
+            dfs[i][long_name].loc[overlap_index]
+        assert compare.all().all()
 
 ##################################################################
 # test irregular data
 ##################################################################
-dfs = []
-names = ["a", "value", "value"]
-ts_len = 9
-dfs = get_test_dataframes_irregular(names, ts_len)
-ts_long = ts_merge(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len
+def test_merge_splice6():
+    dfs = []
+    names = ["a", "value", "value"]
+    ts_len = 9
+    dfs = get_test_dataframes_irregular(names, ts_len)
+    ts_long = ts_merge(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len
+    
+    ts_long = ts_splice(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len
 
-ts_long = ts_splice(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len
+def test_merge_splice7():
+    
+    dfs = get_test_dataframes_irregular_1_overlap(names, ts_len)
+    ts_long = ts_merge(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len-len(names)+1
+    
+    ts_long = ts_splice(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len-len(names)+1
 
+def test_merge_splice8():
+    dfs = get_test_dataframes_irregular_1_interweaved(names, ts_len)
+    ts_long = ts_merge(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len
+    
+    ts_long = ts_splice(dfs, names="value")
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len-len(names)+1
+    
+    ts_long = ts_splice(dfs, names="value", transition='prefer_first')
+    # original input data should  not changed
+    for i in range(len(names)):
+        assert dfs[i].columns.to_list()[0] == names[i]
+    assert ts_long.name == "value"
+    assert len(ts_long) == len(names)*ts_len-len(names)+1
+    
+def test_merge_splice9():
 
-dfs = get_test_dataframes_irregular_1_overlap(names, ts_len)
-ts_long = ts_merge(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len-len(names)+1
+    dfs = []
+    names = [["a", "b", "c"], ["a", "b", "c", "d"],
+             ["a", "b", "c"], ["a", "b", "c", "f"]]
+    ts_len = 18
+    dfs = get_test_dataframes_irregular_1_interweaved(names, ts_len)
+    ts_long = ts_splice(dfs, names=["a", "b", "c"], transition='prefer_first')
+    long_name = ["a", "b", "c"]
+    for i in range(len(names)):
+        assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
+    assert [a[0] for a in ts_long.columns.to_list()] == long_name
+    assert len(ts_long) == len(names)*ts_len-(len(names)-1)
+    
+    ts_long = ts_splice(dfs, names=["a", "b", "c"], transition='prefer_last')
+    for i in range(len(names)):
+        assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
+    assert [a[0] for a in ts_long.columns.to_list()] == long_name
+    assert len(ts_long) == len(names)*ts_len-(len(names)-1)
 
-ts_long = ts_splice(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len-len(names)+1
+if __name__ == "__main__":
+    test_merge_splice1()
+    test_merge_splice2()
+    test_merge_splice4()
+    test_merge_splice5()
+    test_merge_splice6()
+    test_merge_splice7()
+    test_merge_splice8()
+    test_merge_splice9()
 
-dfs = get_test_dataframes_irregular_1_interweaved(names, ts_len)
-ts_long = ts_merge(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len
-
-ts_long = ts_splice(dfs, names="value")
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len-len(names)+1
-
-
-ts_long = ts_splice(dfs, names="value", transition='prefer_first')
-# original input data should  not changed
-for i in range(len(names)):
-    assert dfs[i].columns.to_list()[0] == names[i]
-assert ts_long.name == "value"
-assert len(ts_long) == len(names)*ts_len-len(names)+1
-
-dfs = []
-names = [["a", "b", "c"], ["a", "b", "c", "d"],
-         ["a", "b", "c"], ["a", "b", "c", "f"]]
-ts_len = 18
-dfs = get_test_dataframes_irregular_1_interweaved(names, ts_len)
-ts_long = ts_splice(dfs, names=["a", "b", "c"], transition='prefer_first')
-for i in range(len(names)):
-    assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
-assert [a[0] for a in ts_long.columns.to_list()] == long_name
-assert len(ts_long) == len(names)*ts_len-(len(names)-1)
-
-
-ts_long = ts_splice(dfs, names=["a", "b", "c"], transition='prefer_last')
-for i in range(len(names)):
-    assert [a[0] for a in dfs[i].columns.to_list()] == names[i]
-assert [a[0] for a in ts_long.columns.to_list()] == long_name
-assert len(ts_long) == len(names)*ts_len-(len(names)-1)
 
 

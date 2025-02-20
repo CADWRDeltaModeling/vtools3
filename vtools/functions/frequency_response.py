@@ -170,10 +170,16 @@ def compare_response2(unit_impulse, cutoff_period):
     ax.legend(loc="lower right")
 
 
-if __name__ == "__main__":
+def main():
     # compare response for data with 15min interval
     unit_impulse = unit_impulse_ts(5001, "15min")
     ##
     compare_response2(unit_impulse, 40)
     # compare_response(40)
     plt.savefig('frequency_response', bbox_inches=0)
+    
+if __name__ == "__main__":
+    main()
+
+
+
