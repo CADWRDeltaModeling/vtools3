@@ -158,7 +158,7 @@ def gap_distance(ts, disttype="count", to = "good"):
     
     disttype : `str` one of 'bad'|'good'
     If disttype = "count" this is the number of values. If dist_type="freq" it is in the units of ts.freq
-    (so if freq == "15T" it is in minutes")
+    (so if freq == "15min" it is in minutes")
     
     to : `str` one of 'bad'|'good'
     

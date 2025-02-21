@@ -16,6 +16,7 @@ with open('README.md') as readme_file:
 requirements = ["numpy", 
                 "pandas", 
                 "xarray", 
+                "dask",
                 "matplotlib", 
                 "scikit-learn", 
                 "scipy"]
