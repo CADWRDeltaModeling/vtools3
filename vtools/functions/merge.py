@@ -5,6 +5,7 @@
 __all__ = ["ts_merge", "ts_splice"]
 
 import pandas as pd
+from functools import reduce
 
 def ts_merge(series, names=None):
     """
@@ -98,11 +99,23 @@ def ts_merge(series, names=None):
     else:
         output_columns = [series[0].name if names is None else names]
 
-    merged = pd.concat(series, axis=0, sort=True)
+    merged = pd.concat(series, axis=0, sort=False)  # ✅ Keep order during concat
+    merged = merged.sort_index()  # ✅ Ensure final merged series is sorted
     merged = merged.loc[~merged.index.duplicated(keep='first')]
 
+
+    full_index = series[0].index
     for s in series[1:]:
-        merged = merged.combine_first(s)
+        full_index = full_index.union(s.index)  # ✅ Merge all timestamps
+
+    # ✅ Ensure all series have the correct column name before merging
+    if isinstance(names, str):
+        series = [s.rename(columns={s.columns[0]: names}) if isinstance(s, pd.DataFrame) else s.rename(names) for s in series]
+
+    # ✅ Now merge as usual
+    merged = series[0].reindex(full_index)
+    for s in series[1:]:
+        merged = merged.combine_first(s.reindex(full_index))
 
     # ✅ If all inputs were univariate, ensure output remains univariate
     if all(len(s.columns) == 1 if isinstance(s, pd.DataFrame) else True for s in series):
@@ -144,6 +157,7 @@ def ts_merge(series, names=None):
             merged.index.freq = first_freq  # ✅ Set only if valid
         except ValueError:
             merged.index.freq = None  # ✅ Avoid forcing an invalid freq
+
 
     return merged
 
@@ -224,6 +238,11 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     else:
         output_columns = [series[0].name]
 
+    if isinstance(names, str):
+        series = [s.rename(columns={s.columns[0]: names}) if isinstance(s, pd.DataFrame) else s.rename(names) for s in series]
+
+
+
     # ✅ Determine transition points properly
     if isinstance(transition, list):
         transition_points = transition
@@ -245,11 +264,18 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     sections = []
     for ts, start, end in zip(series, transition_points[:-1], transition_points[1:]):
         if isinstance(ts, pd.Series):
-            sections.append(ts.loc[start:end])  # Keep original timestamps
+            section = ts.loc[start:end]
+            if section.empty:
+                continue  # Prevent dropping valid timestamps
+            sections.append(section)
         else:
-            sections.append(ts.loc[start:end])  # Preserve column structure
+            section = ts.loc[start:end]
+            if section.empty:
+                continue
+            sections.append(section)
 
-    spliced = pd.concat(sections, axis=0)
+    spliced = pd.concat(sections, axis=0).sort_index()  # ✅ Ensure sorting so later timestamps are not dropped
+
 
     # ✅ Ensure univariate output if inputs were univariate
     if all(len(s.columns) == 1 if isinstance(s, pd.DataFrame) else True for s in series):
@@ -294,12 +320,11 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
         else:
             spliced = spliced[output_columns]  # ✅ Preserve column order
 
-    # ✅ Correct (use `spliced`, NOT `merged`)
     if isinstance(spliced, pd.Series):
         if names:
-            spliced.name = names  # ✅ Use `.name` for Series
+            spliced.name = names  # ✅ Ensure renaming is applied to Series
     elif isinstance(names, str):
-        spliced = spliced.rename(columns={spliced.columns[0]: names})  # ✅ Use `.columns` for DataFrame
+        spliced = spliced.rename(columns={spliced.columns[0]: names})  # ✅ Apply to DataFrame
     elif isinstance(names, list):
         spliced = spliced[names]  # ✅ Keep only requested columns in DataFrame
 
@@ -311,9 +336,10 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
             spliced.index.freq = first_freq  # ✅ Set only if valid
         except ValueError:
             spliced.index.freq = None  # ✅ Avoid forcing an invalid freq
-
-
     return spliced
+
+
+
 
 
 if __name__ == "__main__":
