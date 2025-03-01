@@ -9,7 +9,46 @@ import pandas as pd
 def ts_merge(series, names=None):
     """
     Merge multiple time series together, prioritizing series in order.
-    If all input series have the same frequency and are aligned, the output retains this frequency.
+
+    This function merges a tuple of time series, filling missing values based on
+    a priority order. The first series is used as the base, with subsequent series
+    filling in missing values where available. If time series have irregular timestamps,
+    consider using `ts_splice` instead.
+
+    Parameters
+    ----------
+    series : tuple or list of pandas.DataFrame or pandas.Series
+        A tuple of time series ranked from highest to lowest priority. Each series
+        must have a `DatetimeIndex` and compatible column names.
+
+    names : None, str, or iterable of str, optional
+        - If `None` (default), all input series must share common column names,
+          and the output will merge common columns or series names.
+        - If a `str`, all input series must have a **single column** (or a matching
+          column name if mixed types are provided), and the output will be a DataFrame 
+          with this name as the column name.
+        - If an iterable of `str`, all input DataFrames must have the same 
+          number of columns matching the length of the names argument and these will be used 
+          for the output.
+
+    Returns
+    -------
+    pandas.DataFrame
+        - If the input contains DataFrames with multiple columns, the output is a
+          DataFrame with the same time extent as the union of inputs and columns.
+        - If a collection of single-column `Series` is specified, the output will be 
+          converted into a single-column DataFrame.
+
+    Notes
+    -----
+    - The output time index is the union of input time indices.
+    - If a duplicate index exists in the first series, only the first occurrence is used.
+    - Lower-priority series only fill gaps in higher-priority series and do not override
+      existing values.
+
+    See Also
+    --------
+    ts_splice : Alternative merging method for irregular time series.
     """
 
     if not isinstance(series, (tuple, list)) or len(series) == 0:
@@ -83,181 +122,128 @@ def ts_merge(series, names=None):
 
 
 
-def ts_splice(tss, names=None, transition="prefer_last", floor_dates=False):
-    """ splice a number of timeseries together in a chronological,
-    non-overlapping way.The function supports three methods of positioning
-    the breakpoints between series.
+def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
+    """
+    Splice multiple time series together, prioritizing series in patches of time.
+
+    Unlike `ts_merge`, which blends overlapping data points, `ts_splice` stitches 
+    together time series without overlap. The function determines when to switch 
+    between series based on a transition strategy.
 
     Parameters
     ----------
-    series  :  tuple(:class:`DataFrame <pandas:pandas.DataFrame>`)
-    Series ranked from first to last in time. Must have identical column
-    structure or unexpected results may occur during concatenate.
-    See `names` below
+    series : tuple or list of pandas.DataFrame or pandas.Series
+        A tuple or list of time series ranked from first to last in time.
+        Each series must have a `DatetimeIndex` and consistent column structure.
 
-    names : str
-        names : str or list or iterable of str representing column names.
-    If None, the default, the input series must share common names across all
-    columns and not doing so will raise a ValueError If a string, all the
-    DataFrame inputs must have the same number of columns as `names`, the
-    outputs will be merged based on position as if these were the column
-    names. Note that this may be an inherently dangerous operation if you
-    aren't sure the columns line up. It is a big convenience for
-    univariate series
+    names : None, str, or iterable of str, optional
+        - If `None` (default), all input series must share common column names,
+          and the output will merge common columns.
+        - If a `str`, all input series must have a **single column**, and the 
+          output will be a DataFrame with this name as the column name.
+        - If an iterable of `str`, all input DataFrames must have the same 
+          number of columns matching the length of `names`, and these will be 
+          used for the output.
 
-    transition : 'prefer_first' | 'prefer_last' | list(pd.Datetime)
-        Description of how to switch between series. If prefer_first, the
-        earlier series will be used until their end point.If prefer_last,
-        the first time stamp of the later series will be used.
+    transition : {'prefer_first', 'prefer_last'} or list of pandas.Timestamp
+        Defines how to determine breakpoints between time series:
+        - `'prefer_first'`: Uses the earlier series until its last valid timestamp.
+        - `'prefer_last'`: Uses the later series starting from its first valid timestamp.
+        - A list of specific timestamps can also be provided as transition points.
 
-    floor_dates: bool
-        Floor the transition dates that are inferred with 'prefer_first' or
-        'prefer_last'.Note that this can produce nans if the input series are
-        regular with a freq attribute or a big gap otherwise unless there
-        is overlapping data covering the days that are rounded.
+    floor_dates : bool, optional, default=False
+        If `True`, inferred transition timestamps (`prefer_first` or `prefer_last`) 
+        are floored to the beginning of the day. This can introduce NaNs if the 
+        input series are regular with a `freq` attribute.
 
     Returns
     -------
-    spliced : :class:`DataFrame <pandas:pandas.DataFrame>`
-        A new time series with freq same as the inputs if they are all the
-        same,time extent the union of the inputs.
+    pandas.DataFrame or pandas.Series
+        - If the input contains multi-column DataFrames, the output is a DataFrame 
+          with the same column structure.
+        - If a collection of single-column `Series` is provided, the output will 
+          be a Series.
+        - The output retains a `freq` attribute if all inputs share the same frequency.
+
+    Notes
+    -----
+    - The output time index is the union of input time indices.
+    - If `transition` is `'prefer_first'`, gaps may appear in the final time series.
+    - If `transition` is `'prefer_last'`, overlapping data is resolved in favor 
+      of later series.
+
+    See Also
+    --------
+    ts_merge : Merges series by filling gaps in order of priority.
     """
-    same_type = all(isinstance(item, type(tss[0])) for item in tss[1:])
-    
-    if not transition in ["prefer_last","prefer_first"]:
-        raise ValueError("input transition must be prefer_last or \
-                         prefer_first")
-    
-    if not same_type:
-        raise ValueError("mixed input dataframe and series not supported")
-    old_colname = []
-    if not (names is None):
-        if type(names) is str:  # all input series must have only one column
-            i = 0
-            for ddf in tss:
-                if not(type(ddf) is pd.Series):
-                    if (ddf.shape[1] != 1):
-                        raise ValueError(f"{i}th input series have 0 or more\
-                                         than 1 column")
-                try:
-                    if not(type(ddf) is pd.Series):
-                        old_colname.append(ddf.columns[0])
-                        ddf.rename(columns={old_colname[i]:names}, inplace=True)
-                    else:
-                        old_colname.append(ddf.name)
-                        ddf.rename(names,inplace=True)
-                except Exception as inst:
-                    print(inst)
-                    raise ValueError(f"fail to rename {i}th input to {names}")
-                i = i + 1
-        elif hasattr(names, "__iter__"):
-            i = 0
-            for ddf in tss:
-                for name in names:
-                    if not (name in ddf.columns):
-                        raise ValueError(f"{i}th input series doesn't have \
-                                         column {name}")
-        else:
-            raise ValueError("input names must be str or list or iteratble \
-                             of strings")
+
+
+    if not isinstance(series, (tuple, list)) or len(series) == 0:
+        raise ValueError("`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.")
+
+    if not all(isinstance(s.index, pd.DatetimeIndex) for s in series):
+        raise ValueError("All input series must have a DatetimeIndex.")
+
+    if transition not in ["prefer_last", "prefer_first"] and not isinstance(transition, list):
+        raise ValueError("`transition` must be 'prefer_last', 'prefer_first', or a list of timestamps.")
+
+    first_freq = series[0].index.freq
+    same_freq = all(s.index.freq is not None and s.index.freq == first_freq for s in series)
+
+    # ✅ Define output columns properly
+    if isinstance(series[0], pd.DataFrame):
+        output_columns = list(series[0].columns)
     else:
-        # input series must have the same column names
-        names = tss[0].columns.to_list()
-        i = 1
-        for ddf in tss[1:]:
-            if not (ddf.columns.to_list() == names):
-                raise ValueError("{i}th series has different columns \
-                                 than {names}")
-            i = i + 1
+        output_columns = [series[0].name]
+
+    # ✅ Determine transition points properly
     if isinstance(transition, list):
-        if floor_dates:
-            raise ValueError(
-                "Floor dates option not compatible with transition that \
-                    is a list of Timestamps")
-        dup_keep = 'first'
+        transition_points = transition
+        duplicate_keep = "first"
     else:
-        if transition == 'prefer_first':
-            dup_keep = 'first'
-            transition = [ts.last_valid_index() for ts in tss[:-1]]
-            if floor_dates:
-                transition = [dt.floor('D') for dt in transition]
-        if transition == 'prefer_last':
-            dup_keep = 'last'
-            transition = [ts.first_valid_index() for ts in tss[1:]]
-            if floor_dates:
-                transition = [dt.floor('D') for dt in transition]
-    transition = [None] + transition + [None]
-    #print("transition\n", transition)
+        if transition == "prefer_first":
+            transition_points = [ts.last_valid_index() for ts in series[:-1]]
+            duplicate_keep = "first"
+        elif transition == "prefer_last":
+            transition_points = [ts.first_valid_index() for ts in series[1:]]
+            duplicate_keep = "last"
+
+        if floor_dates:
+            transition_points = [dt.floor("D") for dt in transition_points]
+
+    transition_points = [None] + transition_points + [None]  # Add start and end
+
+    # ✅ Apply correct transition logic
     sections = []
-    f = tss[0].index.freq
-    for ts, start, end in zip(tss, transition[:-1], transition[1:]):
-        #print("here", start, end, "ts\n", ts)
-        f = f if (f is not None) and ts.index.freq == f else None
-        if type(ts) is pd.Series:
-            sections.append(ts.loc[slice(start, end)])
+    for ts, start, end in zip(series, transition_points[:-1], transition_points[1:]):
+        if isinstance(ts, pd.Series):
+            sections.append(ts.loc[start:end])  # Keep original timestamps
         else:
-            sections.append(ts[names].loc[slice(start, end)])
-       
-    tsout = pd.concat(sections, axis=0)
-    duplicatetime = tsout.index.duplicated(keep=dup_keep)
-    nduplicatetime = duplicatetime.sum()
-    if nduplicatetime >= 1:
-        tsout = tsout[~duplicatetime]
-    if f is not None:
-        tsout = tsout.asfreq(f)
-    if type(names) is str:  # recover old name of input ts
-        for ddf, name in zip(tss, old_colname):
-            if not(type(ddf) is pd.Series):
-                ddf.rename(columns={names:name}, inplace=True)
-            else:
-                ddf.rename(name,inplace=True)
-        if not (type(tsout) is pd.Series):
-            tsout=tsout.squeeze(axis=1)
-            tsout.rename(names,inplace=True)
-    return tsout
+            sections.append(ts.loc[start:end])  # Preserve column structure
 
+    spliced = pd.concat(sections, axis=0)
 
-def main():
-    import pandas as pd
-    import numpy as np
-    from vtools.data.vtime import hours, days
+    # ✅ Remove duplicates based on transition preference
+    duplicated_times = spliced.index.duplicated(keep=duplicate_keep)
+    if duplicated_times.sum() >= 1:
+        spliced = spliced[~duplicated_times]
 
-    dfs = []
-    for i in range(4):
-        dr = pd.date_range(pd.Timestamp(2000, 1, 1) +
-                           hours(i*8), freq="H", periods=9)
-        data = np.arange(1., 10.) + float(i*100.)
-        df = pd.DataFrame(index=dr, data=data)
-        dfs.append(df)
-        print(df)
-    ts_long = ts_splice(dfs, transition='prefer_first', floor_dates=False)
-    print(ts_long)
-    print("**")
-    dfs = []
-    for i in range(4):
-        dr = pd.date_range(pd.Timestamp(2000, 1, 1) +
-                           hours(i*8), freq="H", periods=11)
-        data = np.arange(1., 12.) + float(i*100.)
-        df = pd.DataFrame(index=dr, data=data)
-        dfs.append(df)
-        print(df)
-    ts_long = ts_splice(dfs, transition='prefer_last', floor_dates=False)
-    print(ts_long)
+    if same_freq and first_freq is not None:
+        spliced.index.freq = first_freq
 
-    transitions = [pd.Timestamp(2000, 1, 1, 9, 1), pd.Timestamp(
-        2000, 1, 1, 17, 1), pd.Timestamp(2000, 1, 1, 22, 1)]
-    print("***************")
-    dfs = []
-    for i in range(4):
-        dr = pd.date_range(pd.Timestamp(2000, 1, 1) +
-                           days(i*3)-hours(2), freq="H", periods=77)
-        data = np.arange(1., 78.) + float(i*100.)
-        df = pd.DataFrame(index=dr, data=data)
-        df.index.freq = None
-        dfs.append(df)
-        print(df)
-    ts_long = ts_splice(dfs, transition='prefer_last', floor_dates=True)
-    print(ts_long.to_string())
+    # ✅ Fix: Ensure proper renaming of Series and DataFrame columns
+    if isinstance(spliced, pd.Series):
+        if names:
+            spliced = spliced.rename(names)  # ✅ Ensure renaming is correctly applied
+    else:
+        if isinstance(names, list):
+            spliced = spliced[names]  # ✅ Drop extra columns
+        elif isinstance(names, str):
+            spliced = spliced.rename(columns={output_columns[0]: names})
+        else:
+            spliced = spliced[output_columns]  # ✅ Preserve column order
+
+    return spliced
 
 
 if __name__ == "__main__":
