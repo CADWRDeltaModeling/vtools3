@@ -102,10 +102,13 @@ def ts_merge(series, names=None):
     for s in series[1:]:
         merged = merged.combine_first(s)
 
-    # ✅ Only set `freq` if it's not None
+    # Only set `freq` if it's not None
     if same_freq and first_freq is not None:
-        merged.index.freq = first_freq
-
+        try:
+            merged.index.freq = first_freq  # Only works if conforming
+        except ValueError:
+            merged.index.freq = None  # ✅ If non-conforming, do not force `freq`
+        
     # ✅ Fix: Rename correctly for Series and DataFrames
     if isinstance(merged, pd.Series):
         if names:
@@ -133,7 +136,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     Parameters
     ----------
     series : tuple or list of pandas.DataFrame or pandas.Series
-        A tuple or list of time series ranked from first to last in time.
+        A tuple or list of time series.
         Each series must have a `DatetimeIndex` and consistent column structure.
 
     names : None, str, or iterable of str, optional
@@ -147,7 +150,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
 
     transition : {'prefer_first', 'prefer_last'} or list of pandas.Timestamp
         Defines how to determine breakpoints between time series:
-        - `'prefer_first'`: Uses the earlier series until its last valid timestamp.
+        - `'prefer_first'`: Uses the earlier series on the list durng until its valid timestamp.
         - `'prefer_last'`: Uses the later series starting from its first valid timestamp.
         - A list of specific timestamps can also be provided as transition points.
 
@@ -213,7 +216,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
 
     transition_points = [None] + transition_points + [None]  # Add start and end
 
-    # ✅ Apply correct transition logic
+    # Apply correct transition logic
     sections = []
     for ts, start, end in zip(series, transition_points[:-1], transition_points[1:]):
         if isinstance(ts, pd.Series):
@@ -223,15 +226,21 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
 
     spliced = pd.concat(sections, axis=0)
 
-    # ✅ Remove duplicates based on transition preference
+    # Remove duplicates based on transition preference
     duplicated_times = spliced.index.duplicated(keep=duplicate_keep)
     if duplicated_times.sum() >= 1:
         spliced = spliced[~duplicated_times]
 
+    # Only set `freq` if index conforms
     if same_freq and first_freq is not None:
-        spliced.index.freq = first_freq
+        try:
+            spliced.index.freq = first_freq  # ✅ Works if index conforms
+        except ValueError:
+            spliced.index.freq = None  # ✅ Avoid forcing incorrect freq
 
-    # ✅ Fix: Ensure proper renaming of Series and DataFrame columns
+
+
+    # Ensure proper renaming of Series and DataFrame columns
     if isinstance(spliced, pd.Series):
         if names:
             spliced = spliced.rename(names)  # ✅ Ensure renaming is correctly applied
