@@ -12,7 +12,7 @@ VTools represents a toolset for time series processing that the Delta Modeling S
    Interpolation <interpolation>
    Averaging and Filtering <notebooks/filters.ipynb>
    Fitting and using a climatology <notebooks/climatology.ipynb>
-   Merging and Splicing <notebooks/merge_splice.ipynb>
+   Merging and Splicing (ts_merge and ts_splice) <notebooks/merge_splice.ipynb>
    Contributing <contributing>
    Authors <authors>
    API Reference <modules>
