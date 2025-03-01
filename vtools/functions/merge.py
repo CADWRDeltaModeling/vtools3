@@ -1,122 +1,86 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pandas as pd
 
 __all__ = ["ts_merge", "ts_splice"]
 
+import pandas as pd
 
 def ts_merge(series, names=None):
-    """ merge a number of timeseries together and return a new ts.
-    Similar to concatenate, but provides more control over priorities in
-    cases of overlap. In the present case, the series are used in order of
-    priority, but all of them could potentially be used to fill a particular
-    point. This is often not what youmight want, particularly for irregular
-    time series with slightly different stamps, in which case ts_splice is
-    the right tool
-
-    Parameters
-    ----------
-    series  :  tuple(:class:`DataFrame <pandas:pandas.DataFrame>`)
-        Series ranked from high to low priority
-
-    names : str or list or iterable of str representing column names.
-        If None, the default, the input series must share common names across
-        all columns and not doing so will raise a ValueError.Otherwise if a
-        string, all the DataFrame inputs must have the same number of columns
-        as `names`, the outputs will be merged based on position as if these
-        were the column names. Note that this may be an inherently dangerous
-        operation if you aren't sure the columns line up. It is a big
-        convenience for univariate series
-
-
-    Returns
-    -------
-    merged : :class:`DataFrame <pandas:pandas.DataFrame>`
-        A new time series with time interval same as the inputs, time extent
-        the union of the inputs, and filled first with ts1, then with remaining
-        gaps filled with ts2, then ts3....
-
     """
-    
-    same_type = all(isinstance(item, type(series[0])) for item in series[1:])
-    
-    if not same_type:
-        raise ValueError("mixed input dataframe and series not supported")
-    
-    old_colname = []
-    if not (names is None):
-        if type(names) is str:  # all input series must have only one column
-            i = 0
-            for ddf in series:
-                if not(type(ddf) is pd.Series):
-                    if (ddf.shape[1] != 1):
-                        raise ValueError(f"{i}th input series have 0 or more\
-                                         than 1 column")
-                
-                
-                try:
-                    if not(type(ddf) is pd.Series):
-                        old_colname.append(ddf.columns[0])
-                        ddf.rename(columns={old_colname[i]:names}, inplace=True)
-                    else:
-                        old_colname.append(ddf.name)
-                        ddf.rename(names,inplace=True)
-                except Exception as inst:
-                    print(inst)
-                    raise ValueError(f"fail to rename {i}th input to {names}")
-                i = i + 1
+    Merge multiple time series together, prioritizing series in order.
+    If all input series have the same frequency and are aligned, the output retains this frequency.
+    """
+
+    if not isinstance(series, (tuple, list)) or len(series) == 0:
+        raise ValueError("`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.")
+
+    if not all(isinstance(s.index, pd.DatetimeIndex) for s in series):
+        raise ValueError("All input series must have a DatetimeIndex.")
+
+    first_freq = series[0].index.freq
+    same_freq = all(s.index.freq == first_freq for s in series)
+
+    has_series = any(isinstance(s, pd.Series) for s in series)
+    has_dataframe = any(isinstance(s, pd.DataFrame) for s in series)
+
+    if has_series and has_dataframe:
+        if isinstance(names, str):
+            series = [s.to_frame(name=names) if isinstance(s, pd.Series) else s for s in series]
+        elif names is None:
+            col_names = {col for s in series if isinstance(s, pd.DataFrame) for col in s.columns}
+            if not all(s.name in col_names for s in series if isinstance(s, pd.Series)):
+                raise ValueError("Mixed Series and DataFrames require Series names to match DataFrame columns.")
+            series = [s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series]
+
+    if isinstance(series[0], pd.DataFrame):
+        if names is None:
+            common_columns = set(series[0].columns)
+            for df in series:
+                if set(df.columns) != common_columns:
+                    raise ValueError("All input DataFrames must have the same columns when `names` is None.")
+            output_columns = list(common_columns)
+
+        elif isinstance(names, str):
+            output_columns = [series[0].columns[0]]
+
         elif hasattr(names, "__iter__"):
-            i = 0
-            for ddf in series:
-                for name in names:
-                    if not (name in ddf.columns):
-                        raise ValueError(f"{i}th input series doesn't have \
-                                         column {name}")
-                i = i + 1
+            names = list(names)
+            for df in series:
+                if not all(name in df.columns for name in names):
+                    raise ValueError(f"An input DataFrame does not contain all specified columns: {names}.")
+            output_columns = names
+
         else:
-            raise ValueError("input names must be str or list or iteratble \
-                             of strings")
+            raise ValueError("`names` must be None, a string, or an iterable of strings.")
+
     else:
-        # input series must share the same column names
-        names = series[0].columns.to_list()
-        i = 1
-        for ddf in series[1:]:
-            if not (ddf.columns.to_list() == names):
-                raise ValueError("{i}th series has different columns \
-                                 than {names}")
-            i = i + 1
+        output_columns = [series[0].name if names is None else names]
 
-    # this concatenates, leaving redundant indices in df0, df1, df2
-    # we are not doing the real work yet, just getting the right indexes
-    # this doesn't seem super efficient, but good enough for a start
-    dfmerge = pd.concat(series, axis=0, sort=True)
+    merged = pd.concat(series, axis=0, sort=True)
+    merged = merged.loc[~merged.index.duplicated(keep='first')]
 
-    # This populates with the values from the highest series
-    # It is a bug for the first series to have a duplicate index
-    series0 = series[0].loc[~series[0].index.duplicated(keep='first')]
-    dfmerge = series0.reindex(dfmerge.index)
+    for s in series[1:]:
+        merged = merged.combine_first(s)
 
-    # drop duplicate indices
-    dfmerge = dfmerge.loc[~dfmerge.index.duplicated(keep='last')]
-   # dfmrege = dfmerge.squeeze(axis=1)
-    # Now apply, in priority order, each of the original dataframes
-    # to fill the original
-    for ddf in series[1:]:
-        dfmerge = dfmerge.combine_first(ddf)
-    if type(names) is str:
-        # recover old name of input ts
-        for ddf, name in zip(series, old_colname):
-            if not(type(ddf) is pd.Series):
-                ddf.rename(columns={names:name}, inplace=True)
-            else:
-                ddf.rename(name,inplace=True)
-        if not (type(dfmerge) is pd.Series):
-            dfmerge = dfmerge.squeeze(axis=1)
-            dfmerge.rename(names,inplace=True)
-    elif hasattr(names, "__iter__"):
-        dfmerge = dfmerge[names]
-    return dfmerge
+    # ✅ Only set `freq` if it's not None
+    if same_freq and first_freq is not None:
+        merged.index.freq = first_freq
+
+    # ✅ Fix: Rename correctly for Series and DataFrames
+    if isinstance(merged, pd.Series):
+        if names:
+            merged.name = names  # ✅ Correct way to rename a Series
+    else:
+        if isinstance(names, str):
+            merged = merged.rename(columns={output_columns[0]: names})  # ✅ Correct way to rename a DataFrame
+
+        # ✅ Ensure final DataFrame only contains requested columns
+        if isinstance(names, list):
+            merged = merged[names]  # ✅ Drop unwanted columns
+
+    return merged
+
 
 
 def ts_splice(tss, names=None, transition="prefer_last", floor_dates=False):
