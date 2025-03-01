@@ -50,15 +50,17 @@ def ts_merge(series, names=None):
     --------
     ts_splice : Alternative merging method for irregular time series.
     """
-
+    
+    series = [s.copy() for s in series]
     if not isinstance(series, (tuple, list)) or len(series) == 0:
         raise ValueError("`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.")
 
     if not all(isinstance(s.index, pd.DatetimeIndex) for s in series):
         raise ValueError("All input series must have a DatetimeIndex.")
 
+    # ✅ Determine if freq can be preserved
     first_freq = series[0].index.freq
-    same_freq = all(s.index.freq == first_freq for s in series)
+    same_freq = all(s.index.freq == first_freq for s in series if s.index.freq is not None)
 
     has_series = any(isinstance(s, pd.Series) for s in series)
     has_dataframe = any(isinstance(s, pd.DataFrame) for s in series)
@@ -102,24 +104,46 @@ def ts_merge(series, names=None):
     for s in series[1:]:
         merged = merged.combine_first(s)
 
-    # Only set `freq` if it's not None
-    if same_freq and first_freq is not None:
-        try:
-            merged.index.freq = first_freq  # Only works if conforming
-        except ValueError:
-            merged.index.freq = None  # ✅ If non-conforming, do not force `freq`
-        
-    # ✅ Fix: Rename correctly for Series and DataFrames
+    # ✅ If all inputs were univariate, ensure output remains univariate
+    if all(len(s.columns) == 1 if isinstance(s, pd.DataFrame) else True for s in series):
+        merged = merged.iloc[:, 0] if isinstance(merged, pd.DataFrame) else merged  # Keep it a Series
+
+    # ✅ Fix renaming logic
     if isinstance(merged, pd.Series):
         if names:
-            merged.name = names  # ✅ Correct way to rename a Series
+            merged.name = names
+    elif isinstance(names, str):  # If names is given for a DataFrame
+        merged = merged.rename(columns={merged.columns[0]: names})
+            
+    # ✅ Ensure correct return type
+    if all(isinstance(s, pd.Series) for s in series):
+        merged = merged.squeeze()  # Keep Series if all inputs are Series
     else:
-        if isinstance(names, str):
-            merged = merged.rename(columns={output_columns[0]: names})  # ✅ Correct way to rename a DataFrame
+        merged = merged.to_frame() if isinstance(merged, pd.Series) else merged  # Ensure DataFrame output
 
-        # ✅ Ensure final DataFrame only contains requested columns
-        if isinstance(names, list):
-            merged = merged[names]  # ✅ Drop unwanted columns
+    # ✅ Fix renaming logic
+    if isinstance(merged, pd.Series):
+        if names:
+            merged.name = names
+    elif isinstance(names, str):  # If names is given for a DataFrame
+        merged = merged.rename(columns={merged.columns[0]: names})
+
+    if isinstance(merged, pd.Series):
+        if names:
+            merged.name = names  # ✅ Correct renaming for Series
+    elif isinstance(names, str):
+        merged = merged.rename(columns={merged.columns[0]: names})  # ✅ Correct renaming for DataFrame
+    elif isinstance(names, list):
+        merged = merged[names]  # ✅ Drop extra columns in DataFrame
+
+
+
+    # ✅ Ensure freq is only set if timestamps conform
+    if same_freq and first_freq is not None:
+        try:
+            merged.index.freq = first_freq  # ✅ Set only if valid
+        except ValueError:
+            merged.index.freq = None  # ✅ Avoid forcing an invalid freq
 
     return merged
 
@@ -179,7 +203,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     --------
     ts_merge : Merges series by filling gaps in order of priority.
     """
-
+    series = [s.copy() for s in series]
 
     if not isinstance(series, (tuple, list)) or len(series) == 0:
         raise ValueError("`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.")
@@ -190,8 +214,9 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     if transition not in ["prefer_last", "prefer_first"] and not isinstance(transition, list):
         raise ValueError("`transition` must be 'prefer_last', 'prefer_first', or a list of timestamps.")
 
+    # ✅ Determine if freq can be preserved
     first_freq = series[0].index.freq
-    same_freq = all(s.index.freq is not None and s.index.freq == first_freq for s in series)
+    same_freq = all(s.index.freq == first_freq for s in series if s.index.freq is not None)
 
     # ✅ Define output columns properly
     if isinstance(series[0], pd.DataFrame):
@@ -226,6 +251,23 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
 
     spliced = pd.concat(sections, axis=0)
 
+    # ✅ Ensure univariate output if inputs were univariate
+    if all(len(s.columns) == 1 if isinstance(s, pd.DataFrame) else True for s in series):
+        spliced = spliced.iloc[:, 0] if isinstance(spliced, pd.DataFrame) else spliced  # Keep it a Series
+
+    # ✅ Ensure correct return type
+    if all(isinstance(s, pd.Series) for s in series):
+        spliced = spliced.squeeze()  # Keep Series if all inputs are Series
+    else:
+        spliced = spliced.to_frame() if isinstance(spliced, pd.Series) else spliced  # Ensure DataFrame output
+
+    # ✅ Fix renaming logic
+    if isinstance(spliced, pd.Series):
+        if names:
+            spliced.name = names
+    elif isinstance(names, str):  # If names is given for a DataFrame
+        spliced = spliced.rename(columns={spliced.columns[0]: names})
+
     # Remove duplicates based on transition preference
     duplicated_times = spliced.index.duplicated(keep=duplicate_keep)
     if duplicated_times.sum() >= 1:
@@ -251,6 +293,25 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
             spliced = spliced.rename(columns={output_columns[0]: names})
         else:
             spliced = spliced[output_columns]  # ✅ Preserve column order
+
+    # ✅ Correct (use `spliced`, NOT `merged`)
+    if isinstance(spliced, pd.Series):
+        if names:
+            spliced.name = names  # ✅ Use `.name` for Series
+    elif isinstance(names, str):
+        spliced = spliced.rename(columns={spliced.columns[0]: names})  # ✅ Use `.columns` for DataFrame
+    elif isinstance(names, list):
+        spliced = spliced[names]  # ✅ Keep only requested columns in DataFrame
+
+
+
+    # ✅ Ensure freq is only set if timestamps conform
+    if same_freq and first_freq is not None:
+        try:
+            spliced.index.freq = first_freq  # ✅ Set only if valid
+        except ValueError:
+            spliced.index.freq = None  # ✅ Avoid forcing an invalid freq
+
 
     return spliced
 
