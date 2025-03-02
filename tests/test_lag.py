@@ -7,7 +7,7 @@ import pytest
 from vtools.data.timeseries import datetime_elapsed
 from vtools.data.vtime import hours,minutes,seconds
 from statsmodels.tsa.arima_process import arma_generate_sample
-from .lag_cross_correlation import calculate_lag
+from vtools import calculate_lag
 import matplotlib.pyplot as plt
 #pd.plotting.register_matplotlib_converters()
 
@@ -41,11 +41,6 @@ def lag_samples(n):
 def test_lag_cross_correlation():
     base,lagged = lag_samples(7)
     base.to_frame().plot()
-    #lagged.plot()
-    #print(lagged.info())
-    #print(base.info())
-    #base.plot()
-    #plt.show()
     max_lag=minutes(300)
     res = minutes(1)
 
@@ -64,6 +59,8 @@ def test_lag_cross_correlation():
     with pytest.raises(ValueError):
         lag_calc = calculate_lag(base,lagged,max_lag,res,
                   interpolate_method = "linear")
+    print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
+
 
 if __name__ == "__main__":
     test_lag_cross_correlation()

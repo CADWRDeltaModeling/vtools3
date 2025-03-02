@@ -40,15 +40,10 @@ def test_climatology_round_trip():
             data = datetime.month.astype(float)
         else: data = datetime.dayofyear.astype(float)
         df = pd.DataFrame(index=datetime,data=data)
-        df.to_csv("testc.csv")
         climate = climatology(df,freq)
-        print("calling")
         round_trip = apply_climatology(climate,datetime)
 
-        print("round")
-        print(round_trip)
-        #climate = climatology(df,"day")
-        print(climate)
+
     
     
     
