@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Understanding ts_merge and ts_splice &#8212; vtools 3.8.0+13.gedb4fad documentation</title>
+    <title>Merging and Splicing Time Series &#8212; vtools 3.8.0+13.gedb4fad documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css?v=7f9a90b1" />
@@ -63,7 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="climatology.html">Fitting and using a climatology</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Merging and Splicing</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Merging and Splicing (ts_merge and ts_splice)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Prioritized-filling-on-regular-series">Prioritized filling on regular series</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Splicing">Splicing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Irregular-series">Irregular series</a></li>
@@ -113,20 +113,20 @@
 
           <div class="body" role="main">
             
-  <section id="Understanding-ts_merge-and-ts_splice">
-<h1>Understanding <code class="docutils literal notranslate"><span class="pre">ts_merge</span></code> and <code class="docutils literal notranslate"><span class="pre">ts_splice</span></code><a class="headerlink" href="#Understanding-ts_merge-and-ts_splice" title="Link to this heading">¶</a></h1>
+  <section id="Merging-and-Splicing-Time-Series">
+<h1>Merging and Splicing Time Series<a class="headerlink" href="#Merging-and-Splicing-Time-Series" title="Link to this heading">¶</a></h1>
 <p>This tutorial demonstrates the usage and difference between <code class="docutils literal notranslate"><span class="pre">ts_merge</span></code> and <code class="docutils literal notranslate"><span class="pre">ts_splice</span></code>, two methods for folding together time series into a combined data structure.</p>
 <ul class="simple">
 <li><p><strong>``ts_merge``</strong> blends multiple time series together based on priority, filling missing values. It potentiallyu uses all the input series at all timestamps.</p></li>
 <li><p><strong>``ts_splice``</strong> stitches together time series in sequential time <strong>blocks</strong> without mixing values.</p></li>
 </ul>
-<p>We will describe the effect on regularly sampled series (which have the <code class="docutils literal notranslate"><span class="pre">freq</span></code> attribute) and on irregular. We will also explore the <strong>``names``</strong> argument, which controls how columns are selected or renamed in the merging/splicing process.</p>
+<p>We will describe the effect on regularly sampled series (which have the <code class="docutils literal notranslate"><span class="pre">freq</span></code> attribute) and on irregular. We will also explore the <strong>``names``</strong> argument, which controls how columns are selected or renamed in the merging/splicing process. There is a file-level command line tools for this as well in the <code class="docutils literal notranslate"><span class="pre">dms_datastore</span></code> package.</p>
 <section id="Prioritized-filling-on-regular-series">
 <h2>Prioritized filling on regular series<a class="headerlink" href="#Prioritized-filling-on-regular-series" title="Link to this heading">¶</a></h2>
 <p>Let’s begin by showing how <code class="docutils literal notranslate"><span class="pre">ts_merge</span></code> and <code class="docutils literal notranslate"><span class="pre">ts_splice</span></code> fold together two regular series but gappy series on a prioritized basis.</p>
 <p>Here are the sample series:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[53]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ========================================</span>
@@ -151,95 +151,27 @@
 <br/><br/><br/><br/></pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Series 1 (Primary):
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-2023-01-01     1.0
-2023-01-02     NaN
-2023-01-03     3.0
-2023-01-04     NaN
-2023-01-05     5.0
-2023-01-06     6.0
-2023-01-07     NaN
-2023-01-08     8.0
-2023-01-09     9.0
-2023-01-10    10.0
-Freq: D, Name: A, dtype: float64
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-
-Series 2 (Secondary - Fills Gaps):
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-2023-01-01    NaN
-2023-01-02    2.0
-2023-01-03    NaN
-2023-01-04    4.0
-2023-01-05    NaN
-2023-01-06    NaN
-2023-01-07    7.0
-2023-01-08    NaN
-2023-01-09    NaN
-2023-01-10    NaN
-2023-01-11    3.0
-2023-01-12    4.0
-Freq: D, Name: A, dtype: float64
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-
-Series 3 (Tertiary - Fills Gaps):
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2022-12-31    1000.0
-2023-01-01    1001.0
-2023-01-02    1002.0
-2023-01-03       NaN
-2023-01-04    1004.0
-2023-01-05       NaN
-2023-01-06       NaN
-2023-01-07    1007.0
-2023-01-08       NaN
-2023-01-09       NaN
-2023-01-10       NaN
-2023-01-11    1005.0
-2023-01-12    1006.0
-2023-01-13    1007.0
-Freq: D, Name: A, dtype: float64
+<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
+<span class="ansi-red-intense-fg ansi-bold">NameError</span>                                 Traceback (most recent call last)
+Cell <span class="ansi-green-intense-fg ansi-bold">In[1], line 4</span>
+<span class="ansi-green-fg">      1</span> <span style="color: rgb(95,135,135)"># ========================================</span>
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(95,135,135)"># 1️⃣ Creating Regular Time Series (1D Frequency with Missing Data)</span>
+<span class="ansi-green-fg">      3</span> <span style="color: rgb(95,135,135)"># ========================================</span>
+<span class="ansi-green-intense-fg ansi-bold">----&gt; 4</span> idx1 <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">pd</span><span style="color: rgb(98,98,98)">.</span>date_range(<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">2023-01-01</span><span style="color: rgb(175,0,0)">&#34;</span>, periods<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(98,98,98)">10</span>, freq<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">1D</span><span style="color: rgb(175,0,0)">&#34;</span>)
+<span class="ansi-green-fg">      5</span> idx2 <span style="color: rgb(98,98,98)">=</span> pd<span style="color: rgb(98,98,98)">.</span>date_range(<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">2023-01-01</span><span style="color: rgb(175,0,0)">&#34;</span>, periods<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(98,98,98)">12</span>, freq<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">1D</span><span style="color: rgb(175,0,0)">&#34;</span>)
+<span class="ansi-green-fg">      6</span> idx3 <span style="color: rgb(98,98,98)">=</span> pd<span style="color: rgb(98,98,98)">.</span>date_range(<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">2022-12-31</span><span style="color: rgb(175,0,0)">&#34;</span>, periods<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(98,98,98)">14</span>, freq<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">1D</span><span style="color: rgb(175,0,0)">&#34;</span>)
+
+<span class="ansi-red-intense-fg ansi-bold">NameError</span>: name &#39;pd&#39; is not defined
 </pre></div></div>
 </div>
 <p>And here is what it looks like spliced instead of merged.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[54]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ========================================</span>
@@ -365,7 +297,7 @@ Freq: D, Name: A, dtype: float64
 <h2>Irregular series<a class="headerlink" href="#Irregular-series" title="Link to this heading">¶</a></h2>
 <p>Now we will look at some irregular series and see the difference in output from ts_merge (which shuffles) and ts_splice (which exclusively uses values from one series at a time based on the span of the series and its priority)</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[61]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># ========================================</span>
@@ -493,7 +425,7 @@ Name: A, dtype: float64
 <h2><code class="docutils literal notranslate"><span class="pre">Names</span></code> argument<a class="headerlink" href="#Names-argument" title="Link to this heading">¶</a></h2>
 <p>Finally let’s look at some more intricate examples with mixed series and dataframes with differing numbers of columns and see how <code class="docutils literal notranslate"><span class="pre">names</span></code> can be used to make selections or unify poorly coordinated labels. Here are the series:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[63]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -774,7 +706,7 @@ DataFrame 3:
 </div>
 <p>Here are some example usage:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[62]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example: Using `names` to rename output columns</span>
