@@ -12,7 +12,7 @@ from vtools.data.vtime import *
 import datetime as _datetime
 
 
-__all__ = ["to_dataframe","time_overlap","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime","to_dataframe"]
+__all__ = ["to_dataframe","time_overlap","rts","rts_formula","extrapolate_ts","datetime_elapsed","elapsed_datetime","to_dataframe","is_regular"]
 
 def to_dataframe(ts):
     if isinstance(ts,pd.DataFrame):
@@ -293,6 +293,89 @@ def elapsed_datetime(index_or_ts,reftime=None,time_unit='s',inplace=False):
         # result.index = ["elapsed"] = elapsed; result.reindex(key = 'elapsed',drop=True)
         result.index = dtndx
     return result
+
+
+import pandas as pd
+
+def is_regular(ts, raise_exception=False):
+    """
+    Check if a pandas DataFrame, Series, or xarray object with a time axis (axis 0)
+    has a regular time index.
+    
+    Regular means:
+      - The index is unique.
+      - The index equals a date_range spanning from the first to the last value with
+        the inferred frequency.
+    
+    Parameters:
+      ts : DataFrame, Series, or xarray object.
+      raise_exception (bool): If True, raises a ValueError when the index is not regular.
+                              Otherwise, returns False.
+    
+    Returns:
+      bool : True if the time index is regular; False otherwise.
+    """
+    # Determine the index from the object
+    if hasattr(ts, 'index'):
+        idx = ts.index
+    # For xarray objects, assume the first dimension is time.
+    elif hasattr(ts, 'coords') and ts.dims:
+        time_dim = ts.dims[0]
+        # Try to convert coordinate to a pandas Index
+        coord = ts.coords[time_dim]
+        if hasattr(coord, 'to_index'):
+            idx = coord.to_index()
+        else:
+            idx = pd.Index(coord.values)
+    else:
+        msg = "The provided object does not have an accessible time index."
+        if raise_exception:
+            raise ValueError(msg)
+        return False
+
+    # An empty or single-element index is considered regular.
+    if len(idx) == 0 or len(idx) == 1:
+        return True
+
+    # Check if the index has duplicate values.
+    if not idx.is_unique:
+        msg = "Index contains duplicate values."
+        if raise_exception:
+            raise ValueError(msg)
+        return False
+
+    # Ensure we are working with a DatetimeIndex. If not, attempt conversion.
+    if not isinstance(idx, pd.DatetimeIndex):
+        try:
+            idx = pd.to_datetime(idx)
+        except Exception as e:
+            msg = "Index could not be converted to datetime."
+            if raise_exception:
+                raise ValueError(msg) from e
+            return False
+
+    # Attempt to get the frequency. First check the .freq attribute.
+    freq = idx.freq
+    # If not set, try to infer it. This can often produce false negatives with messy data
+    # but will not fail in this case because every timestamp is checked
+    if freq is None:
+        freq = pd.infer_freq(idx)
+    if freq is None:
+        msg = "Could not infer a frequency from the index; it may not be regular."
+        if raise_exception:
+            raise ValueError(msg)
+        return False
+
+    # Build the expected index using the determined frequency.
+    expected_index = pd.date_range(start=idx[0], end=idx[-1], freq=freq)
+    if not expected_index.equals(idx):
+        msg = "Index is not regular based on the inferred frequency."
+        if raise_exception:
+            raise ValueError(msg)
+        return False
+    return True
+
+
 
 def example():
     ndx = pd.date_range(pd.Timestamp(2017,1,1,12),freq='15min',periods=10)
