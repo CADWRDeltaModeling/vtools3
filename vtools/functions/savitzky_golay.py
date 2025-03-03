@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 all = ["savgol_filter_weighted"]
 
 
-
-# --- Pandas Wrapper ---
 def savgol_filter_weighted(
     data, window_length, degree, error=None, cov_matrix=None, deriv=None, use_numba=True
 ):
@@ -44,7 +42,15 @@ def savgol_filter_weighted(
     Larger window lengths provide smoother results but require more computation and may not capture
     local variations well. It is recommended to experiment with different window lengths to find
     the optimal value for your specific application.
+    
+    Some of the workflow derived from this work:
+    https://github.com/surhudm/savitzky_golay_with_errors
+
     """
+
+
+
+
     # Interpolate to fill NaNs using linear interpolation
     interpolated_data = data.interpolate(method="linear")
 
@@ -323,8 +329,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# --- Acknowledgment ---
-"""
-This implementation was inspired by the Savitzky-Golay filter algorithm.
-Special thanks to the original authors and contributors for their work.
-"""
