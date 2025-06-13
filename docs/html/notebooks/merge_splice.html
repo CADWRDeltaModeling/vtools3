@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Merging and Splicing Time Series &#8212; vtools 3.8.0+13.gedb4fad documentation</title>
+    <title>Merging and Splicing Time Series &#8212; vtools 3.8.0+49.g6e77ab0.dirty documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css?v=7f9a90b1" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
-    <script src="../_static/documentation_options.js?v=576cbf74"></script>
+    <script src="../_static/documentation_options.js?v=105ee55e"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -18,7 +18,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Contributing" href="../contributing.html" />
+    <link rel="next" title="Extrapolation Method Demonstrations" href="extrapolation.html" />
     <link rel="prev" title="Climatology" href="climatology.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -71,6 +71,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#Summary">Summary</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transition.html">Transitioning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules.html">API Reference</a></li>
@@ -81,7 +83,7 @@
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
       <li>Previous: <a href="climatology.html" title="previous chapter">Climatology</a></li>
-      <li>Next: <a href="../contributing.html" title="next chapter">Contributing</a></li>
+      <li>Next: <a href="extrapolation.html" title="next chapter">Extrapolation Method Demonstrations</a></li>
   </ul></li>
 </ul>
 </div>
@@ -126,7 +128,7 @@
 <p>Let’s begin by showing how <code class="docutils literal notranslate"><span class="pre">ts_merge</span></code> and <code class="docutils literal notranslate"><span class="pre">ts_splice</span></code> fold together two regular series but gappy series on a prioritized basis.</p>
 <p>Here are the sample series:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ========================================</span>
