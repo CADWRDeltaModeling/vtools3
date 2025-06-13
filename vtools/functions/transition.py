@@ -124,7 +124,11 @@ def transition_ts(
             if n_after > 0
             else ts1.loc[[ts1.index[0]]]
         )
+        print(seg0)
+        print(seg1)
         all_data = pd.concat([seg0, seg1])
+        all_data = all_data[~all_data.index.duplicated()]
+        all_data = all_data.sort_index()
 
         if isinstance(ts0, pd.Series):
             interp = PchipInterpolator(all_data.index.astype(np.int64), all_data.values)

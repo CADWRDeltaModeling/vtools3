@@ -51,36 +51,52 @@ def ts_merge(series, names=None):
     --------
     ts_splice : Alternative merging method for irregular time series.
     """
-  # Make defensive copies of the input series.
+    # Make defensive copies of the input series.
     series = [s.copy() for s in series]
 
     if not isinstance(series, (tuple, list)) or len(series) == 0:
-        raise ValueError("`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.")
+        raise ValueError(
+            "`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame."
+        )
 
     # Ensure all input series have an index of the same type.
     index_type = type(series[0].index)
     if not all(isinstance(s.index, index_type) for s in series):
-        raise ValueError(f"All input series must have indexes of type {index_type.__name__}.")
+        raise ValueError(
+            f"All input series must have indexes of type {index_type.__name__}."
+        )
 
     if not all(isinstance(s.index, (pd.DatetimeIndex, pd.PeriodIndex)) for s in series):
         raise ValueError("All input series must have a DatetimeIndex or PeriodIndex.")
 
     # Determine if frequency can be preserved.
     first_freq = series[0].index.freq
-    same_freq = all(s.index.freq == first_freq for s in series if s.index.freq is not None)
+    same_freq = all(
+        s.index.freq == first_freq for s in series if s.index.freq is not None
+    )
 
     # For mixed types, convert Series to DataFrame.
     has_series = any(isinstance(s, pd.Series) for s in series)
     has_dataframe = any(isinstance(s, pd.DataFrame) for s in series)
     if has_series and has_dataframe:
         if isinstance(names, str):
-            series = [s.to_frame(name=names) if isinstance(s, pd.Series) else s for s in series]
+            series = [
+                s.to_frame(name=names) if isinstance(s, pd.Series) else s
+                for s in series
+            ]
         elif names is None:
-            df_cols = {col for s in series if isinstance(s, pd.DataFrame) for col in s.columns}
+            df_cols = {
+                col for s in series if isinstance(s, pd.DataFrame) for col in s.columns
+            }
             for s in series:
                 if isinstance(s, pd.Series) and s.name not in df_cols:
-                    raise ValueError("Mixed Series and DataFrames require Series names to match DataFrame columns.")
-            series = [s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series]
+                    raise ValueError(
+                        "Mixed Series and DataFrames require Series names to match DataFrame columns."
+                    )
+            series = [
+                s.to_frame(name=s.name) if isinstance(s, pd.Series) else s
+                for s in series
+            ]
 
     # For DataFrame inputs, validate column consistency.
     if isinstance(series[0], pd.DataFrame):
@@ -88,17 +104,24 @@ def ts_merge(series, names=None):
             common = set(series[0].columns)
             for df in series:
                 if set(df.columns) != common:
-                    raise ValueError("All input DataFrames must have the same columns when `names` is None.")
+                    raise ValueError(
+                        "All input DataFrames must have the same columns when `names` is None."
+                    )
         elif hasattr(names, "__iter__") and not isinstance(names, str):
             for df in series:
                 if not all(col in df.columns for col in names):
-                    raise ValueError(f"An input DataFrame does not contain all specified columns: {names}.")
+                    raise ValueError(
+                        f"An input DataFrame does not contain all specified columns: {names}."
+                    )
 
     # If names is a string, pre-rename each series for consistency.
     if names and isinstance(names, str):
         series = [
-            (s.rename(columns={s.columns[0]: names})
-             if isinstance(s, pd.DataFrame) else s.rename(names))
+            (
+                s.rename(columns={s.columns[0]: names})
+                if isinstance(s, pd.DataFrame)
+                else s.rename(names)
+            )
             for s in series
         ]
 
@@ -106,7 +129,7 @@ def ts_merge(series, names=None):
     full_index = series[0].index
     for s in series[1:]:
         full_index = full_index.union(s.index, sort=False)
-    full_index = full_index.sort_values()  
+    full_index = full_index.sort_values()
 
     # Merge series by reindexing and using combine_first.
     merged = series[0].reindex(full_index)
@@ -114,7 +137,10 @@ def ts_merge(series, names=None):
         merged = merged.combine_first(s.reindex(full_index))
 
     # If all inputs were univariate, ensure output remains univariate.
-    univariate = all((s.name is not None if isinstance(s, pd.Series) else s.shape[1] == 1) for s in series)
+    univariate = all(
+        (s.name is not None if isinstance(s, pd.Series) else s.shape[1] == 1)
+        for s in series
+    )
     if univariate and isinstance(merged, pd.DataFrame):
         merged = merged.iloc[:, 0]
 
@@ -131,6 +157,7 @@ def ts_merge(series, names=None):
     merged = _reindex_to_continuous(merged, first_freq)
 
     return merged
+
 
 def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     """
@@ -189,27 +216,43 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     series = [s.copy() for s in series]
 
     if not isinstance(series, (tuple, list)) or len(series) == 0:
-        raise ValueError("`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.")
-    if not all(isinstance(s.index, pd.DatetimeIndex) or isinstance(s.index, pd.PeriodIndex) for s in series):
+        raise ValueError(
+            "`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame."
+        )
+    if not all(
+        isinstance(s.index, pd.DatetimeIndex) or isinstance(s.index, pd.PeriodIndex)
+        for s in series
+    ):
         raise ValueError("All input series must have a DatetimeIndex or PeriodIndex.")
 
     # Ensure all input series have the same type of index.
     index_type = type(series[0].index)
     if not all(isinstance(s.index, index_type) for s in series):
-        raise ValueError(f"All input series must have indexes of type {index_type.__name__}.")
+        raise ValueError(
+            f"All input series must have indexes of type {index_type.__name__}."
+        )
 
-    if transition not in ["prefer_last", "prefer_first"] and not isinstance(transition, list):
-        raise ValueError("`transition` must be 'prefer_last', 'prefer_first', or a list of timestamps.")
+    if transition not in ["prefer_last", "prefer_first"] and not isinstance(
+        transition, list
+    ):
+        raise ValueError(
+            "`transition` must be 'prefer_last', 'prefer_first', or a list of timestamps."
+        )
 
     # Determine if frequency can be preserved.
     first_freq = series[0].index.freq
-    same_freq = all(s.index.freq == first_freq for s in series if s.index.freq is not None)
+    same_freq = all(
+        s.index.freq == first_freq for s in series if s.index.freq is not None
+    )
 
     # If names is a string, pre-rename each series for consistency.
     if names and isinstance(names, str):
         series = [
-            (s.rename(columns={s.columns[0]: names})
-             if isinstance(s, pd.DataFrame) else s.rename(names))
+            (
+                s.rename(columns={s.columns[0]: names})
+                if isinstance(s, pd.DataFrame)
+                else s.rename(names)
+            )
             for s in series
         ]
 
@@ -225,19 +268,24 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
             transition_points = [s.first_valid_index() for s in series[1:]]
             duplicate_keep = "last"
         if floor_dates:
-            transition_points = [dt.floor("D") for dt in transition_points]
+            transition_points = [dt.floor("d") for dt in transition_points]
     transition_points = [None] + transition_points + [None]
 
     # Extract sections based on transition points.
     sections = []
-    for ts_obj, start, end in zip(series, transition_points[:-1], transition_points[1:]):
+    for ts_obj, start, end in zip(
+        series, transition_points[:-1], transition_points[1:]
+    ):
         section = ts_obj.loc[start:end]
         if not section.empty:
             sections.append(section)
     spliced = pd.concat(sections, axis=0).sort_index() if sections else pd.DataFrame()
 
     # If all inputs were univariate, ensure output remains univariate.
-    univariate = all((s.name is not None if isinstance(s, pd.Series) else s.shape[1] == 1) for s in series)
+    univariate = all(
+        (s.name is not None if isinstance(s, pd.Series) else s.shape[1] == 1)
+        for s in series
+    )
     if univariate and isinstance(spliced, pd.DataFrame):
         spliced = spliced.iloc[:, 0]
 
@@ -272,6 +320,7 @@ def _apply_names(result, names):
             result = result[names]
     return result
 
+
 def _reindex_to_continuous(result, first_freq):
     """
     Reindex the given result (DataFrame or Series) to a continuous index spanning
@@ -304,7 +353,7 @@ def _reindex_to_continuous(result, first_freq):
         continuous_index = result.index  # For other types, leave unchanged
 
     result = result.reindex(continuous_index)
-    
+
     if isinstance(result.index, pd.PeriodIndex):
         # For PeriodIndex, rebuild the index because .freq is read-only.
         result.index = pd.PeriodIndex(result.index, freq=first_freq)

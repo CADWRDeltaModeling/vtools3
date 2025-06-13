@@ -180,13 +180,19 @@ def extrapolate_ts(ts, start=None, end=None, method="ffill", val=None):
 
             raise ValueError("'ffill' not allowed when extending before start of data")
         ts_full.loc[ts.index[-1] :] = ts_full.loc[ts.index[-1] :].ffill()
-        return ts_full.astype(ts.dtype)
+        if isinstance(ts, pd.Series):
+            return ts_full.astype(ts.dtype)
+        else:
+            return ts_full.astype(ts.dtypes.to_dict())
 
     elif method == "bfill":
         if end > ts.index[-1]:
             raise ValueError("'bfill' not allowed when extending after end of data")
         ts_full.loc[: ts.index[0]] = ts_full.loc[: ts.index[0]].bfill()
-        return ts_full.astype(ts.dtype)
+        if isinstance(ts, pd.Series):
+            return ts_full.astype(ts.dtype)
+        else:
+            return ts_full.astype(ts.dtypes.to_dict())
 
     elif method == "linear_slope":
         if val is not None:
@@ -255,7 +261,14 @@ def extrapolate_ts(ts, start=None, end=None, method="ffill", val=None):
         if end > ts.index[-1]:
             result.loc[result.index > ts.index[-1]] = val
 
-        return result.astype(ts.dtype) if not result.isna().any().any() else result
+        if isinstance(result, pd.Series):
+            return result.astype(ts.dtype) if not result.isna().any() else result
+        else:
+            return (
+                result.astype(ts.dtypes.to_dict())
+                if not result.isna().any().any()
+                else result
+            )
 
     else:
         raise ValueError(f"Unknown method: {method}")
