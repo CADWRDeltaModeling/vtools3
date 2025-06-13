@@ -11,6 +11,7 @@ from vtools.data.gap import *
 from vtools.data.vtime import *
 from vtools.data.timeseries import *
 
+from vtools.functions.transition import *
 from vtools.functions.climatology import *
 from vtools.functions.interannual import *
 from vtools.functions.filter import *

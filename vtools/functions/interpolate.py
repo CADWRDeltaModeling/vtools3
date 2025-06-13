@@ -397,7 +397,7 @@ def monotonic_spline(ts,dest):
     
     
 
-def example():
+def rhist_example():
     import matplotlib.pyplot as plt
 
     nper = 20
@@ -434,6 +434,3 @@ def example():
     tsout.plot(ax=ax)
     plt.show()
 
-
-if __name__ == "__main__":
-    example()    

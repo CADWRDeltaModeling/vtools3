@@ -203,6 +203,68 @@ def gap_distance(ts, disttype="count", to = "good"):
         raise ValueError("invalid input disttype, must be count or freq")
 
 
+import pandas as pd
+import numpy as np
+
+def describe_series_gaps(s: pd.Series, name: str, context: int = 2):
+    """
+    Print gaps in a single Series s, showing `context` non-null points
+    before and after each gap, with an ellipsis marker in between.
+    """
+    mask = s.isna().to_numpy()
+    idx = s.index.to_numpy()
+
+    if not mask.any():
+        print(f"{name}: no missing values\n")
+        return
+
+    # find rising edges (gap starts) and falling edges (gap ends)
+    diffs = np.diff(mask.astype(int), prepend=0, append=0)
+    starts = np.where(diffs == 1)[0]
+    ends   = np.where(diffs == -1)[0] - 1
+
+    for i, (st, en) in enumerate(zip(starts, ends), 1):
+        gap_len = en - st + 1
+        print(f"\n{name} — gap #{i}:")
+        print(f"  from {idx[st]} to {idx[en]}  ({gap_len} samples missing)")
+
+        # pre-gap context
+        pre_idxs = []
+        j = st - 1
+        while j >= 0 and len(pre_idxs) < context:
+            if not mask[j]:
+                pre_idxs.append(j)
+            j -= 1
+        for pi in reversed(pre_idxs):
+            print(f"    → {idx[pi]} : {s.iloc[pi]}")
+
+        # ellipsis marker
+        print("    ... [ missing block ] ...")
+
+        # post-gap context
+        post_idxs = []
+        j = en + 1
+        N = len(mask)
+        while j < N and len(post_idxs) < context:
+            if not mask[j]:
+                post_idxs.append(j)
+            j += 1
+        for pi in post_idxs:
+            print(f"    ← {idx[pi]} : {s.iloc[pi]}")
+    print()
+
+def describe_null(dset, name, context=2):
+    """
+    If dset is a DataFrame, run describe_series_gaps on each column.
+    If it's a Series, just run it once.
+    """
+    if isinstance(dset, pd.DataFrame):
+        for col in dset.columns:
+            describe_series_gaps(dset[col], f"{name}.{col}", context=context)
+    else:
+        describe_series_gaps(dset, name, context=context)
+
+
 
 def example_gap():
     import numpy as np
