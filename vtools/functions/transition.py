@@ -8,6 +8,45 @@ __all__ = ["transition_ts"]
 def transition_ts(
     ts0, ts1, method="linear", create_gap=None, overlap=(0, 0), return_type="series"
 ):
+    """
+    Create a smooth transition between two aligned time series.
+
+    Parameters
+    ----------
+    ts0 : pandas.Series or pandas.DataFrame
+        The initial time series segment. Must share the same frequency and type as `ts1`.
+
+    ts1 : pandas.Series or pandas.DataFrame
+        The final time series segment. Must share the same frequency and type as `ts0`.
+
+    method : {"linear", "pchip"}, default="linear"
+        The interpolation method to use for generating the transition.
+
+    create_gap : list of str or pandas.Timestamp, optional
+        A list of two elements [start, end] defining the gap over which to transition.
+        If not specified, a natural gap between ts0 and ts1 will be inferred.
+        If ts0 and ts1 overlap, `create_gap` is required.
+
+    overlap : tuple of int or str, default=(0, 0)
+        Amount of overlap to use for interpolation anchoring in `pchip` mode.
+        Each entry can be:
+        - An integer: number of data points before/after to use.
+        - A pandas-compatible frequency string: e.g., "2h" or "45min".
+
+    return_type : {"series", "glue"}, default="series"
+        - "series": returns the full merged series including ts0, transition, ts1.
+        - "glue": returns only the interpolated transition segment.
+
+    Returns
+    -------
+    pandas.Series or pandas.DataFrame
+        The resulting time series segment, either the full merged series or just the transition zone.
+
+    Raises
+    ------
+    ValueError
+        If ts0 and ts1 have mismatched types or frequencies, or if overlap exists but `create_gap` is not specified.
+    """
     if not isinstance(ts0, (pd.Series, pd.DataFrame)) or not isinstance(ts1, type(ts0)):
         raise ValueError("ts0 and ts1 must be of the same type (Series or DataFrame).")
     if ts0.index.freq != ts1.index.freq:
@@ -37,10 +76,6 @@ def transition_ts(
             end_val = ts1.loc[trans_end:].iloc[0]
 
     else:
-        if ts0.index[-1] >= ts1.index[0]:
-            raise ValueError(
-                "ts0 ends after ts1 starts; overlap must be resolved with create_gap."
-            )
         trans_start = ts0.index[-1] + freq
         trans_end = ts1.index[0] - freq
         start_time = ts0.index[-1]
@@ -74,6 +109,10 @@ def transition_ts(
 
     elif method == "pchip":
         n_before, n_after = overlap
+        if isinstance(n_before, str):
+            n_before = int(pd.Timedelta(n_before) / freq)
+        if isinstance(n_after, str):
+            n_after = int(pd.Timedelta(n_after) / freq)
 
         seg0 = (
             ts0.loc[:trans_start].iloc[-n_before:]
@@ -86,7 +125,6 @@ def transition_ts(
             else ts1.loc[[ts1.index[0]]]
         )
         all_data = pd.concat([seg0, seg1])
-        all_data = all_data[~all_data.index.duplicated()].sort_index()
 
         if isinstance(ts0, pd.Series):
             interp = PchipInterpolator(all_data.index.astype(np.int64), all_data.values)
