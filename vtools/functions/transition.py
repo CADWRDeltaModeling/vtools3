@@ -1,9 +1,9 @@
-
 from scipy.interpolate import PchipInterpolator
 import pandas as pd
 import numpy as np
 
 __all__ = ["transition_ts"]
+
 
 def transition_ts(
     ts0, ts1, method="linear", create_gap=None, overlap=(0, 0), return_type="series"
@@ -37,6 +37,10 @@ def transition_ts(
             end_val = ts1.loc[trans_end:].iloc[0]
 
     else:
+        if ts0.index[-1] >= ts1.index[0]:
+            raise ValueError(
+                "ts0 ends after ts1 starts; overlap must be resolved with create_gap."
+            )
         trans_start = ts0.index[-1] + freq
         trans_end = ts1.index[0] - freq
         start_time = ts0.index[-1]
