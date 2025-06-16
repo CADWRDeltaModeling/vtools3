@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=61", "wheel", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vtools3"
+dynamic = ["version"] # Placeholder; versioneer will manage this
+description = "Timeseries analysis and processing tools using pandas/xarray"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "California Department of Water Resources", email = "Eli.Ateljevich@water.ca.gov"}
+]
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9"
+]
+keywords = ["vtools"]
+dependencies = [
+    "numpy",
+    "pandas",
+    "xarray",
+    "dask",
+    "matplotlib",
+    "scikit-learn",
+    "scipy",
+    "statsmodels>=0.13"
+]
+
+[project.optional-dependencies]
+doc = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser",
+    "numpydoc"
+]
+test = [
+    "pytest>=3",
+    "pytest-cov",
+    "tox",
+    "click"
+]
+[project.urls]
+Homepage = "https://github.com/CADWRDeltaModeling/vtools3"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.flake8]
+exclude = ["docs"]
+
+[tool.pytest.ini_options]
+collect_ignore = ["setup.py"]
+
+[tool.setuptools.packages.find]
+include = ["vtools"]
+exclude = ["docsrc"]
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "dirty-tag"
+
+[project.scripts]

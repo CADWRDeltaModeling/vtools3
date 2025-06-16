@@ -24,10 +24,10 @@ jobs:
       env: 
         ANACONDA_CHANNEL_UPLOAD_TOKEN: ${{ secrets.ANACONDA_CHANNEL_UPLOAD_TOKEN }}
       run: |
-        conda create -n test_vtools3 -y conda-build conda-verify numpy anaconda-client
+        conda create -n test_vtools3 -y conda-build conda-verify numpy anaconda-client setuptools-scm
         source $CONDA/etc/profile.d/conda.sh
         conda activate test_vtools3
         conda config --set anaconda_upload yes
-        conda build --user cadwr-dms --token "$ANACONDA_CHANNEL_UPLOAD_TOKEN" conda.recipe
+        conda build -c cadwr-dms -c conda-forge --user cadwr-dms --token "$ANACONDA_CHANNEL_UPLOAD_TOKEN" conda.recipe
         conda activate
         conda remove -n test_vtools3 --all

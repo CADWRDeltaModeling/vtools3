@@ -1,10 +1,11 @@
-{% set name = "vtools3" %}
-{% set data = load_setup_py_data() %}
+{# raw is for ignoring templating with cookiecutter, leaving it for use with conda-build -#}
+{% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
+{% set project = pyproject['project'] %}
+{% set version = load_setup_py_data().get('version', '0.0.0') %}
 
 package:
-  name: "{{ name|lower }}"
-  
-  version: {{ data['version'] }}
+  name: vtools
+  version: {{ version }}
 
 source:
   path: ..
@@ -14,19 +15,27 @@ build:
   # separate bld.bat and build.sh files instead of this key.  Add the line
   # "skip: True  # [py<35]" (for example) to limit to Python 3.5 and newer, or
   # "skip: True  # [not win]" to limit to Windows.
-  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed -vv .
+  script: {{ PYTHON }} -m pip install --no-build-isolation --no-deps --ignore-installed -vv .
   noarch: python
+  number: 0
   entry_points:
-  {% for entry in data['entry_points']['console_scripts'] %}
-    - {{ entry.split('=')[0].strip() }} = {{ entry.split('=')[1].strip() }}
-  {% endfor %}
-
+    {% for name, reference in project['scripts'].items() %}
+    - {{ name }} = {{ reference }}
+    {% endfor %}
 
 requirements:
+  host:
+    - python {{ project['requires-python'] }}
+    - pip
+    - numpy >=1.23
+    {% for dep in pyproject['build-system']['requires'] %}
+    - {{ dep.lower() }}
+    {% endfor %}
   build:
     - python
     - setuptools
     - pandas >=0.23
+    - numpy >=1.23
   run:
     - python
     - numpy  >=1.11
@@ -34,17 +43,21 @@ requirements:
     - scipy >=1.2
     - beautifulsoup4 >=4.8
     - xlrd
-  test:
-    imports:
-      - vtools
-    source_files:
-      - tests
-    requires:
-      - pytest
-      - pytest-cov
-    commands:
-      - (setlocal && cd tests && pytest && endlocal) # [win]
-      - (cd tests; pytest) # [unix]
+    {% for dep in project.get('dependencies', []) %}
+    - {{ dep.lower() }}
+    {% endfor %}  
+test:
+  imports:
+    - vtools
+  source_files:
+    - tests
+  requires:
+    {% for dep in project.get("optional-dependencies", {}).get('test', []) %}
+    - {{ dep.lower() }}
+    {% endfor %}
+  commands:
+    - (setlocal && cd tests && pytest && endlocal) # [win]
+    - (cd tests; pytest) # [unix]
 
 about:
   home: https://github.com/CADWRDeltaModeling/vtools3

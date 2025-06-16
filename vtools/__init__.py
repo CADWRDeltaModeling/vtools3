@@ -1,11 +1,14 @@
 """Top-level package for vtools. Most functions can be directly imported from vtools namespace"""
 
 __author__ = """Eli Ateljevich, Nicky Sandhu, Kijin Nam"""
-__email__ = 'eli@water.ca.gov'
-__version__ = '3.0.4'
+__email__ = "Eli.Ateljevich@water.ca.gov; Kijin.Nam@water.ca.gov"
 
-from . import _version
-__version__ = _version.get_versions()['version']
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("schimpy")
+except PackageNotFoundError:
+    __version__ = "0.0.0"  # Default version if package metadata is unavailable
 
 from vtools.data.gap import *
 from vtools.data.vtime import *
@@ -19,4 +22,3 @@ from vtools.functions.error_detect import *
 from vtools.functions.merge import *
 from vtools.functions.interpolate import *
 from vtools.functions.lag_cross_correlation import *
-
