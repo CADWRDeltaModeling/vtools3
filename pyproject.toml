@@ -24,6 +24,7 @@ dependencies = [
     "pandas",
     "xarray",
     "dask",
+    "dask-expr",
     "matplotlib",
     "scikit-learn",
     "scipy",
