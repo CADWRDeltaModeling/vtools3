@@ -70,11 +70,11 @@ def read_dss(
             # Set default start_date and end_date to cover the full period of record if not specified
             tt_full = tsi[0]
             if start_date is None:
-                start_date = tt_full.index[0]
+                start_date = tt_full.index[0].to_timestamp()
             if end_date is None:
-                end_date = tt_full.index[-1]
-            if (tt_full.index[0].to_timestamp() > pd.to_datetime(end_date)) or (
-                tt_full.index[-1].to_timestamp() < pd.to_datetime(start_date)
+                end_date = tt_full.index[-1].to_timestamp()
+            if tt_full.index[0].to_timestamp() > end_date or (
+                tt_full.index[-1].to_timestamp() < start_date
             ):
                 raise ValueError(
                     f"File: {filename} does not cover the dates requested. \n\tRequested dates are: {start_date} to {end_date}, \n\tand the file covers {tt_full.index[0]} to {tt_full.index[-1]}"
