@@ -32,7 +32,7 @@ def rhistinterp(ts, dest, p=2.0, lowbound=None, tolbound=1.0e-3, maxiter=5):
         A pandas freq code (e.g. '16min' or 'D') or a DateTimeIndex
 
     p : float, optional
-        Spline tension, usually between 0 and 20. Must >-1. For a 'sufficiently large' value of p, the interpolant will be monotonicity-preserving and will maintain strict positivity (always being strictly > `lowbound`.
+        Spline tension, usually between 0 and 20. Must >-1. For a 'sufficiently large' value of p, the interpolant will be monotonicity-preserving and will maintain strict positivity (always being strictly > `lowbound`). It will also preserve the original shape of the time series.
 
     lowbound : float, optional
         Lower bound of interpolated values.
@@ -59,7 +59,7 @@ def rhistinterp(ts, dest, p=2.0, lowbound=None, tolbound=1.0e-3, maxiter=5):
     x = (ndx - strt).total_seconds().to_numpy()
 
     if not isinstance(dest, pd.Index):
-        end = ndx[-1].floor(dest)
+        end = ndx[-1] - dest
         dest = pd.date_range(start=strt, end=end, freq=dest)
     xnew = (dest - strt).total_seconds().to_numpy()
 
