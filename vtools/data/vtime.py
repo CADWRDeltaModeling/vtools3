@@ -23,32 +23,32 @@ __all__ = ["seconds", "minutes", "hours", "days", "months", "years"]
 
 def seconds(s):
     """Create a time interval representing s seconds"""
-    return pd.tseries.offsets.Second(s)
+    return pd.offsets.Second(s)
 
 
 def minutes(m):
     """Create a time interval representing m minutes"""
-    return pd.tseries.offsets.Minute(m)
+    return pd.offsets.Minute(m)
 
 
 def hours(h):
     """Create a time interval representing h hours"""
-    return pd.tseries.offsets.Hour(h)
+    return pd.offsets.Hour(h)
 
 
 def days(d):
     """Create a time interval representing d days"""
-    return pd.tseries.offsets.Day(d)
+    return pd.offsets.Day(d)
 
 
 def months(m):
     """Create a time interval representing m months"""
-    return pd.tseries.offsets.MonthOffset(m)
+    return pd.offsets.DateOffset(months=m)
 
 
 def years(y):
     """Create a time interval representing y years"""
-    return pd.tseries.offsets.YearOffset(y)
+    return pd.offsets.DateOffset(years=y)
 
 
 def dst_to_standard_naive(ts, dst_zone="US/Pacific", standard_zone="Etc/GMT+8"):
