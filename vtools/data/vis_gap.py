@@ -6,16 +6,16 @@ from datetime import timedelta
 
 
 def generate_sample_data():
-    freq = '15T'
+    freq = "15T"
     start = pd.Timestamp("2010-01-01")
     end = pd.Timestamp("2012-01-01")
     index = pd.date_range(start, end, freq=freq)
     n = len(index)
     cols = [f"Series{i+1}" for i in range(12)]
-    
+
     data = np.random.randn(n, 12)
     df = pd.DataFrame(data, index=index, columns=cols)
-    
+
     rng = np.random.default_rng(seed=0)
     for col in df.columns:
         for _ in range(20):
@@ -23,13 +23,13 @@ def generate_sample_data():
             gap_length = rng.integers(1, 201)
             end_idx = min(start_idx + gap_length, n)
             df.loc[df.index[start_idx:end_idx], col] = np.nan
-    
+
     gap_end_candidates = rng.choice(df.columns, size=6, replace=False)
-    intervals_per_day = int((24*60) / 15)
+    intervals_per_day = int((24 * 60) / 15)
     for col in gap_end_candidates:
         gap_length = rng.integers(1, 2 * intervals_per_day + 1)
         df.loc[df.index[-gap_length:], col] = np.nan
-        
+
     df.loc[df.index < (start + pd.DateOffset(years=1)), df.columns[0]] = np.nan
 
     return df
@@ -38,23 +38,26 @@ def generate_sample_data():
 def plot_missing_data(df, ax, min_gap_duration, overall_start, overall_end):
     overall_start_num = mdates.date2num(overall_start)
     overall_end_num = mdates.date2num(overall_end)
-    
-    overall_color = 'skyblue'
-    gap_color = 'orange'
-    boundary_gap_color = 'darkorange'
+
+    overall_color = "skyblue"
+    gap_color = "orange"
+    boundary_gap_color = "darkorange"
     bar_height = 0.8
 
     ax.cla()
 
     y_ticks = []
     y_labels = []
-    
+
     for i, col in enumerate(df.columns):
         # Full-range background bar
-        ax.broken_barh([(overall_start_num, overall_end_num - overall_start_num)],
-                       (i - bar_height/2, bar_height),
-                       facecolors=overall_color, alpha=0.6)
-        
+        ax.broken_barh(
+            [(overall_start_num, overall_end_num - overall_start_num)],
+            (i - bar_height / 2, bar_height),
+            facecolors=overall_color,
+            alpha=0.6,
+        )
+
         series = df[col]
         mask = series.isna()
         if mask.any():
@@ -66,12 +69,24 @@ def plot_missing_data(df, ax, min_gap_duration, overall_start, overall_end):
                     actual = ge - gs
                     if actual < min_gap_duration:
                         extra = min_gap_duration - actual
-                        gs = max(gs - extra/2, overall_start)
-                        ge = min(ge + extra/2, overall_end)
-                    color = boundary_gap_color if (gs <= overall_start or ge >= overall_end) else gap_color
-                    ax.broken_barh([(mdates.date2num(gs), mdates.date2num(ge) - mdates.date2num(gs))],
-                                   (i - bar_height/2, bar_height), facecolors=color)
-        
+                        gs = max(gs - extra / 2, overall_start)
+                        ge = min(ge + extra / 2, overall_end)
+                    color = (
+                        boundary_gap_color
+                        if (gs <= overall_start or ge >= overall_end)
+                        else gap_color
+                    )
+                    ax.broken_barh(
+                        [
+                            (
+                                mdates.date2num(gs),
+                                mdates.date2num(ge) - mdates.date2num(gs),
+                            )
+                        ],
+                        (i - bar_height / 2, bar_height),
+                        facecolors=color,
+                    )
+
         y_ticks.append(i)
         # Missing percentage label
         perc = series.isna().mean() * 100
@@ -90,13 +105,13 @@ def plot_missing_data(df, ax, min_gap_duration, overall_start, overall_end):
     ax.xaxis_date()
     ax.figure.autofmt_xdate()
     # Fix y-limits so zooming on x-axis only
-    ax.set_ylim(-0.5, len(df.columns)-0.5)
+    ax.set_ylim(-0.5, len(df.columns) - 0.5)
 
 
 def interactive_gap_plot(df):
     overall_start = df.index[0]
     overall_end = df.index[-1] + pd.Timedelta(minutes=15)
-    
+
     fig, ax = plt.subplots(figsize=(12, 6))
     prev_xlim = [None, None]
 
@@ -118,10 +133,10 @@ def interactive_gap_plot(df):
         if years_view >= 12:
             mg = timedelta(days=12)
         elif years_view >= 8:
-            mg = timedelta(days=4)            
+            mg = timedelta(days=4)
         elif years_view >= 4:
             mg = timedelta(hours=18)
-        elif years_view >=1:
+        elif years_view >= 1:
             mg = timedelta(hours=4)
         else:
             mg = timedelta(hours=1)
@@ -131,12 +146,12 @@ def interactive_gap_plot(df):
         ax.set_xlim(x0, x1)
 
     # Use draw_event for reliable detection after toolbar zoom/pan
-    fig.canvas.mpl_connect('draw_event', on_draw)
+    fig.canvas.mpl_connect("draw_event", on_draw)
 
     plt.tight_layout()
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     df = generate_sample_data()
     interactive_plot(df)

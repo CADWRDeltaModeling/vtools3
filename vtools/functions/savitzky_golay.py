@@ -42,14 +42,11 @@ def savgol_filter_weighted(
     Larger window lengths provide smoother results but require more computation and may not capture
     local variations well. It is recommended to experiment with different window lengths to find
     the optimal value for your specific application.
-    
+
     Some of the workflow derived from this work:
     https://github.com/surhudm/savitzky_golay_with_errors
 
     """
-
-
-
 
     # Interpolate to fill NaNs using linear interpolation
     interpolated_data = data.interpolate(method="linear")
@@ -74,8 +71,6 @@ def savgol_filter_weighted(
         )
 
     return pd.Series(y_filtered, index=data.index)
-
-
 
 
 # --- Corrected Implementation ---
@@ -283,7 +278,6 @@ def savgol_filter_numba(y, window_length, degree, error):
     return ynew
 
 
-
 # --- Example Usage ---
 def main():
     # Create some sample data.
@@ -328,4 +322,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

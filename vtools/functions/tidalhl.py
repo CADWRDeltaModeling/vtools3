@@ -3,7 +3,13 @@ import pandas as pd
 import numba
 from vtools.functions.filter import cosine_lanczos
 
-__all__ = ["get_tidal_hl", "get_tidal_amplitude", "get_tidal_hl_zerocrossing", "get_tidal_phase_diff"]
+__all__ = [
+    "get_tidal_hl",
+    "get_tidal_amplitude",
+    "get_tidal_hl_zerocrossing",
+    "get_tidal_phase_diff",
+]
+
 
 def get_smoothed_resampled(
     df, cutoff_period="2h", resample_period="1min", interpolate_method="pchip"

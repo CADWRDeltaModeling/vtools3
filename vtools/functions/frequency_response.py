@@ -8,10 +8,11 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 import numpy as np
 import pandas as pd
 
-#"compare_response",
-__all__ = [ "compare_response", "unit_impulse_ts"]
+# "compare_response",
+__all__ = ["compare_response", "unit_impulse_ts"]
 
 plt.style.use(["seaborn-v0_8-deep", "seaborn-v0_8-talk"])
+
 
 def unit_impulse_ts(size, interval):
     """
@@ -38,9 +39,11 @@ def unit_impulse_ts(size, interval):
     # return pd.Series(val,index=idx) # series doesn't works with godin
     return pd.DataFrame(index=idx, data=val)
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
+
 
 def compare_response(cutoff_period):
     """
@@ -64,19 +67,21 @@ def compare_response(cutoff_period):
     cf = 2.0 * dt.seconds / (cutoff_period * 3600)
     dt_hours_ratio = dt.seconds / 3600.0
     cl_size_hours1 = 70
-    cl_size1 = int(cl_size_hours1 * 3600. / dt.seconds)
+    cl_size1 = int(cl_size_hours1 * 3600.0 / dt.seconds)
     default_cl_size = int(1.25 * 2.0 / cf)
     w = default_cl_size
     ts = godin(unit_impulse)
 
-
     for unit_impulse_response, label in [
-        (cosine_lanczos(unit_impulse, cutoff_period="40h", filter_len=cl_size1),
-            f"cos-Lanczos (width={cl_size1}h)"),
-        (cosine_lanczos(unit_impulse, cutoff_period="40h"),
-            f"cos-Lanczos (width={w}h)"),
-        (lanczos(unit_impulse, cutoff_period="40h"),
-            f"Lanczos (width={w}h)"),
+        (
+            cosine_lanczos(unit_impulse, cutoff_period="40h", filter_len=cl_size1),
+            f"cos-Lanczos (width={cl_size1}h)",
+        ),
+        (
+            cosine_lanczos(unit_impulse, cutoff_period="40h"),
+            f"cos-Lanczos (width={w}h)",
+        ),
+        (lanczos(unit_impulse, cutoff_period="40h"), f"Lanczos (width={w}h)"),
         (unit_impulse.rolling(96, center=True, min_periods=96).mean(), "Boxcar 24h"),
         (unit_impulse.rolling(99, center=True, min_periods=99).mean(), "Boxcar 25h"),
         (godin(unit_impulse), "Godin 25-24-24 (width=72h)"),
@@ -105,7 +110,9 @@ def compare_response(cutoff_period):
         ha="right",  # Left-align to be on the left side of the line
         va="center",
         color="0.25",
-        bbox=dict(facecolor="white", edgecolor="none", alpha=0.6)  # Background for readability
+        bbox=dict(
+            facecolor="white", edgecolor="none", alpha=0.6
+        ),  # Background for readability
     )
 
     ax.set_ylabel("Magnitude")
@@ -119,22 +126,32 @@ def compare_response(cutoff_period):
         framealpha=1,
         edgecolor="gray",
         ncol=2,  # Two-column layout
-        bbox_to_anchor=(0.5, 1.15)  # Shift slightly left
+        bbox_to_anchor=(0.5, 1.15),  # Shift slightly left
     )
 
     # Create an inset axis at **compromise position**, but 0.08 lower on the y-axis
-    ax_inset = inset_axes(ax, width="45%", height="35%", loc="lower left", bbox_to_anchor=(0.38, 0.22,1.2,1.2), bbox_transform=ax.transAxes)
+    ax_inset = inset_axes(
+        ax,
+        width="45%",
+        height="35%",
+        loc="lower left",
+        bbox_to_anchor=(0.38, 0.22, 1.2, 1.2),
+        bbox_transform=ax.transAxes,
+    )
     ax_inset.set_xlim(0, 40)
-    ax_inset.set_ylim(-0.05, 0.23)  
+    ax_inset.set_ylim(-0.05, 0.23)
 
     # Plot the same response curves in the inset
     for unit_impulse_response, label in [
-        (cosine_lanczos(unit_impulse, cutoff_period="40h", filter_len=cl_size1),
-            f"cos-Lanczos, width={cl_size1}h"),
-        (cosine_lanczos(unit_impulse, cutoff_period="40h"),
-            f"cos-Lanczos (width={w}h)"),
-        (lanczos(unit_impulse, cutoff_period="40h"),
-            f"Lanczos (width={w}h)"),
+        (
+            cosine_lanczos(unit_impulse, cutoff_period="40h", filter_len=cl_size1),
+            f"cos-Lanczos, width={cl_size1}h",
+        ),
+        (
+            cosine_lanczos(unit_impulse, cutoff_period="40h"),
+            f"cos-Lanczos (width={w}h)",
+        ),
+        (lanczos(unit_impulse, cutoff_period="40h"), f"Lanczos (width={w}h)"),
         (unit_impulse.rolling(96, center=True, min_periods=96).mean(), "Boxcar 24h"),
         (unit_impulse.rolling(99, center=True, min_periods=99).mean(), "Boxcar 25h"),
         (godin(unit_impulse), "Godin 25-24-24"),
@@ -153,25 +170,26 @@ def compare_response(cutoff_period):
     shifts = [0.0, -1.0, 1.0]  # K1 shifted left, O1 shifted right
 
     for mx, label, shift in zip(pers, labels, shifts):
-        ax_inset.scatter(mx, -0.012, marker='^', color='purple', s=45, zorder=3)  # Raised a bit more
-        ax_inset.text(mx + shift, -0.025, label, ha='center', va='top', fontsize=8, color='purple')  # Smaller font
+        ax_inset.scatter(
+            mx, -0.012, marker="^", color="purple", s=45, zorder=3
+        )  # Raised a bit more
+        ax_inset.text(
+            mx + shift, -0.025, label, ha="center", va="top", fontsize=8, color="purple"
+        )  # Smaller font
 
     # Hide inset tick labels for clarity
-    ax_inset.tick_params(axis='both', which='both', labelsize=8)
+    ax_inset.tick_params(axis="both", which="both", labelsize=8)
 
     # Connect inset to main plot **with a proper box**
     mark_inset(ax, ax_inset, loc1=2, loc2=3, fc="none", ec="0.5", lw=1.2)
 
 
-
-
-
-
 def main():
     # compare response for data with 15min interval
-    
+
     compare_response(40)
     plt.savefig("frequency_response.png", bbox_inches=0)
+
 
 if __name__ == "__main__":
     main()

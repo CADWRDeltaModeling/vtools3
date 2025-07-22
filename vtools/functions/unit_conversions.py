@@ -3,19 +3,19 @@ from scipy.optimize import brentq
 
 # Constants for conversions
 J1 = -16.072
-J2 =  4.1495
+J2 = 4.1495
 J3 = -0.5345
-J4 =  0.0261
+J4 = 0.0261
 
-K1 =  0.0120
+K1 = 0.0120
 K2 = -0.2174
 K3 = 25.3283
 K4 = 13.7714
 K5 = -6.4788
-K6 =  2.5842
+K6 = 2.5842
 k = 0.0162
-s_sea = 35.
-ec_sea=53087.0
+s_sea = 35.0
+ec_sea = 53087.0
 
 M2FT = 3.28084
 FT2M = 0.3048
@@ -24,11 +24,11 @@ CMS2CFS = 35.31466621
 
 
 def m_to_ft(x):
-    """ Convert meter to foot
-        WARNING: The function modifies the input argument if it is TimeSeries
+    """Convert meter to foot
+    WARNING: The function modifies the input argument if it is TimeSeries
     """
     try:
-        x.props['unit'] = 'ft'
+        x.props["unit"] = "ft"
         x.data *= M2FT
         return x
     except:
@@ -36,10 +36,9 @@ def m_to_ft(x):
 
 
 def ft_to_m(x):
-    """ Convert foot to meter
-    """
+    """Convert foot to meter"""
     try:
-        x.props['unit'] = 'm'
+        x.props["unit"] = "m"
         x.data *= FT2M
         return x
     except:
@@ -47,10 +46,9 @@ def ft_to_m(x):
 
 
 def cms_to_cfs(x):
-    """ Convert cms to cfs
-    """
+    """Convert cms to cfs"""
     try:
-        x.props['unit'] = 'cfs'
+        x.props["unit"] = "cfs"
         x.data *= CMS2CFS
         return x
     except:
@@ -58,10 +56,9 @@ def cms_to_cfs(x):
 
 
 def cfs_to_cms(x):
-    """ Convert cfs to cms
-    """
+    """Convert cfs to cms"""
     try:
-        x.props['unit'] = 'cms'
+        x.props["unit"] = "cms"
         x.data *= CFS2CMS
         return x
     except:
@@ -69,45 +66,43 @@ def cfs_to_cms(x):
 
 
 def fahrenheit_to_celsius(x):
-    """ Convert cfs to cms
-    """
+    """Convert cfs to cms"""
     try:
-        x.props['unit'] = 'deg C'
-        x.data -= 32.
-        x.data *= 5. / 9.
+        x.props["unit"] = "deg C"
+        x.data -= 32.0
+        x.data *= 5.0 / 9.0
         return x
     except:
-        return (x - 32.) * 5. / 9.
+        return (x - 32.0) * 5.0 / 9.0
 
 
 def celsius_to_fahrenheit(x):
-    """ Convert cfs to cms
-    """
+    """Convert cfs to cms"""
     try:
-        x.props['unit'] = 'deg F'
+        x.props["unit"] = "deg F"
         x.data *= 1.8
-        x.data += 32.
+        x.data += 32.0
         return x
     except:
-        return x * 1.8 + 32.
+        return x * 1.8 + 32.0
 
 
-def psu_ec_resid(x,psu,hill_correction):
-    return  ec_psu_25c(x,hill_correction)-psu
+def psu_ec_resid(x, psu, hill_correction):
+    return ec_psu_25c(x, hill_correction) - psu
 
 
-def ec_psu_25c(ts_ec,hill_correction=True):
-    """ Convert scalar or vector ec to psu assuming 25C temperature
-        and no low salinity correction
-        Note: The input argument, ts_ec, will be altered.
+def ec_psu_25c(ts_ec, hill_correction=True):
+    """Convert scalar or vector ec to psu assuming 25C temperature
+    and no low salinity correction
+    Note: The input argument, ts_ec, will be altered.
     """
     try:
-        ts_ec.props['unit'] = 'PSU'
+        ts_ec.props["unit"] = "PSU"
         ec = ts_ec.data
     except:
         ec = ts_ec
-    R = np.divide(ec,ec_sea)
-    R_is_neg = np.less(R,0.)
+    R = np.divide(ec, ec_sea)
+    R_is_neg = np.less(R, 0.0)
     try:
         R[R_is_neg] = 0.0001
     except:
@@ -117,65 +112,70 @@ def ec_psu_25c(ts_ec,hill_correction=True):
             R_is_neg = None
     sqrtR = np.sqrt(R)
     Rsq = R * R
-    s = K1 + K2*sqrtR + K3*R + K4*R*sqrtR + K5*Rsq + K6*Rsq*sqrtR
+    s = K1 + K2 * sqrtR + K3 * R + K4 * R * sqrtR + K5 * Rsq + K6 * Rsq * sqrtR
     k = 0.0162
-    f = (25.-15.)/(1.+k*(25.-15.))
+    f = (25.0 - 15.0) / (1.0 + k * (25.0 - 15.0))
     if hill_correction:
-        y = 100.*R
-        x = 400.*R
+        y = 100.0 * R
+        x = 400.0 * R
         a_0 = 0.008
-        b_0_f = 0.0005*f  # = f(T=25)*0.0005
+        b_0_f = 0.0005 * f  # = f(T=25)*0.0005
         sqrty = np.sqrt(y)
-        s = s - a_0/(1.0+1.5*x+x*x) - b_0_f/(1.+ sqrty + y+ y*sqrty)
+        s = s - a_0 / (1.0 + 1.5 * x + x * x) - b_0_f / (1.0 + sqrty + y + y * sqrty)
     try:
-        ts_ec.props['unit'] = 'PSU'
+        ts_ec.props["unit"] = "PSU"
         ts_ec.data = s
         return ts_ec
     except:
-        if R_is_neg is not None: 
-            s[R_is_neg]=np.nan
+        if R_is_neg is not None:
+            s[R_is_neg] = np.nan
         return s
 
 
-def psu_ec_25c_scalar(psu,refine=True,hill_correction=True):
-    ''' Conversion from psu to ec for a scalar. If used without refinement,
-        this is the Schemel conversion, otherwise uses root-finding
-        Note that the round trip ec-psu-ec tends to wander a lot without refine = True.
-        The refinement usually takes 4-6 iterations
-    '''
-    if psu < 0.:
+def psu_ec_25c_scalar(psu, refine=True, hill_correction=True):
+    """Conversion from psu to ec for a scalar. If used without refinement,
+    this is the Schemel conversion, otherwise uses root-finding
+    Note that the round trip ec-psu-ec tends to wander a lot without refine = True.
+    The refinement usually takes 4-6 iterations
+    """
+    if psu < 0.0:
         raise ValueError("Negative psu not allowed: {}".format(psu))
-    elif np.isnan(psu): return np.nan
+    elif np.isnan(psu):
+        return np.nan
 
-    if (hill_correction and not refine):
-        raise ValueError("Unrefined (refine=False) psu-to-ec correction cannot have hill_correction")
+    if hill_correction and not refine:
+        raise ValueError(
+            "Unrefined (refine=False) psu-to-ec correction cannot have hill_correction"
+        )
     if refine:
         if psu > 34.99969:
             raise ValueError("psu is over sea salinity: %s" % psu)
-        ec = brentq(psu_ec_resid,1.,ec_sea,args=(psu,hill_correction))
+        ec = brentq(psu_ec_resid, 1.0, ec_sea, args=(psu, hill_correction))
     else:
-        sqrtpsu=np.sqrt(psu)
-        ec = (psu/s_sea)*ec_sea + psu*(psu-s_sea)*(J1 + J2*sqrtpsu + J3*psu + J4*sqrtpsu*psu)
+        sqrtpsu = np.sqrt(psu)
+        ec = (psu / s_sea) * ec_sea + psu * (psu - s_sea) * (
+            J1 + J2 * sqrtpsu + J3 * psu + J4 * sqrtpsu * psu
+        )
     return ec
 
 
-psu_ec_25c_vec = np.vectorize(psu_ec_25c_scalar,otypes='d',excluded=["refine","hill_correction"])
+psu_ec_25c_vec = np.vectorize(
+    psu_ec_25c_scalar, otypes="d", excluded=["refine", "hill_correction"]
+)
 
 
-def psu_ec_25c(psu,refine=True,hill_correction=True):
-    ''' Conversion from psu to ec. If used without refinement,
-        this is the Schemel conversion, otherwise uses root-finding
-        Note that the round trip ec-psu-ec tends to wander a lot without refine = True.
-        The refinement usually takes 4-6 iterations
-    '''
+def psu_ec_25c(psu, refine=True, hill_correction=True):
+    """Conversion from psu to ec. If used without refinement,
+    this is the Schemel conversion, otherwise uses root-finding
+    Note that the round trip ec-psu-ec tends to wander a lot without refine = True.
+    The refinement usually takes 4-6 iterations
+    """
     if type(psu) == float:
-        return psu_ec_25c_scalar(psu,refine,hill_correction)
+        return psu_ec_25c_scalar(psu, refine, hill_correction)
     else:
         try:
             out = psu.copy()
-            out.loc[:,:] = psu_ec_25c_vec(psu.to_numpy(),refine,hill_correction)
+            out.loc[:, :] = psu_ec_25c_vec(psu.to_numpy(), refine, hill_correction)
             return out
-        except:	
-            return psu_ec_25c_vec(psu,refine,hill_correction)
-
-
+        except:
+            return psu_ec_25c_vec(psu, refine, hill_correction)
