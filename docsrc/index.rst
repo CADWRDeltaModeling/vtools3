@@ -11,6 +11,7 @@ VTools represents a toolset for time series processing that the Delta Modeling S
    Introduction and concepts <concepts>
    Interpolation <interpolation>
    Averaging and Filtering <notebooks/filters.ipynb>
+   Tidal Envelope Extraction <notebooks/tidal_envelope.ipynb>
    Fitting and using a climatology <notebooks/climatology.ipynb>
    Merging and Splicing (ts_merge and ts_splice) <notebooks/merge_splice.ipynb>
    Extrapolation <notebooks/extrapolation.ipynb>
