@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 
 
-__all__=["enerate_simplified_mixed_tide","tidal_envelope"]
+__all__=["generate_simplified_mixed_tide","tidal_envelope"]
 
 def chunked_loess_smoothing(ts, window_hours=1.25, chunk_days=10, overlap_days=1):
     """
