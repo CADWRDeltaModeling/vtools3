@@ -7,7 +7,10 @@ name = "vtools3"
 dynamic = ["version"] # Placeholder; versioneer will manage this
 description = "Timeseries analysis and processing tools using pandas/xarray"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
 authors = [
     { name = "California Department of Water Resources", email = "Eli.Ateljevich@water.ca.gov"}
 ]
@@ -44,6 +47,13 @@ test = [
     "pytest-cov",
     "tox",
     "click"
+]
+build = [
+    "build",
+    "pip",
+    "setuptools",
+    "wheel",
+    "setuptools-scm"
 ]
 [project.urls]
 Homepage = "https://github.com/CADWRDeltaModeling/vtools3"
