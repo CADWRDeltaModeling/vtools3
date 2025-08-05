@@ -68,7 +68,7 @@ exclude = ["docs"]
 collect_ignore = ["setup.py"]
 
 [tool.setuptools.packages.find]
-include = ["vtools"]
+include = ["vtools*"]
 exclude = ["docsrc"]
 
 [tool.setuptools_scm]
