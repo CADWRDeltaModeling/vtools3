@@ -6,7 +6,7 @@ __email__ = "Eli.Ateljevich@water.ca.gov; Kijin.Nam@water.ca.gov"
 from importlib.metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("vtools")
+    __version__ = version("vtools3")
 except PackageNotFoundError:
     __version__ = "0.0.0"  # Default version if package metadata is unavailable
 
