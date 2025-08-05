@@ -46,7 +46,8 @@ test = [
     "pytest>=3",
     "pytest-cov",
     "tox",
-    "click"
+    "click",
+    "setuptools-scm",
 ]
 build = [
     "build",
