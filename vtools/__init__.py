@@ -3,11 +3,20 @@
 __author__ = """Eli Ateljevich, Nicky Sandhu, Kijin Nam"""
 __email__ = "Eli.Ateljevich@water.ca.gov; Kijin.Nam@water.ca.gov"
 
+import os
+import sys
 from importlib.metadata import version, PackageNotFoundError
 
 try:
     __version__ = version("vtools3")
-except PackageNotFoundError:
+except PackageNotFoundError as e:
+    print(
+        "importlib.metadata was unable to find vtools3 version.\n"
+        f"Reason: {e}\n"
+        f"Current working directory: {os.getcwd()}\n"
+        f"sys.path: {sys.path}\n"
+        "Is vtools3 installed as a package? Check that METADATA exists in your site-packages."
+    )
     __version__ = "0.0.0"  # Default version if package metadata is unavailable
 
 from vtools.data.gap import *
