@@ -73,6 +73,7 @@ include = ["vtools*"]
 exclude = ["docsrc"]
 
 [tool.setuptools_scm]
+version_file="vtools/_version.py"
 version_scheme = "post-release"
 local_scheme = "dirty-tag"
 
