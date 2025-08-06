@@ -1,11 +1,11 @@
 {# raw is for ignoring templating with cookiecutter, leaving it for use with conda-build -#}
 {% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
 {% set project = pyproject['project'] %}
-{% set version = load_setup_py_data().get('version', '0.0.0') %}
+#{% set version = load_setup_py_data().get('version', '0.0.0') %}
 
 package:
   name: vtools3
-  version: {{ version }}
+  version: {{ GIT_DESCRIBE_TAG }}
 
 source:
   path: ..
@@ -15,6 +15,8 @@ build:
   # separate bld.bat and build.sh files instead of this key.  Add the line
   # "skip: True  # [py<35]" (for example) to limit to Python 3.5 and newer, or
   # "skip: True  # [not win]" to limit to Windows.
+  script_env:
+   - SETUPTOOLS_SCM_PRETEND_VERSION={{ GIT_DESCRIBE_TAG }}
   script: {{ PYTHON }} -m pip install --no-build-isolation --no-deps --ignore-installed -vv .
   noarch: python
   number: 0

@@ -26,6 +26,7 @@ jobs:
       run: |
         conda create -n test_vtools3 -y conda-build conda-verify numpy anaconda-client setuptools-scm
         source $CONDA/etc/profile.d/conda.sh
+        GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0)
         conda activate test_vtools3
         conda config --set anaconda_upload yes
         conda build -c cadwr-dms -c conda-forge --user cadwr-dms --token "$ANACONDA_CHANNEL_UPLOAD_TOKEN" conda.recipe
