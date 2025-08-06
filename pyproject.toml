@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vtools3"
-dynamic = ["version"] # Placeholder; versioneer will manage this
+dynamic = ["version"] # Placeholder; setuptools-scm will manage this
 description = "Timeseries analysis and processing tools using pandas/xarray"
 readme = "README.md"
 license = "MIT"

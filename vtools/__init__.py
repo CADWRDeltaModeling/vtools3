@@ -5,7 +5,6 @@ __email__ = "Eli.Ateljevich@water.ca.gov; Kijin.Nam@water.ca.gov"
 
 import os
 import sys
-from importlib.metadata import version, PackageNotFoundError
 
 try:
     from ._version import __version__
