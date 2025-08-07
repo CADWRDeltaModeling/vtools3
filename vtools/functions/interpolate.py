@@ -59,7 +59,7 @@ def rhistinterp(ts, dest, p=2.0, lowbound=None, tolbound=1.0e-3, maxiter=5):
     x = (ndx - strt).total_seconds().to_numpy()
 
     if not isinstance(dest, pd.Index):
-        end = ndx[-1] - dest
+        end = ndx[-1].floor(dest)
         dest = pd.date_range(start=strt, end=end, freq=dest)
     xnew = (dest - strt).total_seconds().to_numpy()
 
