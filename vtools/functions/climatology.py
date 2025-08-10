@@ -147,7 +147,7 @@ def apply_climatology(climate, index):
     -------
     DataFrame or Series as given by climate with values extracted from climatology for the month or day
     """
-    import numpy as np
+
 
     if len(climate) not in [12, 365, 366]:
         raise ValueError("Length of climatology must be 12,365 or 366")
@@ -156,17 +156,14 @@ def apply_climatology(climate, index):
 
     freq = "month" if len(climate) == 12 else "day"
 
-    df = pd.DataFrame(index=index, data=np.zeros(len(index), dtype="d"))
-
-    def rowFunc1(row):
-        return climate.loc[row.name.dayofyear, :]
-
-    def rowFunc2(row):
-        return climate.loc[row.name.month, :]
-
+    # Vectorized lookup
     if freq == "day":
-        out = df.apply(rowFunc1, axis=1)
+        dayofyear = index.dayofyear
+        # Ensure day 366 is handled
+        dayofyear = np.where(dayofyear > 365, 366, dayofyear)
+        out = climate.loc[dayofyear].set_index(index)
     else:
-        out = df.apply(rowFunc2, axis=1)
+        month = index.month
+        out = climate.loc[month].set_index(index)
 
     return out
