@@ -546,7 +546,7 @@ def generate_godin_fir(freq):
 
 
 def godin(ts):
-    """Low-pass Godin filter a regular time series.
+    r"""Low-pass Godin filter a regular time series.
     Applies the :math:`\mathcal{A_{24}^{2}A_{25}}` Godin filter [1]_
     The filter is generalized to be the equivalent of one
     boxcar of the length of the lunar diurnal (~25 hours)
