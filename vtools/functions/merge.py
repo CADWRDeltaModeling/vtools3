@@ -59,6 +59,15 @@ def ts_merge(series, names=None):
             "`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame."
         )
 
+    if len(series) == 1:
+        out = series[0]
+        if names is not None:
+            if isinstance(out,pd.Series):
+                out.name = names if isinstance(names,basestr) else names[0]
+            elif isinstance(series[0], pd.DataFrame):
+                out.columns = [names] if isinstance(names, basestr) else names
+        return out
+
     # Ensure all input series have an index of the same type.
     index_type = type(series[0].index)
     if not all(isinstance(s.index, index_type) for s in series):
