@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tidal Envelope Extraction &#8212; vtools 1.8.1+2.g9b22e0d.dirty documentation</title>
+    <title>Tidal Envelope Extraction &#8212; vtools 0.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css?v=7f9a90b1" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
-    <script src="../_static/documentation_options.js?v=750c1dac"></script>
+    <script src="../_static/documentation_options.js?v=7026087e"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -134,17 +134,17 @@
 </ul>
 <p>An interesting quirk of the Bay-Delta tides is that O1 and K1 are pretty big and the two come in and out of phase every two weeks and this produces a lot of what people call the spring-neap cycle. Let’s be assured our sample, which dumbs the tide down to these three constituents, has that character:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">envelope</span> <span class="kn">import</span> <span class="n">extract_tidal_envelope</span><span class="p">,</span> <span class="n">generate_simplified_mixed_tide</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">envelope</span> <span class="kn">import</span> <span class="n">tidal_envelope</span><span class="p">,</span> <span class="n">generate_simplified_mixed_tide</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">components</span> <span class="o">=</span> <span class="n">generate_simplified_mixed_tide</span><span class="p">(</span><span class="n">ndays</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">return_components</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">noise_amplitude</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
@@ -186,7 +186,7 @@
 <h2>Outer vs Inner Envelope Example (40-day signal with gaps)<a class="headerlink" href="#Outer-vs-Inner-Envelope-Example-(40-day-signal-with-gaps)" title="Link to this heading">¶</a></h2>
 <p>The above plot shows the components needed to create a basic San Francisco-like tide (note that the sun and the moon are not essential for this. That is a feature of Pacific Coastal tide composition). Now lets extract the tidal envelope for the full signal, which is the green “Combined Tide” shown above. The signal has significant white and pink noise attached. You can play with that by changing “noise_amplitude” to 0.2, in which case the envelope gets distorted.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">components</span> <span class="o">=</span> <span class="n">generate_simplified_mixed_tide</span><span class="p">(</span><span class="n">ndays</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">return_components</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">noise_amplitude</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
@@ -197,8 +197,8 @@
 <span class="n">tide</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2000</span><span class="p">:</span><span class="mi">2100</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
 <span class="c1"># Extract outer and inner envelopes</span>
-<span class="n">env_high</span><span class="p">,</span> <span class="n">env_low</span><span class="p">,</span> <span class="n">anchor_highs</span><span class="p">,</span> <span class="n">anchor_lows</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="n">extract_tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
-<span class="n">env_high_in</span><span class="p">,</span> <span class="n">env_low_in</span><span class="p">,</span> <span class="n">anchor_highs_in</span><span class="p">,</span> <span class="n">anchor_lows_in</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">extract_tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
+<span class="n">env_high</span><span class="p">,</span> <span class="n">env_low</span><span class="p">,</span> <span class="n">anchor_highs</span><span class="p">,</span> <span class="n">anchor_lows</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="n">tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+<span class="n">env_high_in</span><span class="p">,</span> <span class="n">env_low_in</span><span class="p">,</span> <span class="n">anchor_highs_in</span><span class="p">,</span> <span class="n">anchor_lows_in</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plotting</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
@@ -257,7 +257,7 @@
 <p>At San Francisco, the <strong>diurnal components are strong enough</strong> and well-phased such that the tide often exhibits this <strong>alternating pattern</strong>, making envelope-based descriptions — like <strong>high-high (HH)</strong> and <strong>low-low (LL)</strong> envelopes — useful tools for analyzing and predicting tidal behavior. The relative timing of the diurnal and semi-diurnal components changes over the year (and we have simplified the description of each).</p>
 <p>We can explore this by shifting D1 relative to M2. The actual phases are arbitrary (it depends on the time datum), but the effect of shifting D1 versus M2 is pertinent.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span>
@@ -270,8 +270,8 @@
     <span class="n">tide</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">500</span><span class="p">:</span><span class="mi">600</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="n">tide</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2000</span><span class="p">:</span><span class="mi">2100</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-    <span class="n">env_hi</span><span class="p">,</span> <span class="n">env_lo</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">extract_tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
-    <span class="n">env_hi_in</span><span class="p">,</span> <span class="n">env_lo_in</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">extract_tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
+    <span class="n">env_hi</span><span class="p">,</span> <span class="n">env_lo</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+    <span class="n">env_hi_in</span><span class="p">,</span> <span class="n">env_lo_in</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">tidal_envelope</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
 
     <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phases</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Tide&quot;</span><span class="p">)</span>

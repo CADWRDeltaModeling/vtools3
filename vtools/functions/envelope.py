@@ -1,19 +1,13 @@
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks
-from scipy.interpolate import PchipInterpolator
 import matplotlib.pyplot as plt
-
-
-from statsmodels.nonparametric.smoothers_lowess import lowess
 from scipy.interpolate import PchipInterpolator
-
+from scipy.signal import find_peaks, savgol_filter
 from statsmodels.nonparametric.smoothers_lowess import lowess
-import pandas as pd
-import numpy as np
 
 
-__all__=["generate_simplified_mixed_tide","tidal_envelope"]
+__all__ = ["generate_simplified_mixed_tide", "tidal_envelope"]
+
 
 def chunked_loess_smoothing(ts, window_hours=1.25, chunk_days=10, overlap_days=1):
     """
@@ -171,9 +165,6 @@ def smooth_series(ts, window_hours=1.75):
     )
 
 
-from scipy.signal import savgol_filter
-
-
 def smooth_series2(series, window_pts=25, method="lowess", **kwargs):
     """
     Smooth a time series using the specified method.
@@ -224,10 +215,7 @@ def filter_extrema_ngood(
     extrema_df, smoothed, series, loess_window_pts=25, n_good=3, sig_gap_minutes=45
 ):
     """
-    Keep extrema only if:
-    1. They have at least `n_good` valid points within the LOESS window around them.
-    2. There are at least `n_good` valid points between the extrema and the nearest
-       significant gap or boundary.
+    Filter extrema based on local and contextual data quality criteria.
 
     Parameters
     ----------
@@ -387,15 +375,48 @@ def interpolate_envelope(anchor_df, series, max_anchor_gap_hours=36):
 def tidal_envelope(
     series,
     smoothing_window_hours=2.5,
-    smoothing_method="lowess",
-    sig_gap_minutes=45,
     n_good=3,
     peak_prominence=0.05,
     saliency_window_hours=14,
-    min_spacing_hours=28,
     max_anchor_gap_hours=36,
     envelope_type="outer",
 ):
+    """
+    Compute the tidal envelope (high and low) of a time series using smoothing, extrema detection, and interpolation.
+    This function processes a time series to extract its tidal envelope by smoothing the data, identifying significant peaks and troughs, filtering out unreliable extrema, selecting salient extrema within a specified window, and interpolating between anchor points to generate continuous envelope curves.
+    Parameters
+    ----------
+    series : pandas.Series
+        Time-indexed series of water levels or similar data.
+    smoothing_window_hours : float, optional
+        Window size in hours for smoothing the input series (default is 2.5).
+    n_good : int, optional
+        Minimum number of good points required for an extremum to be considered valid (default is 3).
+    peak_prominence : float, optional
+        Minimum prominence of peaks/troughs to be considered as extrema (default is 0.05).
+    saliency_window_hours : float, optional
+        Window size in hours for selecting salient extrema (default is 14).
+    max_anchor_gap_hours : float, optional
+        Maximum allowed gap in hours between anchor points for interpolation (default is 36).
+    envelope_type : str, optional
+        Type of envelope to compute, e.g., "outer" (default is "outer").
+    Returns
+    -------
+    env_high : pandas.Series
+        Interpolated high (upper) envelope of the input series.
+    env_low : pandas.Series
+        Interpolated low (lower) envelope of the input series.
+    anchor_highs : pandas.DataFrame
+        DataFrame of selected anchor points for the high envelope.
+    anchor_lows : pandas.DataFrame
+        DataFrame of selected anchor points for the low envelope.
+    smoothed : pandas.Series
+        Smoothed version of the input series.
+    Notes
+    -----
+    This function assumes regular time intervals in the input series. If the frequency cannot be inferred, it is estimated from the first two timestamps.
+    """
+
     # Smoothing
     freq = pd.infer_freq(series.index)
     if freq is None:
@@ -443,8 +464,8 @@ def main():
     env_high, env_low, anchor_highs, anchor_lows, smooth = tidal_envelope(
         tide, envelope_type="outer"
     )
-    env_high_in, env_low_in, anchor_highs_in, anchor_lows_in, _ = (
-        tidal_envelope(tide, envelope_type="inner")
+    env_high_in, env_low_in, anchor_highs_in, anchor_lows_in, _ = tidal_envelope(
+        tide, envelope_type="inner"
     )
 
     plt.figure(figsize=(12, 6))
