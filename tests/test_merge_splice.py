@@ -301,3 +301,42 @@ class TestErrorConditions:
         df2 = pd.DataFrame({"A": [4, 5, 6]}, index=[2, 3, 4])
         with pytest.raises(ValueError, match="All input series must have a DatetimeIndex."):
             ts_merge((df1, df2))
+
+
+# ----------------------------------------------------------------------
+# Additional tests for strict_priority behavior in ts_merge
+# ----------------------------------------------------------------------
+
+def test_ts_merge_strict_priority_series_window(sample_data):
+    s1, s2 = sample_data["series1"], sample_data["series2"]
+    # s1 dominates Jan1..Jan5; its NaN on Jan3 remains NaN; s2 cannot fill it.
+    result = ts_merge((s1, s2), strict_priority=True)
+    expected_index = s1.index.union(s2.index, sort=False).sort_values()
+    expected = pd.Series([1., 2., np.nan, 4., 5., np.nan, 50.], index=expected_index, name="A")
+    pd.testing.assert_series_equal(result, expected)
+
+def test_ts_merge_strict_priority_dataframe_per_column(sample_data):
+    df1, df2 = sample_data["df1"], sample_data["df2"]
+    # Create multi-column frames to exercise per-column dominance
+    df1m = pd.concat([df1, df1.rename(columns={"A": "B"})], axis=1)
+    df2m = pd.concat([sample_data["df2"], sample_data["df2"].rename(columns={"A": "B"})], axis=1)
+    # Insert an interior NaN in higher-priority B column to ensure NaN is not backfilled
+    df1m.loc[df1m.index[2], "B"] = np.nan
+    result = ts_merge((df1m, df2m), strict_priority=True)
+    expected_index = df1m.index.union(df2m.index, sort=False).sort_values()
+    exp = pd.DataFrame(index=expected_index, columns=["A", "B"], dtype=float)
+    # Column A: df1 covers first window fully; df2 only contributes after the window
+    exp["A"] = [1., np.nan, 3., 4., 5., 40., 50.]
+    # Column B: an interior NaN in df1's window must remain NaN
+    exp["B"] = [1., np.nan, np.nan, 4., 5., 40., 50.]
+    pd.testing.assert_frame_equal(result[["A", "B"]], exp)
+
+def test_ts_merge_strict_priority_irregular(irregular_sample_data):
+    s1 = irregular_sample_data["series1"]
+    s2 = irregular_sample_data["series2"]
+    # s1 window [first_valid, last_valid] excludes s2 within; s2 contributes only after.
+    result = ts_merge((s1, s2), strict_priority=True)
+    expected = pd.Series([1., 2., 3., 4., 40.],
+                         index=pd.to_datetime(["2023-01-01","2023-01-03","2023-01-07","2023-01-10","2023-01-11"]),
+                         name="A")
+    pd.testing.assert_series_equal(result, expected)

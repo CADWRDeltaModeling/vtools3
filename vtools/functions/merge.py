@@ -4,166 +4,210 @@
 __all__ = ["ts_merge", "ts_splice"]
 
 import pandas as pd
+import numpy as np
 from functools import reduce
 
 
-def ts_merge(series, names=None):
-    """
-    Merge multiple time series together, prioritizing series in order.
+################ Helpers 
+def _apply_names(result, names):
+    """Helper to apply renaming and column selection based on `names`."""
+    if names:
+        if isinstance(result, pd.Series):
+            result.name = names
+        elif isinstance(names, str):
+            result = result.rename(columns={result.columns[0]: names})
+        elif hasattr(names, "__iter__"):
+            result = result[names]
+    return result
 
-    This function merges a tuple of time series, filling missing values based on
-    a priority order. The first series is used as the base, with subsequent series
-    filling in missing values where available. If time series have irregular timestamps,
-    consider using `ts_splice` instead.
+
+def _reindex_to_continuous(result, first_freq):
+    """
+    Reindex the given result (DataFrame or Series) to a continuous index spanning
+    from the minimum to maximum timestamp of the current index using the provided frequency.
 
     Parameters
     ----------
-    series : tuple or list of pandas.DataFrame or pandas.Series
-        A tuple of time series ranked from highest to lowest priority. Each series
-        must have a `DatetimeIndex` and compatible column names.
-
-    names : None, str, or iterable of str, optional
-        - If `None` (default), all input series must share common column names,
-          and the output will merge common columns or series names.
-        - If a `str`, all input series must have a **single column** (or a matching
-          column name if mixed types are provided), and the output will be a DataFrame
-          with this name as the column name.
-        - If an iterable of `str`, all input DataFrames must have the same
-          number of columns matching the length of the names argument and these will be used
-          for the output.
+    result : pandas.DataFrame or pandas.Series
+        The merged or spliced result whose index will be reindexed.
+    first_freq : frequency
+        The frequency (e.g. 'D' for daily) to use for the continuous index, taken from the first input series.
 
     Returns
     -------
-    pandas.DataFrame
-        - If the input contains DataFrames with multiple columns, the output is a
-          DataFrame with the same time extent as the union of inputs and columns.
-        - If a collection of single-column `Series` is specified, the output will be
-          converted into a single-column DataFrame.
-
-    Notes
-    -----
-    - The output time index is the union of input time indices.
-    - If a duplicate index exists in the first series, only the first occurrence is used.
-    - Lower-priority series only fill gaps in higher-priority series and do not override
-      existing values.
-
-    See Also
-    --------
-    ts_splice : Alternative merging method for irregular time series.
+    result : pandas.DataFrame or pandas.Series
+        The result reindexed to a continuous index. Any gaps in the timeline will be filled with NaN.
+        If the index is a PeriodIndex, the index is rebuilt with the proper frequency.
     """
-    # Make defensive copies of the input series.
-    series = [s.copy() for s in series]
+    if first_freq is None:
+        return result
 
-    if not isinstance(series, (tuple, list)) or len(series) == 0:
-        raise ValueError(
-            "`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame."
-        )
+    start = result.index.min()
+    end = result.index.max()
 
-    if len(series) == 1:
-        out = series[0]
-        if names is not None:
-            if isinstance(out,pd.Series):
-                out.name = names if isinstance(names,basestr) else names[0]
-            elif isinstance(series[0], pd.DataFrame):
-                out.columns = [names] if isinstance(names, basestr) else names
-        return out
+    if isinstance(result.index, pd.DatetimeIndex):
+        continuous_index = pd.date_range(start=start, end=end, freq=first_freq)
+    elif isinstance(result.index, pd.PeriodIndex):
+        continuous_index = pd.period_range(start=start, end=end, freq=first_freq)
+    else:
+        continuous_index = result.index  # For other types, leave unchanged
 
-    # Ensure all input series have an index of the same type.
-    index_type = type(series[0].index)
-    if not all(isinstance(s.index, index_type) for s in series):
-        raise ValueError(
-            f"All input series must have indexes of type {index_type.__name__}."
-        )
+    result = result.reindex(continuous_index)
 
-    if not all(isinstance(s.index, (pd.DatetimeIndex, pd.PeriodIndex)) for s in series):
-        raise ValueError("All input series must have a DatetimeIndex or PeriodIndex.")
+    if isinstance(result.index, pd.PeriodIndex):
+        # For PeriodIndex, rebuild the index because .freq is read-only.
+        result.index = pd.PeriodIndex(result.index, freq=first_freq)
+    else:
+        try:
+            result.index.freq = first_freq
+        except ValueError:
+            result.index.freq = None
+    return result
 
-    # Determine if frequency can be preserved.
-    first_freq = series[0].index.freq
-    same_freq = all(
-        s.index.freq == first_freq for s in series if s.index.freq is not None
-    )
+#####################
 
-    # For mixed types, convert Series to DataFrame.
-    has_series = any(isinstance(s, pd.Series) for s in series)
-    has_dataframe = any(isinstance(s, pd.DataFrame) for s in series)
-    if has_series and has_dataframe:
-        if isinstance(names, str):
-            series = [
-                s.to_frame(name=names) if isinstance(s, pd.Series) else s
-                for s in series
-            ]
-        elif names is None:
-            df_cols = {
-                col for s in series if isinstance(s, pd.DataFrame) for col in s.columns
-            }
+def ts_merge(series,
+             names=None,
+             strict_priority = False):
+    """
+    Merge multiple time series together, prioritizing series in order.
+
+    Parameters
+    ----------
+    series : sequence of pandas.Series or pandas.DataFrame
+        Higher priority first. All indexes must be DatetimeIndex.
+    names : None, str, or iterable of str, optional
+        - If `None` (default), inputs must share compatible column names.
+        - If `str`, the output is univariate and will be named accordingly.
+        - If iterable, it is used as a subset/ordering of columns.
+    strict_priority : bool, default False
+        If False (default): lower-priority data may fill NaNs in higher-priority
+        series anywhere (traditional merge/overlay).
+        If True: for each column, within the window
+        [first_valid_index, last_valid_index] of any higher-priority series,
+        lower-priority data are masked out — even if the higher-priority value is NaN.
+        Outside those windows, behavior is unchanged.
+
+    Returns
+    -------
+    pandas.Series or pandas.DataFrame
+    """
+    # --- Input validation (messages match tests) ---
+    if not isinstance(series, (list, tuple)) or len(series) == 0:
+        raise ValueError("`series` must be a non-empty tuple or list")
+
+    if not all(isinstance(getattr(s, "index", None), pd.DatetimeIndex) for s in series):
+        raise ValueError("All input series must have a DatetimeIndex.")
+
+    # Preserve first series freq (may be None)
+    first_freq = getattr(series[0].index, "freq", None)
+
+    # If any DataFrame is present, convert Series->DataFrame to unify shapes
+    any_df = any(isinstance(s, pd.DataFrame) for s in series)
+    if any_df:
+        series = [s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series]
+
+    # Column compatibility checks (messages match tests)
+    all_df     = all(isinstance(s, pd.DataFrame) for s in series)
+    any_df     = any(isinstance(s, pd.DataFrame) for s in series)
+    any_series = any(isinstance(s, pd.Series)     for s in series)
+
+    if all_df:
+        if names is None:
+            cols0 = list(series[0].columns)
+            for s in series[1:]:
+                if list(s.columns) != cols0:
+                    raise ValueError(
+                        "All input DataFrames must have the same columns when `names` is None."
+                    )
+    elif any_df and any_series:
+        if names is None:
+            df_cols = {c for s in series if isinstance(s, pd.DataFrame) for c in s.columns}
             for s in series:
                 if isinstance(s, pd.Series) and s.name not in df_cols:
                     raise ValueError(
                         "Mixed Series and DataFrames require Series names to match DataFrame columns."
                     )
-            series = [
-                s.to_frame(name=s.name) if isinstance(s, pd.Series) else s
-                for s in series
-            ]
+    # else: all Series → no column checks needed
 
-    # For DataFrame inputs, validate column consistency.
-    if isinstance(series[0], pd.DataFrame):
-        if names is None:
-            common = set(series[0].columns)
-            for df in series:
-                if set(df.columns) != common:
-                    raise ValueError(
-                        "All input DataFrames must have the same columns when `names` is None."
-                    )
-        elif hasattr(names, "__iter__") and not isinstance(names, str):
-            for df in series:
-                if not all(col in df.columns for col in names):
-                    raise ValueError(
-                        f"An input DataFrame does not contain all specified columns: {names}."
-                    )
-
-    # If names is a string, pre-rename each series for consistency.
-    if names and isinstance(names, str):
-        series = [
-            (
-                s.rename(columns={s.columns[0]: names})
-                if isinstance(s, pd.DataFrame)
-                else s.rename(names)
-            )
-            for s in series
-        ]
-
-    # Compute the union of all time indices.
+    # Build the union index, sorted in time order
     full_index = series[0].index
     for s in series[1:]:
         full_index = full_index.union(s.index, sort=False)
     full_index = full_index.sort_values()
 
-    # Merge series by reindexing and using combine_first.
-    merged = series[0].reindex(full_index)
-    for s in series[1:]:
-        merged = merged.combine_first(s.reindex(full_index))
+    # Align to union index and keep DataFrame shape for column-wise masking
+    aligned = []
+    for s in series:
+        a = s.reindex(full_index)
+        if isinstance(a, pd.Series):
+            a = a.to_frame(name=a.name)
+        aligned.append(a.copy())
 
-    # If all inputs were univariate, ensure output remains univariate.
-    univariate = all(
-        (s.name is not None if isinstance(s, pd.Series) else s.shape[1] == 1)
-        for s in series
-    )
-    if univariate and isinstance(merged, pd.DataFrame):
-        merged = merged.iloc[:, 0]
+    # --- Strict priority dominance windows ---
+    if strict_priority:
+        # For each column, mask lower-priority data only within the dominance window
+        for col in set(c for a in aligned for c in a.columns):
+            # Find the highest-priority series that contains this column
+            for i, hi in enumerate(aligned):
+                if col in hi.columns:
+                    s_col = hi[col]
+                    lo_idx = s_col.first_valid_index()
+                    hi_idx = s_col.last_valid_index()
+                    break
+            else:
+                continue  # column not present in any input
 
-    # Normalize output type.
-    if all(isinstance(s, pd.Series) for s in series):
+            if lo_idx is None or hi_idx is None:
+                continue  # no dominance window for this column
+
+            mask = (full_index >= lo_idx) & (full_index <= hi_idx)
+            for j in range(i + 1, len(aligned)):
+                if col in aligned[j].columns:
+                    aligned[j].loc[mask, col] = np.nan  # keep numeric dtype
+
+    # Combine in priority order via combine_first
+    merged = aligned[0]
+    for a in aligned[1:]:
+        merged = merged.combine_first(a)
+
+    # NEW: ensure the full union index is present (including all-NaN rows)
+    merged = merged.reindex(full_index)
+    # --- keep union, but drop masked lower-only rows inside dominance window ---
+    if strict_priority:
+        # Use the highest-priority input to define the dominance window (per-column union)
+        top = aligned[0]  # DataFrame (we normalized earlier)
+        lo_candidates = [top[c].first_valid_index() for c in top.columns]
+        hi_candidates = [top[c].last_valid_index()  for c in top.columns]
+        lo0 = min([x for x in lo_candidates if x is not None], default=None)
+        hi0 = max([x for x in hi_candidates if x is not None], default=None)
+
+        if lo0 is not None and hi0 is not None:
+            idx = merged.index
+            in_window   = (idx >= lo0) & (idx <= hi0)
+            in_top_idx  = idx.isin(series[0].index)  # keep rows that are from the top series' index
+            # rows that are entirely NaN after strict masking
+            all_nan = merged.isna().all(axis=1) if isinstance(merged, pd.DataFrame) else merged.isna()
+            # Drop only those that are NaN, within the window, and not in the top index (i.e., lower-only timestamps)
+            drop_mask = in_window & (~in_top_idx) & all_nan
+            if drop_mask.any():
+                merged = merged.loc[~drop_mask]
+
+
+    # If all inputs were univariate Series, return a Series
+    all_series = all(isinstance(s, pd.Series) for s in series)
+    if all_series:
         merged = merged.squeeze()
     else:
         if isinstance(merged, pd.Series):
             merged = merged.to_frame()
 
-    # Apply renaming/column selection.
-    merged = _apply_names(merged, names)
+    # Apply naming / selection consistent with your helpers
+    merged = _apply_names(merged, names)  # uses your existing helper
 
+    # Reindex to a continuous index using the first series' freq (your helper)
     merged = _reindex_to_continuous(merged, first_freq)
+
 
     return merged
 
@@ -317,58 +361,3 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     spliced = _reindex_to_continuous(spliced, first_freq)
     return spliced
 
-
-def _apply_names(result, names):
-    """Helper to apply renaming and column selection based on `names`."""
-    if names:
-        if isinstance(result, pd.Series):
-            result.name = names
-        elif isinstance(names, str):
-            result = result.rename(columns={result.columns[0]: names})
-        elif hasattr(names, "__iter__"):
-            result = result[names]
-    return result
-
-
-def _reindex_to_continuous(result, first_freq):
-    """
-    Reindex the given result (DataFrame or Series) to a continuous index spanning
-    from the minimum to maximum timestamp of the current index using the provided frequency.
-
-    Parameters
-    ----------
-    result : pandas.DataFrame or pandas.Series
-        The merged or spliced result whose index will be reindexed.
-    first_freq : frequency
-        The frequency (e.g. 'D' for daily) to use for the continuous index, taken from the first input series.
-
-    Returns
-    -------
-    result : pandas.DataFrame or pandas.Series
-        The result reindexed to a continuous index. Any gaps in the timeline will be filled with NaN.
-        If the index is a PeriodIndex, the index is rebuilt with the proper frequency.
-    """
-    if first_freq is None:
-        return result
-
-    start = result.index.min()
-    end = result.index.max()
-
-    if isinstance(result.index, pd.DatetimeIndex):
-        continuous_index = pd.date_range(start=start, end=end, freq=first_freq)
-    elif isinstance(result.index, pd.PeriodIndex):
-        continuous_index = pd.period_range(start=start, end=end, freq=first_freq)
-    else:
-        continuous_index = result.index  # For other types, leave unchanged
-
-    result = result.reindex(continuous_index)
-
-    if isinstance(result.index, pd.PeriodIndex):
-        # For PeriodIndex, rebuild the index because .freq is read-only.
-        result.index = pd.PeriodIndex(result.index, freq=first_freq)
-    else:
-        try:
-            result.index.freq = first_freq
-        except ValueError:
-            result.index.freq = None
-    return result
