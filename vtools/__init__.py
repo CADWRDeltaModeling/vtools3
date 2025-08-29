@@ -14,6 +14,7 @@ except ImportError:
 from vtools.data.gap import *
 from vtools.data.vtime import *
 from vtools.data.timeseries import *
+from vtools.data.dst import *
 
 from vtools.functions.transition import *
 from vtools.functions.climatology import *
