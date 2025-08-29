@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.envelope &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.functions.envelope</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">PchipInterpolator</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">find_peaks</span><span class="p">,</span> <span class="n">savgol_filter</span>
+<span class="kn">from</span> <span class="nn">statsmodels.nonparametric.smoothers_lowess</span> <span class="kn">import</span> <span class="n">lowess</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;generate_simplified_mixed_tide&quot;</span><span class="p">,</span> <span class="s2">&quot;tidal_envelope&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="chunked_loess_smoothing">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.chunked_loess_smoothing">[docs]</a>
+<span class="k">def</span> <span class="nf">chunked_loess_smoothing</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">window_hours</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span> <span class="n">chunk_days</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">overlap_days</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply LOESS smoothing in overlapping chunks to reduce computation time.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ts : pd.Series</span>
+<span class="sd">        Time series with datetime index and possible NaNs.</span>
+<span class="sd">    window_hours : float</span>
+<span class="sd">        LOESS smoothing window size in hours.</span>
+<span class="sd">    chunk_days : int</span>
+<span class="sd">        Core chunk size (e.g., 10 days).</span>
+<span class="sd">    overlap_days : int</span>
+<span class="sd">        Overlap added before and after each chunk to avoid edge effects.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.Series</span>
+<span class="sd">        Smoothed series, NaNs where input is NaN or unsupported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Time index must have a frequency.&quot;</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+    <span class="n">points_per_hour</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span>
+
+    <span class="c1"># frac = window_hours * points_per_hour / len(ts)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">chunk_len</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">points_per_hour</span><span class="p">)</span>
+    <span class="n">overlap_len</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">overlap_days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">points_per_hour</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">),</span> <span class="n">chunk_len</span><span class="p">):</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span> <span class="o">-</span> <span class="n">overlap_len</span><span class="p">)</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">),</span> <span class="n">start</span> <span class="o">+</span> <span class="n">chunk_len</span> <span class="o">+</span> <span class="n">overlap_len</span><span class="p">)</span>
+
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">chunk_len_pts</span> <span class="o">=</span> <span class="n">sub</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">frac</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">(</span><span class="n">window_hours</span> <span class="o">*</span> <span class="n">points_per_hour</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">chunk_len_pts</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">smoothed</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span>
+            <span class="n">sub</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">sub</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">),</span> <span class="n">frac</span><span class="o">=</span><span class="n">frac</span><span class="p">,</span> <span class="n">return_sorted</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="n">sub_smoothed</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">sub</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">smoothed</span><span class="p">)</span>
+
+        <span class="c1"># keep only the central region</span>
+        <span class="n">j0</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="n">j1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">chunk_len</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j0</span><span class="p">:</span><span class="n">j1</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_smoothed</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j0</span><span class="p">:</span><span class="n">j1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="generate_pink_noise">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.generate_pink_noise">[docs]</a>
+<span class="k">def</span> <span class="nf">generate_pink_noise</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate pink (1/f) noise using the Voss-McCartney algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Number of samples to generate.</span>
+<span class="sd">    seed : int or None</span>
+<span class="sd">        Random seed for reproducibility.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        Standard deviation scaling factor for the noise.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Pink noise signal of length n.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="n">n_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_rows</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_rows</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">pink</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">array</span> <span class="o">/</span> <span class="n">weight</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">pink</span> <span class="o">-=</span> <span class="n">pink</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">pink</span> <span class="o">/=</span> <span class="n">pink</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">pink</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="generate_simplified_mixed_tide">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.generate_simplified_mixed_tide">[docs]</a>
+<span class="k">def</span> <span class="nf">generate_simplified_mixed_tide</span><span class="p">(</span>
+    <span class="n">start_time</span><span class="o">=</span><span class="s2">&quot;2022-01-01&quot;</span><span class="p">,</span>
+    <span class="n">ndays</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+    <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;15min&quot;</span><span class="p">,</span>
+    <span class="n">A_M2</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">A_K1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">A_O1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">phase_D1</span><span class="o">=</span><span class="mf">3.14159</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">noise_amplitude</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span>
+    <span class="n">return_components</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a simplified synthetic mixed semidiurnal/diurnal tide with explicit O1 and K1.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start_time : str</span>
+<span class="sd">        Start time for the series.</span>
+<span class="sd">    ndays : int</span>
+<span class="sd">        Number of days.</span>
+<span class="sd">    freq : str</span>
+<span class="sd">        Sampling interval.</span>
+<span class="sd">    A_M2 : float</span>
+<span class="sd">        Amplitude of M2.</span>
+<span class="sd">    A_K1 : float</span>
+<span class="sd">        Amplitude of K1.</span>
+<span class="sd">    A_O1 : float</span>
+<span class="sd">        Amplitude of O1.</span>
+<span class="sd">    phase_D1 : float</span>
+<span class="sd">        Common phase shift for O1 and K1.</span>
+<span class="sd">    return_components : bool</span>
+<span class="sd">        Whether to return individual components.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.Series or pd.DataFrame</span>
+<span class="sd">        Combined tide or components with time index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+        <span class="n">periods</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">ndays</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">/</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">*</span> <span class="mi">60</span><span class="p">),</span>
+        <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">t_hours</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">-</span> <span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">M2</span> <span class="o">=</span> <span class="n">A_M2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t_hours</span> <span class="o">/</span> <span class="mf">12.42</span><span class="p">)</span>
+    <span class="n">K1</span> <span class="o">=</span> <span class="n">A_K1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t_hours</span> <span class="o">/</span> <span class="mf">23.93</span> <span class="o">+</span> <span class="n">phase_D1</span><span class="p">)</span>
+    <span class="n">O1</span> <span class="o">=</span> <span class="n">A_O1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t_hours</span> <span class="o">/</span> <span class="mf">25.82</span> <span class="o">+</span> <span class="n">phase_D1</span><span class="p">)</span>
+    <span class="n">K1</span> <span class="o">=</span> <span class="n">A_K1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t_hours</span> <span class="o">/</span> <span class="mf">23.93</span> <span class="o">+</span> <span class="n">phase_D1</span><span class="p">)</span>
+    <span class="n">O1</span> <span class="o">=</span> <span class="n">A_O1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t_hours</span> <span class="o">/</span> <span class="mf">25.82</span> <span class="o">+</span> <span class="n">phase_D1</span><span class="p">)</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">generate_pink_noise</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">scale</span><span class="o">=</span><span class="n">noise_amplitude</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">noise_amplitude</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tide</span> <span class="o">=</span> <span class="n">M2</span> <span class="o">+</span> <span class="n">K1</span> <span class="o">+</span> <span class="n">O1</span> <span class="o">+</span> <span class="n">noise</span>
+
+    <span class="k">if</span> <span class="n">return_components</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;M2&quot;</span><span class="p">:</span> <span class="n">M2</span><span class="p">,</span> <span class="s2">&quot;K1&quot;</span><span class="p">:</span> <span class="n">K1</span><span class="p">,</span> <span class="s2">&quot;O1&quot;</span><span class="p">:</span> <span class="n">O1</span><span class="p">,</span> <span class="s2">&quot;noise&quot;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span> <span class="s2">&quot;tide&quot;</span><span class="p">:</span> <span class="n">tide</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tide&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="smooth_series">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.smooth_series">[docs]</a>
+<span class="k">def</span> <span class="nf">smooth_series</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">window_hours</span><span class="o">=</span><span class="mf">1.75</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">chunked_loess_smoothing</span><span class="p">(</span>
+        <span class="n">ts</span><span class="p">,</span> <span class="n">window_hours</span><span class="o">=</span><span class="n">window_hours</span><span class="p">,</span> <span class="n">chunk_days</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">overlap_days</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="smooth_series2">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.smooth_series2">[docs]</a>
+<span class="k">def</span> <span class="nf">smooth_series2</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">window_pts</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;lowess&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Smooth a time series using the specified method.</span>
+<span class="sd">    Currently supports &#39;lowess&#39;, &#39;moving_average&#39;, or &#39;savgol&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;lowess&quot;</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">index</span> <span class="o">-</span> <span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">frac</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">window_pts</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="p">))</span>
+        <span class="n">y_smooth</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">frac</span><span class="o">=</span><span class="n">frac</span><span class="p">,</span> <span class="n">return_sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y_smooth</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;moving_average&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">series</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window_pts</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;savgol&quot;</span><span class="p">:</span>
+        <span class="c1"># window length must be odd and greater than polyorder</span>
+        <span class="n">polyorder</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;polyorder&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">window_pts</span> <span class="o">|</span> <span class="mi">1</span>  <span class="c1"># make it odd</span>
+        <span class="k">if</span> <span class="n">window</span> <span class="o">&lt;=</span> <span class="n">polyorder</span><span class="p">:</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">polyorder</span> <span class="o">+</span> <span class="mi">3</span> <span class="k">if</span> <span class="p">(</span><span class="n">polyorder</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="n">polyorder</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">bfill</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">y_smooth</span> <span class="o">=</span> <span class="n">savgol_filter</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">window_length</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">polyorder</span><span class="o">=</span><span class="n">polyorder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y_smooth</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown smoothing method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="find_raw_extrema">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.find_raw_extrema">[docs]</a>
+<span class="k">def</span> <span class="nf">find_raw_extrema</span><span class="p">(</span><span class="n">smoothed</span><span class="p">,</span> <span class="n">prominence</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find raw peaks and troughs using scipy.signal.find_peaks.</span>
+<span class="sd">    Returns DataFrames for peaks and troughs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">smoothed</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">peaks</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">find_peaks</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">prominence</span><span class="o">=</span><span class="n">prominence</span><span class="p">)</span>
+    <span class="n">troughs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">find_peaks</span><span class="p">(</span><span class="o">-</span><span class="n">y</span><span class="p">,</span> <span class="n">prominence</span><span class="o">=</span><span class="n">prominence</span><span class="p">)</span>
+    <span class="n">df_peaks</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">smoothed</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">peaks</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">[</span><span class="n">peaks</span><span class="p">],</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">df_troughs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">smoothed</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">troughs</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">[</span><span class="n">troughs</span><span class="p">],</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;low&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_peaks</span><span class="p">,</span> <span class="n">df_troughs</span></div>
+
+
+
+<div class="viewcode-block" id="filter_extrema_ngood">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.filter_extrema_ngood">[docs]</a>
+<span class="k">def</span> <span class="nf">filter_extrema_ngood</span><span class="p">(</span>
+    <span class="n">extrema_df</span><span class="p">,</span> <span class="n">smoothed</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">loess_window_pts</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">n_good</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sig_gap_minutes</span><span class="o">=</span><span class="mi">45</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter extrema based on local and contextual data quality criteria.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    extrema_df : pd.DataFrame</span>
+<span class="sd">        DataFrame with columns &#39;time&#39; and &#39;value&#39; for candidate extrema.</span>
+<span class="sd">    smoothed : pd.Series</span>
+<span class="sd">        Smoothed version of the signal used for extrema detection.</span>
+<span class="sd">    series : pd.Series</span>
+<span class="sd">        Original time series (with gaps).</span>
+<span class="sd">    loess_window_pts : int</span>
+<span class="sd">        Number of points in the LOESS window.</span>
+<span class="sd">    n_good : int</span>
+<span class="sd">        Minimum number of non-NaN points required.</span>
+<span class="sd">    sig_gap_minutes : float</span>
+<span class="sd">        Threshold for detecting significant gaps (in minutes).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Filtered extrema DataFrame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sig_gap</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">sig_gap_minutes</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">not_nan</span> <span class="o">=</span> <span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+    <span class="n">valid_times</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="n">not_nan</span><span class="p">]</span>
+
+    <span class="c1"># Identify significant gaps</span>
+    <span class="n">time_diffs</span> <span class="o">=</span> <span class="n">valid_times</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+    <span class="n">gap_starts</span> <span class="o">=</span> <span class="n">valid_times</span><span class="p">[</span><span class="n">time_diffs</span> <span class="o">&gt;</span> <span class="n">sig_gap</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">gap_ends</span> <span class="o">=</span> <span class="n">valid_times</span><span class="p">[</span><span class="n">time_diffs</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">sig_gap</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">idx_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">smoothed</span><span class="o">.</span><span class="n">index</span><span class="p">)}</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">extrema_df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">idx_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># 1. Local LOESS support</span>
+        <span class="n">hw</span> <span class="o">=</span> <span class="n">loess_window_pts</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="n">hw</span><span class="p">)</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">smoothed</span><span class="p">),</span> <span class="n">i</span> <span class="o">+</span> <span class="n">hw</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">window_values</span> <span class="o">=</span> <span class="n">smoothed</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span>
+        <span class="n">local_ok</span> <span class="o">=</span> <span class="n">window_values</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">n_good</span>
+
+        <span class="c1"># 2. Contextual support: enough valid data between nearest gap or boundary</span>
+        <span class="n">prev_gap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">g</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">gap_ends</span> <span class="o">+</span> <span class="p">[</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="k">if</span> <span class="n">g</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">next_gap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">g</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">gap_starts</span> <span class="o">+</span> <span class="p">[</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="k">if</span> <span class="n">g</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">],</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">n_before</span> <span class="o">=</span> <span class="n">valid_times</span><span class="p">[(</span><span class="n">valid_times</span> <span class="o">&gt;</span> <span class="n">prev_gap</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">valid_times</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)]</span>
+        <span class="n">n_after</span> <span class="o">=</span> <span class="n">valid_times</span><span class="p">[(</span><span class="n">valid_times</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">valid_times</span> <span class="o">&lt;</span> <span class="n">next_gap</span><span class="p">)]</span>
+        <span class="n">context_ok</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n_before</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">n_good</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n_after</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">n_good</span><span class="p">)</span>
+
+        <span class="n">keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_ok</span> <span class="ow">and</span> <span class="n">context_ok</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">extrema_df</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="select_salient_extrema">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.select_salient_extrema">[docs]</a>
+<span class="k">def</span> <span class="nf">select_salient_extrema</span><span class="p">(</span><span class="n">extrema</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">spacing_hours</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select salient extrema (HH/LL or HL/LH) using literal spacing-based OR logic.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    extrema : pd.DataFrame with columns [&quot;time&quot;, &quot;value&quot;]</span>
+<span class="sd">        Candidate extrema.</span>
+<span class="sd">    typ : str</span>
+<span class="sd">        Either &quot;high&quot; or &quot;low&quot; (for peak or trough selection).</span>
+<span class="sd">    spacing_hours : float</span>
+<span class="sd">        Time window for neighbor comparison.</span>
+<span class="sd">    envelope_type : str</span>
+<span class="sd">        Either &quot;outer&quot; (default) or &quot;inner&quot; to switch saliency logic.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Extrema that passed the saliency test.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">extrema</span> <span class="o">=</span> <span class="n">extrema</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">spacing</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">spacing_hours</span><span class="p">)</span>
+
+    <span class="n">passed_left</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">passed_right</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">extrema</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+        <span class="n">left</span> <span class="o">=</span> <span class="n">extrema</span><span class="p">[(</span><span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">t</span> <span class="o">-</span> <span class="n">spacing</span><span class="p">)]</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">extrema</span><span class="p">[(</span><span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">+</span> <span class="n">spacing</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;high&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">envelope_type</span> <span class="o">==</span> <span class="s2">&quot;outer&quot;</span><span class="p">:</span>
+                <span class="n">left_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+                <span class="n">right_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">left_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+                <span class="n">right_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">envelope_type</span> <span class="o">==</span> <span class="s2">&quot;outer&quot;</span><span class="p">:</span>
+                <span class="n">left_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+                <span class="n">right_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">left_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+                <span class="n">right_ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+
+        <span class="n">passed_left</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left_ok</span><span class="p">)</span>
+        <span class="n">passed_right</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right_ok</span><span class="p">)</span>
+        <span class="n">kept</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left_ok</span> <span class="ow">or</span> <span class="n">right_ok</span><span class="p">)</span>
+
+    <span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;passed_left&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">passed_left</span>
+    <span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;passed_right&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">passed_right</span>
+    <span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;kept&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kept</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">extrema</span><span class="p">[</span><span class="n">extrema</span><span class="p">[</span><span class="s2">&quot;kept&quot;</span><span class="p">]]</span>
+        <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;passed_left&quot;</span><span class="p">,</span> <span class="s2">&quot;passed_right&quot;</span><span class="p">,</span> <span class="s2">&quot;kept&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="interpolate_envelope">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.interpolate_envelope">[docs]</a>
+<span class="k">def</span> <span class="nf">interpolate_envelope</span><span class="p">(</span><span class="n">anchor_df</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">max_anchor_gap_hours</span><span class="o">=</span><span class="mi">36</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interpolate envelope using PCHIP, breaking if anchor points are too far apart.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">anchor_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">anchor_df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">anchor_df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">times</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">xi</span> <span class="o">=</span> <span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">index</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+    <span class="n">breaks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_anchor_gap_hours</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">seg_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">0</span><span class="p">],</span> <span class="n">breaks</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">seg_ends</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">breaks</span><span class="p">,</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">seg_starts</span><span class="p">,</span> <span class="n">seg_ends</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">e</span> <span class="o">-</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">pchip</span> <span class="o">=</span> <span class="n">PchipInterpolator</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">s</span> <span class="p">:</span> <span class="n">e</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="n">s</span> <span class="p">:</span> <span class="n">e</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">xi</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">[</span><span class="n">s</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">xi</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">[</span><span class="n">e</span><span class="p">])</span>
+        <span class="n">env</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">pchip</span><span class="p">(</span><span class="n">xi</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+    <span class="n">env_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">env_series</span><span class="p">[</span><span class="n">series</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">env_series</span></div>
+
+
+
+<span class="c1"># --- Main envelope extraction pipeline ---</span>
+
+
+<div class="viewcode-block" id="tidal_envelope">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.tidal_envelope">[docs]</a>
+<span class="k">def</span> <span class="nf">tidal_envelope</span><span class="p">(</span>
+    <span class="n">series</span><span class="p">,</span>
+    <span class="n">smoothing_window_hours</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">n_good</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">peak_prominence</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">saliency_window_hours</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+    <span class="n">max_anchor_gap_hours</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+    <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the tidal envelope (high and low) of a time series using smoothing, extrema detection, and interpolation.</span>
+<span class="sd">    This function processes a time series to extract its tidal envelope by smoothing the data, identifying significant peaks and troughs, filtering out unreliable extrema, selecting salient extrema within a specified window, and interpolating between anchor points to generate continuous envelope curves.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : pandas.Series</span>
+<span class="sd">        Time-indexed series of water levels or similar data.</span>
+<span class="sd">    smoothing_window_hours : float, optional</span>
+<span class="sd">        Window size in hours for smoothing the input series (default is 2.5).</span>
+<span class="sd">    n_good : int, optional</span>
+<span class="sd">        Minimum number of good points required for an extremum to be considered valid (default is 3).</span>
+<span class="sd">    peak_prominence : float, optional</span>
+<span class="sd">        Minimum prominence of peaks/troughs to be considered as extrema (default is 0.05).</span>
+<span class="sd">    saliency_window_hours : float, optional</span>
+<span class="sd">        Window size in hours for selecting salient extrema (default is 14).</span>
+<span class="sd">    max_anchor_gap_hours : float, optional</span>
+<span class="sd">        Maximum allowed gap in hours between anchor points for interpolation (default is 36).</span>
+<span class="sd">    envelope_type : str, optional</span>
+<span class="sd">        Type of envelope to compute, e.g., &quot;outer&quot; (default is &quot;outer&quot;).</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    env_high : pandas.Series</span>
+<span class="sd">        Interpolated high (upper) envelope of the input series.</span>
+<span class="sd">    env_low : pandas.Series</span>
+<span class="sd">        Interpolated low (lower) envelope of the input series.</span>
+<span class="sd">    anchor_highs : pandas.DataFrame</span>
+<span class="sd">        DataFrame of selected anchor points for the high envelope.</span>
+<span class="sd">    anchor_lows : pandas.DataFrame</span>
+<span class="sd">        DataFrame of selected anchor points for the low envelope.</span>
+<span class="sd">    smoothed : pandas.Series</span>
+<span class="sd">        Smoothed version of the input series.</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function assumes regular time intervals in the input series. If the frequency cannot be inferred, it is estimated from the first two timestamps.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Smoothing</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">infer_freq</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+    <span class="n">window_pts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">smoothing_window_hours</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">/</span> <span class="p">(</span><span class="n">freq</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="mi">60</span><span class="p">))</span>
+    <span class="c1"># smoothed = smooth_series(series, window_hours=smoothing_window_hours)</span>
+    <span class="n">smoothed</span> <span class="o">=</span> <span class="n">smooth_series2</span><span class="p">(</span>
+        <span class="n">series</span><span class="p">,</span> <span class="n">window_pts</span><span class="o">=</span><span class="n">window_pts</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;savgol&quot;</span><span class="p">,</span> <span class="n">polyorder</span><span class="o">=</span><span class="mi">2</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Raw extrema</span>
+    <span class="n">df_peaks</span><span class="p">,</span> <span class="n">df_troughs</span> <span class="o">=</span> <span class="n">find_raw_extrema</span><span class="p">(</span><span class="n">smoothed</span><span class="p">,</span> <span class="n">prominence</span><span class="o">=</span><span class="n">peak_prominence</span><span class="p">)</span>
+
+    <span class="c1"># Eliminate one-sided extrema near gaps/boundaries</span>
+    <span class="n">df_peaks</span> <span class="o">=</span> <span class="n">filter_extrema_ngood</span><span class="p">(</span>
+        <span class="n">df_peaks</span><span class="p">,</span> <span class="n">smoothed</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">loess_window_pts</span><span class="o">=</span><span class="n">window_pts</span><span class="p">,</span> <span class="n">n_good</span><span class="o">=</span><span class="n">n_good</span>
+    <span class="p">)</span>
+    <span class="n">df_troughs</span> <span class="o">=</span> <span class="n">filter_extrema_ngood</span><span class="p">(</span>
+        <span class="n">df_troughs</span><span class="p">,</span> <span class="n">smoothed</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">loess_window_pts</span><span class="o">=</span><span class="n">window_pts</span><span class="p">,</span> <span class="n">n_good</span><span class="o">=</span><span class="n">n_good</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Saliency selection</span>
+    <span class="n">anchor_highs</span> <span class="o">=</span> <span class="n">select_salient_extrema</span><span class="p">(</span>
+        <span class="n">df_peaks</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="n">saliency_window_hours</span><span class="p">,</span> <span class="n">envelope_type</span>
+    <span class="p">)</span>
+    <span class="n">anchor_lows</span> <span class="o">=</span> <span class="n">select_salient_extrema</span><span class="p">(</span>
+        <span class="n">df_troughs</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="n">saliency_window_hours</span><span class="p">,</span> <span class="n">envelope_type</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Interpolation</span>
+    <span class="n">env_high</span> <span class="o">=</span> <span class="n">interpolate_envelope</span><span class="p">(</span><span class="n">anchor_highs</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">max_anchor_gap_hours</span><span class="p">)</span>
+    <span class="n">env_low</span> <span class="o">=</span> <span class="n">interpolate_envelope</span><span class="p">(</span><span class="n">anchor_lows</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">max_anchor_gap_hours</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">env_high</span><span class="p">,</span> <span class="n">env_low</span><span class="p">,</span> <span class="n">anchor_highs</span><span class="p">,</span> <span class="n">anchor_lows</span><span class="p">,</span> <span class="n">smoothed</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="n">generate_simplified_mixed_tide</span><span class="p">(</span><span class="n">return_components</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tide</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s2">&quot;tide&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">tide</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">500</span><span class="p">:</span><span class="mi">600</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">tide</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2000</span><span class="p">:</span><span class="mi">2100</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="n">env_high</span><span class="p">,</span> <span class="n">env_low</span><span class="p">,</span> <span class="n">anchor_highs</span><span class="p">,</span> <span class="n">anchor_lows</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="n">tidal_envelope</span><span class="p">(</span>
+        <span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span>
+    <span class="p">)</span>
+    <span class="n">env_high_in</span><span class="p">,</span> <span class="n">env_low_in</span><span class="p">,</span> <span class="n">anchor_highs_in</span><span class="p">,</span> <span class="n">anchor_lows_in</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tidal_envelope</span><span class="p">(</span>
+        <span class="n">tide</span><span class="p">,</span> <span class="n">envelope_type</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tide</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Noisy Gappy Tide&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;LOESS Smooth&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">env_high</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Outer Upper Envelope (HHW)&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">env_low</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Outer Lower Envelope (LLW)&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">env_high_in</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Inner Upper Envelope (HLW)&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">env_low_in</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Inner Lower Envelope (LHW)&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">anchor_highs</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+        <span class="n">anchor_highs</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;^&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;HHW&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">anchor_lows</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">anchor_lows</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;LLW&quot;</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">anchor_highs_in</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+        <span class="n">anchor_highs_in</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;^&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;HLW&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">anchor_lows_in</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+        <span class="n">anchor_lows_in</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;v&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;LHW&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Tidal Envelope Extraction: Outer vs Inner&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.skill_metrics &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.functions.skill_metrics</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">vtools</span>
+<span class="kn">from</span> <span class="nn">vtools.data.timeseries</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">trim_mean</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="mse">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.mse">[docs]</a>
+<span class="k">def</span> <span class="nf">mse</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean squared error</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+<span class="sd">        Time series or arrays to analyze</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mse : vtools.data.timeseries.TimeSeries</span>
+<span class="sd">        Mean squared error between predictions and targets</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">predictions</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="rmse">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.rmse">[docs]</a>
+<span class="k">def</span> <span class="nf">rmse</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root mean squared error</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+<span class="sd">        Time series or arrays to analyze</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mse : float</span>
+<span class="sd">        Mean squared error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">predictions</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">**</span> <span class="mf">0.5</span></div>
+
+
+
+<div class="viewcode-block" id="median_error">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.median_error">[docs]</a>
+<span class="k">def</span> <span class="nf">median_error</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the median error, discounting nan values</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+
+<span class="sd">        Time series or arrays to be analyzed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    med : float</span>
+<span class="sd">        Median error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">predictions</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="mean_error">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.mean_error">[docs]</a>
+<span class="k">def</span> <span class="nf">mean_error</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">proportiontocut</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the untrimmed mean error, discounting nan values</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+
+<span class="sd">        Time series or arrays to be analyzed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    med : float</span>
+<span class="sd">        Median error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">trim</span> <span class="o">=</span> <span class="p">(</span><span class="n">predictions</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">trim</span></div>
+
+
+
+<div class="viewcode-block" id="skill_score">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.skill_score">[docs]</a>
+<span class="k">def</span> <span class="nf">skill_score</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate a Nash-Sutcliffe-like skill score based on mean squared error</span>
+
+<span class="sd">    As per the discussion in Murphy (1988) other reference forecasts (climatology,</span>
+<span class="sd">    harmonic tide, etc.) are possible.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+<span class="sd">        Time series or arrays to be analyzed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rmse : float</span>
+<span class="sd">        Root mean squared error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ref</span><span class="p">:</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">mse</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span> <span class="o">/</span> <span class="n">mse</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">targets</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="willmott_score">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.willmott_score">[docs]</a>
+<span class="k">def</span> <span class="nf">willmott_score</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate a Nash-Sutcliffe-like skill score based on mean squared error</span>
+
+<span class="sd">    As per the discussion in Murphy (1988) other reference forecasts (climatology,</span>
+<span class="sd">    harmonic tide, etc.) are possible.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+<span class="sd">        Time series or arrays to be analyzed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rmse : float</span>
+<span class="sd">        Root mean squared error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ref</span><span class="p">:</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">mse</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">mse</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">mse</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mean_error</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mean_error</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+
+    <span class="n">score</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">a</span> <span class="o">/</span> <span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">e</span> <span class="o">*</span> <span class="n">f</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">score</span></div>
+
+
+
+<div class="viewcode-block" id="tmean_error">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.tmean_error">[docs]</a>
+<span class="k">def</span> <span class="nf">tmean_error</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">limits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the (possibly trimmed) mean error, discounting nan values</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+<span class="sd">        Time series or arrays to be analyzed</span>
+
+<span class="sd">    limits : tuple(float)</span>
+<span class="sd">        Low and high limits for trimming</span>
+
+<span class="sd">    inclusive : [boolean, boolean]</span>
+<span class="sd">        True if clipping is inclusive on the low/high end</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mean : float</span>
+<span class="sd">        Trimmed mean error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">scipy</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">mstats</span><span class="o">.</span><span class="n">tmean</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">z</span><span class="p">,</span> <span class="n">limits</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="corr_coefficient">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics.corr_coefficient">[docs]</a>
+<span class="k">def</span> <span class="nf">corr_coefficient</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the correlation coefficient (the &#39;r&#39; in &#39;-squared&#39; between two series.</span>
+
+<span class="sd">    For time series where the targets are serially correlated and may span only a fraction</span>
+<span class="sd">    of the natural variability, this statistic may not be appropriate and Murphy (1988) explains</span>
+<span class="sd">    why caution should be exercised in using this statistic.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions, targets : array_like</span>
+<span class="sd">        Time series to analyze</span>
+
+<span class="sd">    method : pearson’, ‘kendall’, ‘spearman’</span>
+<span class="sd">        Method compatilble with pandasa</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    r : float</span>
+<span class="sd">        Correlation coefficient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">predictions</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_main">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.skill_metrics._main">[docs]</a>
+<span class="k">def</span> <span class="nf">_main</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">statsmodels.tsa.arima_process</span> <span class="kn">import</span> <span class="n">arma_generate_sample</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="c1"># from vtools.data.sample_series import arma</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">intvl</span> <span class="o">=</span> <span class="n">minutes</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+    <span class="n">lag</span> <span class="o">=</span> <span class="n">minutes</span><span class="p">(</span><span class="mi">37</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">intvl</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4000</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">500.0</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+    <span class="n">arparams</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.975</span><span class="p">])</span>
+    <span class="n">maparams</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span>
+    <span class="n">ar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">arparams</span><span class="p">]</span>  <span class="c1"># add zero-lag and negate</span>
+    <span class="n">ma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">maparams</span><span class="p">]</span>  <span class="c1"># add zero-lag</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">arma_generate_sample</span><span class="p">(</span><span class="n">ar</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">nsample</span><span class="o">=</span><span class="mi">4000</span><span class="p">)</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">12.4</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">24.0</span> <span class="o">-</span> <span class="mf">1.2</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.30</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="n">noise</span> <span class="o">/</span> <span class="mf">20.0</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">base</span> <span class="o">+</span> <span class="n">x</span> <span class="o">/</span> <span class="mf">400.0</span>
+
+    <span class="n">ts0</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">ts1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">ts1</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">ts0</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+    <span class="n">ts1</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># lag_sec = calculate_lag(ts0,ts1,minutes(60),res=seconds(1))</span>
+    <span class="c1"># print(&quot;lag = {}&quot;.format((lag_sec/60.)))</span>
+    <span class="c1"># print(&quot;skill = {}&quot;.format(skill_score(ts0, ts1)))</span>
+
+    <span class="n">dr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;15min&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">1.5</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">mse</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">rmse</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">skill_score</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">median_error</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+    <span class="n">z0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">14.0</span><span class="p">])</span>
+    <span class="n">z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">11.0</span><span class="p">,</span> <span class="mf">13.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">])</span>
+    <span class="n">dr2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;15min&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="n">zts0</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">z0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">dr2</span><span class="p">)</span>
+    <span class="n">zts1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">dr2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;r </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">corr_coefficient</span><span class="p">(</span><span class="n">zts0</span><span class="p">,</span> <span class="n">zts1</span><span class="p">)))</span></div>
+
+
+
+<span class="nb">all</span> <span class="o">=</span> <span class="p">[</span><span class="n">mse</span><span class="p">,</span> <span class="n">rmse</span><span class="p">,</span> <span class="n">median_error</span><span class="p">,</span> <span class="n">tmean_error</span><span class="p">,</span> <span class="n">corr_coefficient</span><span class="p">,</span> <span class="n">skill_score</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">_main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

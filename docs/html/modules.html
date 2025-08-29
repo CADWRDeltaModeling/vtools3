@@ -8,13 +8,14 @@
     <title>vtools &#8212; vtools 0.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
-    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     <script src="_static/documentation_options.js?v=7026087e"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vtools package" href="vtools.html" />
     <link rel="prev" title="Credits" href="authors.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -55,6 +56,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="daylight_savings.html">Daylight Savings conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
@@ -66,7 +68,8 @@
 <li class="toctree-l1"><a class="reference internal" href="notebooks/transition.html">Transitioning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vtools.html">vtools package</a></li>
 </ul>
 </li>
 </ul>
@@ -76,6 +79,7 @@
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="authors.html" title="previous chapter">Credits</a></li>
+      <li>Next: <a href="vtools.html" title="next chapter">vtools package</a></li>
   </ul></li>
 </ul>
 </div>
@@ -110,6 +114,55 @@
   <section id="vtools">
 <h1>vtools<a class="headerlink" href="#vtools" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vtools.html">vtools package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vtools.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html">vtools.data package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.dst">vtools.data.dst module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.gap">vtools.data.gap module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.sample_series">vtools.data.sample_series module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.timeseries">vtools.data.timeseries module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.vis_gap">vtools.data.vis_gap module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data.vtime">vtools.data.vtime module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#module-vtools.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.datastore.html">vtools.datastore package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.read_ts">vtools.datastore.read_ts module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html">vtools.functions package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.envelope">vtools.functions.envelope module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.error_detect">vtools.functions.error_detect module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.example2">vtools.functions.example2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.filter">vtools.functions.filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.frequency_response">vtools.functions.frequency_response module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interannual">vtools.functions.interannual module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interpolate">vtools.functions.interpolate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.lag_cross_correlation">vtools.functions.lag_cross_correlation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.merge">vtools.functions.merge module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.period_op">vtools.functions.period_op module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.read_dss">vtools.functions.read_dss module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.savitzky_golay">vtools.functions.savitzky_golay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.skill_metrics">vtools.functions.skill_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.tidalhl">vtools.functions.tidalhl module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.tidalhours">vtools.functions.tidalhours module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.transition">vtools.functions.transition module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.unit_conversions">vtools.functions.unit_conversions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#module-vtools.functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.html#module-vtools">Module contents</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </section>
 

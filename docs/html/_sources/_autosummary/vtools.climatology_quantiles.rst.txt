@@ -1,6 +1,0 @@
-﻿vtools.climatology\_quantiles
-=============================
-
-.. currentmodule:: vtools
-
-.. autofunction:: climatology_quantiles

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mpl_toolkits.axes_grid1.inset_locator &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for mpl_toolkits.axes_grid1.inset_locator</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A collection of functions and objects for creating or placing inset axes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">_api</span><span class="p">,</span> <span class="n">_docstring</span>
+<span class="kn">from</span> <span class="nn">matplotlib.offsetbox</span> <span class="kn">import</span> <span class="n">AnchoredOffsetbox</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Patch</span><span class="p">,</span> <span class="n">Rectangle</span>
+<span class="kn">from</span> <span class="nn">matplotlib.path</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">Bbox</span><span class="p">,</span> <span class="n">BboxTransformTo</span>
+<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">IdentityTransform</span><span class="p">,</span> <span class="n">TransformedBbox</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">axes_size</span> <span class="k">as</span> <span class="n">Size</span>
+<span class="kn">from</span> <span class="nn">.parasite_axes</span> <span class="kn">import</span> <span class="n">HostAxes</span>
+
+
+<span class="nd">@_api</span><span class="o">.</span><span class="n">deprecated</span><span class="p">(</span><span class="s2">&quot;3.8&quot;</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">&quot;Axes.inset_axes&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">InsetPosition</span><span class="p">:</span>
+    <span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">lbwh</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        An object for positioning an inset axes.</span>
+
+<span class="sd">        This is created by specifying the normalized coordinates in the axes,</span>
+<span class="sd">        instead of the figure.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent : `~matplotlib.axes.Axes`</span>
+<span class="sd">            Axes to use for normalizing coordinates.</span>
+
+<span class="sd">        lbwh : iterable of four floats</span>
+<span class="sd">            The left edge, bottom edge, width, and height of the inset axes, in</span>
+<span class="sd">            units of the normalized coordinate of the *parent* axes.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        :meth:`matplotlib.axes.Axes.set_axes_locator`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        The following bounds the inset axes to a box with 20%% of the parent</span>
+<span class="sd">        axes height and 40%% of the width. The size of the axes specified</span>
+<span class="sd">        ([0, 0, 1, 1]) ensures that the axes completely fills the bounding box:</span>
+
+<span class="sd">        &gt;&gt;&gt; parent_axes = plt.gca()</span>
+<span class="sd">        &gt;&gt;&gt; ax_ins = plt.axes([0, 0, 1, 1])</span>
+<span class="sd">        &gt;&gt;&gt; ip = InsetPosition(parent_axes, [0.5, 0.1, 0.4, 0.2])</span>
+<span class="sd">        &gt;&gt;&gt; ax_ins.set_axes_locator(ip)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbwh</span> <span class="o">=</span> <span class="n">lbwh</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="n">bbox_parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">get_position</span><span class="p">(</span><span class="n">original</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">trans</span> <span class="o">=</span> <span class="n">BboxTransformTo</span><span class="p">(</span><span class="n">bbox_parent</span><span class="p">)</span>
+        <span class="n">bbox_inset</span> <span class="o">=</span> <span class="n">Bbox</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lbwh</span><span class="p">)</span>
+        <span class="n">bb</span> <span class="o">=</span> <span class="n">TransformedBbox</span><span class="p">(</span><span class="n">bbox_inset</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bb</span>
+
+
+<span class="k">class</span> <span class="nc">AnchoredLocatorBase</span><span class="p">(</span><span class="n">AnchoredOffsetbox</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="n">offsetbox</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span>
+                 <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">loc</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">child</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">borderpad</span><span class="o">=</span><span class="n">borderpad</span><span class="p">,</span>
+            <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="n">bbox_transform</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No draw method should be called&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">renderer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">renderer</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">_get_renderer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_extent</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span>
+        <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_offset</span><span class="p">(</span><span class="n">bbox</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">bbox</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">renderer</span><span class="p">)</span>
+        <span class="n">bbox_canvas</span> <span class="o">=</span> <span class="n">Bbox</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">bbox</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">bbox</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">transSubfigure</span><span class="o">.</span><span class="n">inverted</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">TransformedBbox</span><span class="p">(</span><span class="n">bbox_canvas</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AnchoredSizeLocator</span><span class="p">(</span><span class="n">AnchoredLocatorBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span>
+                 <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span>
+            <span class="n">borderpad</span><span class="o">=</span><span class="n">borderpad</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="n">bbox_transform</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_size</span> <span class="o">=</span> <span class="n">Size</span><span class="o">.</span><span class="n">from_any</span><span class="p">(</span><span class="n">x_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_size</span> <span class="o">=</span> <span class="n">Size</span><span class="o">.</span><span class="n">from_any</span><span class="p">(</span><span class="n">y_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bbox_to_anchor</span><span class="p">()</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">points_to_pixels</span><span class="p">(</span><span class="mf">72.</span><span class="p">)</span>
+
+        <span class="n">r</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_size</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">bbox</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">r</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dpi</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_size</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">bbox</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="n">r</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dpi</span>
+
+        <span class="n">fontsize</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">points_to_pixels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prop</span><span class="o">.</span><span class="n">get_size_in_points</span><span class="p">())</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="o">*</span> <span class="n">fontsize</span>
+
+        <span class="k">return</span> <span class="n">Bbox</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span><span class="o">.</span><span class="n">padded</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AnchoredZoomLocator</span><span class="p">(</span><span class="n">AnchoredLocatorBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_axes</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span>
+                 <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                 <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">bbox_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_axes</span> <span class="o">=</span> <span class="n">parent_axes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">zoom</span>
+        <span class="k">if</span> <span class="n">bbox_to_anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bbox_to_anchor</span> <span class="o">=</span> <span class="n">parent_axes</span><span class="o">.</span><span class="n">bbox</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">borderpad</span><span class="o">=</span><span class="n">borderpad</span><span class="p">,</span>
+            <span class="n">bbox_transform</span><span class="o">=</span><span class="n">bbox_transform</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="n">bb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_axes</span><span class="o">.</span><span class="n">transData</span><span class="o">.</span><span class="n">transform_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">viewLim</span><span class="p">)</span>
+        <span class="n">fontsize</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">points_to_pixels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prop</span><span class="o">.</span><span class="n">get_size_in_points</span><span class="p">())</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad</span> <span class="o">*</span> <span class="n">fontsize</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">Bbox</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">padded</span><span class="p">(</span><span class="n">pad</span><span class="p">))</span>
+
+
+<span class="k">class</span> <span class="nc">BboxPatch</span><span class="p">(</span><span class="n">Patch</span><span class="p">):</span>
+    <span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Patch showing the shape bounded by a Bbox.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bbox : `~matplotlib.transforms.Bbox`</span>
+<span class="sd">            Bbox to use for the extents of this patch.</span>
+
+<span class="sd">        **kwargs</span>
+<span class="sd">            Patch properties. Valid arguments include:</span>
+
+<span class="sd">            %(Patch:kwdoc)s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;transform should not be set&quot;</span><span class="p">)</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IdentityTransform</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bbox</span> <span class="o">=</span> <span class="n">bbox</span>
+
+    <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># docstring inherited</span>
+        <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bbox</span><span class="o">.</span><span class="n">extents</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="o">.</span><span class="n">_create_closed</span><span class="p">([(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">)])</span>
+
+
+<span class="k">class</span> <span class="nc">BboxConnector</span><span class="p">(</span><span class="n">Patch</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_bbox_edge_pos</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the ``(x, y)`` coordinates of corner *loc* of *bbox*; parameters</span>
+<span class="sd">        behave as documented for the `.BboxConnector` constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">bbox</span><span class="o">.</span><span class="n">extents</span>
+        <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span>
+        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span>
+        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span>
+        <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y0</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">connect_bbox</span><span class="p">(</span><span class="n">bbox1</span><span class="p">,</span> <span class="n">bbox2</span><span class="p">,</span> <span class="n">loc1</span><span class="p">,</span> <span class="n">loc2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a `.Path` connecting corner *loc1* of *bbox1* to corner</span>
+<span class="sd">        *loc2* of *bbox2*, where parameters behave as documented as for the</span>
+<span class="sd">        `.BboxConnector` constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox1</span><span class="p">,</span> <span class="n">Rectangle</span><span class="p">):</span>
+            <span class="n">bbox1</span> <span class="o">=</span> <span class="n">TransformedBbox</span><span class="p">(</span><span class="n">Bbox</span><span class="o">.</span><span class="n">unit</span><span class="p">(),</span> <span class="n">bbox1</span><span class="o">.</span><span class="n">get_transform</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox2</span><span class="p">,</span> <span class="n">Rectangle</span><span class="p">):</span>
+            <span class="n">bbox2</span> <span class="o">=</span> <span class="n">TransformedBbox</span><span class="p">(</span><span class="n">Bbox</span><span class="o">.</span><span class="n">unit</span><span class="p">(),</span> <span class="n">bbox2</span><span class="o">.</span><span class="n">get_transform</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">loc2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loc2</span> <span class="o">=</span> <span class="n">loc1</span>
+        <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">BboxConnector</span><span class="o">.</span><span class="n">get_bbox_edge_pos</span><span class="p">(</span><span class="n">bbox1</span><span class="p">,</span> <span class="n">loc1</span><span class="p">)</span>
+        <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">BboxConnector</span><span class="o">.</span><span class="n">get_bbox_edge_pos</span><span class="p">(</span><span class="n">bbox2</span><span class="p">,</span> <span class="n">loc2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">([[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="p">[</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">]])</span>
+
+    <span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bbox1</span><span class="p">,</span> <span class="n">bbox2</span><span class="p">,</span> <span class="n">loc1</span><span class="p">,</span> <span class="n">loc2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Connect two bboxes with a straight line.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bbox1, bbox2 : `~matplotlib.transforms.Bbox`</span>
+<span class="sd">            Bounding boxes to connect.</span>
+
+<span class="sd">        loc1, loc2 : {1, 2, 3, 4}</span>
+<span class="sd">            Corner of *bbox1* and *bbox2* to draw the line. Valid values are::</span>
+
+<span class="sd">                &#39;upper right&#39;  : 1,</span>
+<span class="sd">                &#39;upper left&#39;   : 2,</span>
+<span class="sd">                &#39;lower left&#39;   : 3,</span>
+<span class="sd">                &#39;lower right&#39;  : 4</span>
+
+<span class="sd">            *loc2* is optional and defaults to *loc1*.</span>
+
+<span class="sd">        **kwargs</span>
+<span class="sd">            Patch properties for the line drawn. Valid arguments include:</span>
+
+<span class="sd">            %(Patch:kwdoc)s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;transform should not be set&quot;</span><span class="p">)</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IdentityTransform</span><span class="p">()</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+            <span class="s2">&quot;fill&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">({</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)))</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bbox1</span> <span class="o">=</span> <span class="n">bbox1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bbox2</span> <span class="o">=</span> <span class="n">bbox2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc1</span> <span class="o">=</span> <span class="n">loc1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc2</span> <span class="o">=</span> <span class="n">loc2</span>
+
+    <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># docstring inherited</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bbox1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bbox2</span><span class="p">,</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">loc1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc2</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">BboxConnectorPatch</span><span class="p">(</span><span class="n">BboxConnector</span><span class="p">):</span>
+    <span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bbox1</span><span class="p">,</span> <span class="n">bbox2</span><span class="p">,</span> <span class="n">loc1a</span><span class="p">,</span> <span class="n">loc2a</span><span class="p">,</span> <span class="n">loc1b</span><span class="p">,</span> <span class="n">loc2b</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Connect two bboxes with a quadrilateral.</span>
+
+<span class="sd">        The quadrilateral is specified by two lines that start and end at</span>
+<span class="sd">        corners of the bboxes. The four sides of the quadrilateral are defined</span>
+<span class="sd">        by the two lines given, the line between the two corners specified in</span>
+<span class="sd">        *bbox1* and the line between the two corners specified in *bbox2*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bbox1, bbox2 : `~matplotlib.transforms.Bbox`</span>
+<span class="sd">            Bounding boxes to connect.</span>
+
+<span class="sd">        loc1a, loc2a, loc1b, loc2b : {1, 2, 3, 4}</span>
+<span class="sd">            The first line connects corners *loc1a* of *bbox1* and *loc2a* of</span>
+<span class="sd">            *bbox2*; the second line connects corners *loc1b* of *bbox1* and</span>
+<span class="sd">            *loc2b* of *bbox2*.  Valid values are::</span>
+
+<span class="sd">                &#39;upper right&#39;  : 1,</span>
+<span class="sd">                &#39;upper left&#39;   : 2,</span>
+<span class="sd">                &#39;lower left&#39;   : 3,</span>
+<span class="sd">                &#39;lower right&#39;  : 4</span>
+
+<span class="sd">        **kwargs</span>
+<span class="sd">            Patch properties for the line drawn:</span>
+
+<span class="sd">            %(Patch:kwdoc)s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;transform should not be set&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bbox1</span><span class="p">,</span> <span class="n">bbox2</span><span class="p">,</span> <span class="n">loc1a</span><span class="p">,</span> <span class="n">loc2a</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc1b</span> <span class="o">=</span> <span class="n">loc1b</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc2b</span> <span class="o">=</span> <span class="n">loc2b</span>
+
+    <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># docstring inherited</span>
+        <span class="n">path1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bbox1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bbox2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc2</span><span class="p">)</span>
+        <span class="n">path2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bbox2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bbox1</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">loc2b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc1b</span><span class="p">)</span>
+        <span class="n">path_merged</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">path1</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="o">*</span><span class="n">path2</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">path1</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_merged</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_add_inset_axes</span><span class="p">(</span><span class="n">parent_axes</span><span class="p">,</span> <span class="n">axes_class</span><span class="p">,</span> <span class="n">axes_kwargs</span><span class="p">,</span> <span class="n">axes_locator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to add an inset axes and disable navigation in it.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">axes_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">axes_class</span> <span class="o">=</span> <span class="n">HostAxes</span>
+    <span class="k">if</span> <span class="n">axes_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">axes_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">inset_axes</span> <span class="o">=</span> <span class="n">axes_class</span><span class="p">(</span>
+        <span class="n">parent_axes</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span> <span class="n">parent_axes</span><span class="o">.</span><span class="n">get_position</span><span class="p">(),</span>
+        <span class="o">**</span><span class="p">{</span><span class="s2">&quot;navigate&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">axes_kwargs</span><span class="p">,</span> <span class="s2">&quot;axes_locator&quot;</span><span class="p">:</span> <span class="n">axes_locator</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">parent_axes</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">inset_axes</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="inset_axes">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.frequency_response.inset_axes">[docs]</a>
+<span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+<span class="k">def</span> <span class="nf">inset_axes</span><span class="p">(</span><span class="n">parent_axes</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span>
+               <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">axes_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an inset axes with a given width and height.</span>
+
+<span class="sd">    Both sizes used can be specified either in inches or percentage.</span>
+<span class="sd">    For example,::</span>
+
+<span class="sd">        inset_axes(parent_axes, width=&#39;40%%&#39;, height=&#39;30%%&#39;, loc=&#39;lower left&#39;)</span>
+
+<span class="sd">    creates in inset axes in the lower left corner of *parent_axes* which spans</span>
+<span class="sd">    over 30%% in height and 40%% in width of the *parent_axes*. Since the usage</span>
+<span class="sd">    of `.inset_axes` may become slightly tricky when exceeding such standard</span>
+<span class="sd">    cases, it is recommended to read :doc:`the examples</span>
+<span class="sd">    &lt;/gallery/axes_grid1/inset_locator_demo&gt;`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The meaning of *bbox_to_anchor* and *bbox_to_transform* is interpreted</span>
+<span class="sd">    differently from that of legend. The value of bbox_to_anchor</span>
+<span class="sd">    (or the return value of its get_points method; the default is</span>
+<span class="sd">    *parent_axes.bbox*) is transformed by the bbox_transform (the default</span>
+<span class="sd">    is Identity transform) and then interpreted as points in the pixel</span>
+<span class="sd">    coordinate (which is dpi dependent).</span>
+
+<span class="sd">    Thus, following three calls are identical and creates an inset axes</span>
+<span class="sd">    with respect to the *parent_axes*::</span>
+
+<span class="sd">       axins = inset_axes(parent_axes, &quot;30%%&quot;, &quot;40%%&quot;)</span>
+<span class="sd">       axins = inset_axes(parent_axes, &quot;30%%&quot;, &quot;40%%&quot;,</span>
+<span class="sd">                          bbox_to_anchor=parent_axes.bbox)</span>
+<span class="sd">       axins = inset_axes(parent_axes, &quot;30%%&quot;, &quot;40%%&quot;,</span>
+<span class="sd">                          bbox_to_anchor=(0, 0, 1, 1),</span>
+<span class="sd">                          bbox_transform=parent_axes.transAxes)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent_axes : `matplotlib.axes.Axes`</span>
+<span class="sd">        Axes to place the inset axes.</span>
+
+<span class="sd">    width, height : float or str</span>
+<span class="sd">        Size of the inset axes to create. If a float is provided, it is</span>
+<span class="sd">        the size in inches, e.g. *width=1.3*. If a string is provided, it is</span>
+<span class="sd">        the size in relative units, e.g. *width=&#39;40%%&#39;*. By default, i.e. if</span>
+<span class="sd">        neither *bbox_to_anchor* nor *bbox_transform* are specified, those</span>
+<span class="sd">        are relative to the parent_axes. Otherwise, they are to be understood</span>
+<span class="sd">        relative to the bounding box provided via *bbox_to_anchor*.</span>
+
+<span class="sd">    loc : str, default: &#39;upper right&#39;</span>
+<span class="sd">        Location to place the inset axes.  Valid locations are</span>
+<span class="sd">        &#39;upper left&#39;, &#39;upper center&#39;, &#39;upper right&#39;,</span>
+<span class="sd">        &#39;center left&#39;, &#39;center&#39;, &#39;center right&#39;,</span>
+<span class="sd">        &#39;lower left&#39;, &#39;lower center&#39;, &#39;lower right&#39;.</span>
+<span class="sd">        For backward compatibility, numeric values are accepted as well.</span>
+<span class="sd">        See the parameter *loc* of `.Legend` for details.</span>
+
+<span class="sd">    bbox_to_anchor : tuple or `~matplotlib.transforms.BboxBase`, optional</span>
+<span class="sd">        Bbox that the inset axes will be anchored to. If None,</span>
+<span class="sd">        a tuple of (0, 0, 1, 1) is used if *bbox_transform* is set</span>
+<span class="sd">        to *parent_axes.transAxes* or *parent_axes.figure.transFigure*.</span>
+<span class="sd">        Otherwise, *parent_axes.bbox* is used. If a tuple, can be either</span>
+<span class="sd">        [left, bottom, width, height], or [left, bottom].</span>
+<span class="sd">        If the kwargs *width* and/or *height* are specified in relative units,</span>
+<span class="sd">        the 2-tuple [left, bottom] cannot be used. Note that,</span>
+<span class="sd">        unless *bbox_transform* is set, the units of the bounding box</span>
+<span class="sd">        are interpreted in the pixel coordinate. When using *bbox_to_anchor*</span>
+<span class="sd">        with tuple, it almost always makes sense to also specify</span>
+<span class="sd">        a *bbox_transform*. This might often be the axes transform</span>
+<span class="sd">        *parent_axes.transAxes*.</span>
+
+<span class="sd">    bbox_transform : `~matplotlib.transforms.Transform`, optional</span>
+<span class="sd">        Transformation for the bbox that contains the inset axes.</span>
+<span class="sd">        If None, a `.transforms.IdentityTransform` is used. The value</span>
+<span class="sd">        of *bbox_to_anchor* (or the return value of its get_points method)</span>
+<span class="sd">        is transformed by the *bbox_transform* and then interpreted</span>
+<span class="sd">        as points in the pixel coordinate (which is dpi dependent).</span>
+<span class="sd">        You may provide *bbox_to_anchor* in some normalized coordinate,</span>
+<span class="sd">        and give an appropriate transform (e.g., *parent_axes.transAxes*).</span>
+
+<span class="sd">    axes_class : `~matplotlib.axes.Axes` type, default: `.HostAxes`</span>
+<span class="sd">        The type of the newly created inset axes.</span>
+
+<span class="sd">    axes_kwargs : dict, optional</span>
+<span class="sd">        Keyword arguments to pass to the constructor of the inset axes.</span>
+<span class="sd">        Valid arguments include:</span>
+
+<span class="sd">        %(Axes:kwdoc)s</span>
+
+<span class="sd">    borderpad : float, default: 0.5</span>
+<span class="sd">        Padding between inset axes and the bbox_to_anchor.</span>
+<span class="sd">        The units are axes font size, i.e. for a default font size of 10 points</span>
+<span class="sd">        *borderpad = 0.5* is equivalent to a padding of 5 points.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    inset_axes : *axes_class*</span>
+<span class="sd">        Inset axes object created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">bbox_transform</span> <span class="ow">in</span> <span class="p">[</span><span class="n">parent_axes</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">parent_axes</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">transFigure</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="n">bbox_to_anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">_api</span><span class="o">.</span><span class="n">warn_external</span><span class="p">(</span><span class="s2">&quot;Using the axes or figure transform requires a &quot;</span>
+                           <span class="s2">&quot;bounding box in the respective coordinates. &quot;</span>
+                           <span class="s2">&quot;Using bbox_to_anchor=(0, 0, 1, 1) now.&quot;</span><span class="p">)</span>
+        <span class="n">bbox_to_anchor</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bbox_to_anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bbox_to_anchor</span> <span class="o">=</span> <span class="n">parent_axes</span><span class="o">.</span><span class="n">bbox</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="nb">str</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Using relative units for width or height &quot;</span>
+                             <span class="s2">&quot;requires to provide a 4-tuple or a &quot;</span>
+                             <span class="s2">&quot;`Bbox` instance to `bbox_to_anchor.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_add_inset_axes</span><span class="p">(</span>
+        <span class="n">parent_axes</span><span class="p">,</span> <span class="n">axes_class</span><span class="p">,</span> <span class="n">axes_kwargs</span><span class="p">,</span>
+        <span class="n">AnchoredSizeLocator</span><span class="p">(</span>
+            <span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">bbox_transform</span><span class="o">=</span><span class="n">bbox_transform</span><span class="p">,</span> <span class="n">borderpad</span><span class="o">=</span><span class="n">borderpad</span><span class="p">))</span></div>
+
+
+
+<span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+<span class="k">def</span> <span class="nf">zoomed_inset_axes</span><span class="p">(</span><span class="n">parent_axes</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span>
+                      <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">axes_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an anchored inset axes by scaling a parent axes. For usage, also see</span>
+<span class="sd">    :doc:`the examples &lt;/gallery/axes_grid1/inset_locator_demo2&gt;`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent_axes : `~matplotlib.axes.Axes`</span>
+<span class="sd">        Axes to place the inset axes.</span>
+
+<span class="sd">    zoom : float</span>
+<span class="sd">        Scaling factor of the data axes. *zoom* &gt; 1 will enlarge the</span>
+<span class="sd">        coordinates (i.e., &quot;zoomed in&quot;), while *zoom* &lt; 1 will shrink the</span>
+<span class="sd">        coordinates (i.e., &quot;zoomed out&quot;).</span>
+
+<span class="sd">    loc : str, default: &#39;upper right&#39;</span>
+<span class="sd">        Location to place the inset axes.  Valid locations are</span>
+<span class="sd">        &#39;upper left&#39;, &#39;upper center&#39;, &#39;upper right&#39;,</span>
+<span class="sd">        &#39;center left&#39;, &#39;center&#39;, &#39;center right&#39;,</span>
+<span class="sd">        &#39;lower left&#39;, &#39;lower center&#39;, &#39;lower right&#39;.</span>
+<span class="sd">        For backward compatibility, numeric values are accepted as well.</span>
+<span class="sd">        See the parameter *loc* of `.Legend` for details.</span>
+
+<span class="sd">    bbox_to_anchor : tuple or `~matplotlib.transforms.BboxBase`, optional</span>
+<span class="sd">        Bbox that the inset axes will be anchored to. If None,</span>
+<span class="sd">        *parent_axes.bbox* is used. If a tuple, can be either</span>
+<span class="sd">        [left, bottom, width, height], or [left, bottom].</span>
+<span class="sd">        If the kwargs *width* and/or *height* are specified in relative units,</span>
+<span class="sd">        the 2-tuple [left, bottom] cannot be used. Note that</span>
+<span class="sd">        the units of the bounding box are determined through the transform</span>
+<span class="sd">        in use. When using *bbox_to_anchor* it almost always makes sense to</span>
+<span class="sd">        also specify a *bbox_transform*. This might often be the axes transform</span>
+<span class="sd">        *parent_axes.transAxes*.</span>
+
+<span class="sd">    bbox_transform : `~matplotlib.transforms.Transform`, optional</span>
+<span class="sd">        Transformation for the bbox that contains the inset axes.</span>
+<span class="sd">        If None, a `.transforms.IdentityTransform` is used (i.e. pixel</span>
+<span class="sd">        coordinates). This is useful when not providing any argument to</span>
+<span class="sd">        *bbox_to_anchor*. When using *bbox_to_anchor* it almost always makes</span>
+<span class="sd">        sense to also specify a *bbox_transform*. This might often be the</span>
+<span class="sd">        axes transform *parent_axes.transAxes*. Inversely, when specifying</span>
+<span class="sd">        the axes- or figure-transform here, be aware that not specifying</span>
+<span class="sd">        *bbox_to_anchor* will use *parent_axes.bbox*, the units of which are</span>
+<span class="sd">        in display (pixel) coordinates.</span>
+
+<span class="sd">    axes_class : `~matplotlib.axes.Axes` type, default: `.HostAxes`</span>
+<span class="sd">        The type of the newly created inset axes.</span>
+
+<span class="sd">    axes_kwargs : dict, optional</span>
+<span class="sd">        Keyword arguments to pass to the constructor of the inset axes.</span>
+<span class="sd">        Valid arguments include:</span>
+
+<span class="sd">        %(Axes:kwdoc)s</span>
+
+<span class="sd">    borderpad : float, default: 0.5</span>
+<span class="sd">        Padding between inset axes and the bbox_to_anchor.</span>
+<span class="sd">        The units are axes font size, i.e. for a default font size of 10 points</span>
+<span class="sd">        *borderpad = 0.5* is equivalent to a padding of 5 points.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    inset_axes : *axes_class*</span>
+<span class="sd">        Inset axes object created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_add_inset_axes</span><span class="p">(</span>
+        <span class="n">parent_axes</span><span class="p">,</span> <span class="n">axes_class</span><span class="p">,</span> <span class="n">axes_kwargs</span><span class="p">,</span>
+        <span class="n">AnchoredZoomLocator</span><span class="p">(</span>
+            <span class="n">parent_axes</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="o">=</span><span class="n">bbox_transform</span><span class="p">,</span>
+            <span class="n">borderpad</span><span class="o">=</span><span class="n">borderpad</span><span class="p">))</span>
+
+
+<span class="k">class</span> <span class="nc">_TransformedBboxWithCallback</span><span class="p">(</span><span class="n">TransformedBbox</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Variant of `.TransformBbox` which calls *callback* before returning points.</span>
+
+<span class="sd">    Used by `.mark_inset` to unstale the parent axes&#39; viewlim as needed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span> <span class="o">=</span> <span class="n">callback</span>
+
+    <span class="k">def</span> <span class="nf">get_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callback</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_points</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="mark_inset">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.frequency_response.mark_inset">[docs]</a>
+<span class="nd">@_docstring</span><span class="o">.</span><span class="n">dedent_interpd</span>
+<span class="k">def</span> <span class="nf">mark_inset</span><span class="p">(</span><span class="n">parent_axes</span><span class="p">,</span> <span class="n">inset_axes</span><span class="p">,</span> <span class="n">loc1</span><span class="p">,</span> <span class="n">loc2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draw a box to mark the location of an area represented by an inset axes.</span>
+
+<span class="sd">    This function draws a box in *parent_axes* at the bounding box of</span>
+<span class="sd">    *inset_axes*, and shows a connection with the inset axes by drawing lines</span>
+<span class="sd">    at the corners, giving a &quot;zoomed in&quot; effect.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent_axes : `~matplotlib.axes.Axes`</span>
+<span class="sd">        Axes which contains the area of the inset axes.</span>
+
+<span class="sd">    inset_axes : `~matplotlib.axes.Axes`</span>
+<span class="sd">        The inset axes.</span>
+
+<span class="sd">    loc1, loc2 : {1, 2, 3, 4}</span>
+<span class="sd">        Corners to use for connecting the inset axes and the area in the</span>
+<span class="sd">        parent axes.</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        Patch properties for the lines and box drawn:</span>
+
+<span class="sd">        %(Patch:kwdoc)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pp : `~matplotlib.patches.Patch`</span>
+<span class="sd">        The patch drawn to represent the area of the inset axes.</span>
+
+<span class="sd">    p1, p2 : `~matplotlib.patches.Patch`</span>
+<span class="sd">        The patches connecting two corners of the inset axes and its area.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">_TransformedBboxWithCallback</span><span class="p">(</span>
+        <span class="n">inset_axes</span><span class="o">.</span><span class="n">viewLim</span><span class="p">,</span> <span class="n">parent_axes</span><span class="o">.</span><span class="n">transData</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">parent_axes</span><span class="o">.</span><span class="n">_unstale_viewLim</span><span class="p">)</span>
+
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;fill&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">({</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)))</span>
+    <span class="n">pp</span> <span class="o">=</span> <span class="n">BboxPatch</span><span class="p">(</span><span class="n">rect</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">parent_axes</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">pp</span><span class="p">)</span>
+
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">BboxConnector</span><span class="p">(</span><span class="n">inset_axes</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span> <span class="n">rect</span><span class="p">,</span> <span class="n">loc1</span><span class="o">=</span><span class="n">loc1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">inset_axes</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span>
+    <span class="n">p1</span><span class="o">.</span><span class="n">set_clip_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="n">BboxConnector</span><span class="p">(</span><span class="n">inset_axes</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span> <span class="n">rect</span><span class="p">,</span> <span class="n">loc1</span><span class="o">=</span><span class="n">loc2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">inset_axes</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span>
+    <span class="n">p2</span><span class="o">.</span><span class="n">set_clip_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pp</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,6 +1,0 @@
-﻿vtools.butterworth
-==================
-
-.. currentmodule:: vtools
-
-.. autofunction:: butterworth

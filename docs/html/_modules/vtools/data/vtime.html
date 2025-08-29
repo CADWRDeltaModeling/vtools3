@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.data.vtime &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.data.vtime</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Basic ops for creating, testing and manipulating times and time intervals.</span>
+<span class="sd">This module contains factory and helper functions for working with</span>
+<span class="sd">times and time intervals.</span>
+
+<span class="sd">For time intervals (or deltas), VTools uses classes that are compatible</span>
+<span class="sd">with the &quot;freq&quot; argument of</span>
+
+<span class="sd">requires a time and time</span>
+<span class="sd">interval system that is consistent (e.g. time+n*interval makes sense)</span>
+<span class="sd">and that can be applied to both calendar dependent</span>
+<span class="sd">and calendar-independent intervals. Because this requirement</span>
+<span class="sd">is not met by any one implementation it is recommended that</span>
+<span class="sd">you always use the factory functions in this module</span>
+<span class="sd">for creating intervals or testing whether an interval is valid.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s2">&quot;hours&quot;</span><span class="p">,</span> <span class="s2">&quot;days&quot;</span><span class="p">,</span> <span class="s2">&quot;months&quot;</span><span class="p">,</span> <span class="s2">&quot;years&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="seconds">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.seconds">[docs]</a>
+<span class="k">def</span> <span class="nf">seconds</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a time interval representing s seconds&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Second</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="minutes">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.minutes">[docs]</a>
+<span class="k">def</span> <span class="nf">minutes</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a time interval representing m minutes&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Minute</span><span class="p">(</span><span class="n">m</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="hours">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.hours">[docs]</a>
+<span class="k">def</span> <span class="nf">hours</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a time interval representing h hours&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Hour</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="days">
+<a class="viewcode-back" href="../../../vtools.data.html#vtools.data.timeseries.days">[docs]</a>
+<span class="k">def</span> <span class="nf">days</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a time interval representing d days&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Day</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="months">
+<a class="viewcode-back" href="../../../vtools.data.html#vtools.data.timeseries.months">[docs]</a>
+<span class="k">def</span> <span class="nf">months</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a time interval representing m months&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">DateOffset</span><span class="p">(</span><span class="n">months</span><span class="o">=</span><span class="n">m</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="years">
+<a class="viewcode-back" href="../../../vtools.data.html#vtools.data.timeseries.years">[docs]</a>
+<span class="k">def</span> <span class="nf">years</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a time interval representing y years&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">DateOffset</span><span class="p">(</span><span class="n">years</span><span class="o">=</span><span class="n">y</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="dst_to_standard_naive">
+<a class="viewcode-back" href="../../../vtools.data.html#vtools.data.timeseries.dst_to_standard_naive">[docs]</a>
+<span class="k">def</span> <span class="nf">dst_to_standard_naive</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">dst_zone</span><span class="o">=</span><span class="s2">&quot;US/Pacific&quot;</span><span class="p">,</span> <span class="n">standard_zone</span><span class="o">=</span><span class="s2">&quot;Etc/GMT+8&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert timezone-unaware series from a local (with daylight) time to standard time</span>
+<span class="sd">    This would be useful, say, for converting a series that is PDT during summer to one that is not.</span>
+<span class="sd">    The routine is mainly to treat cases where the time stamps at DST interfaces are not redundant -- if they</span>
+<span class="sd">    are you can probably use tz_convert and tz_localize with the ambiguous = &#39;infer&#39; option and do the job more</span>
+<span class="sd">    efficiently, but lots of databases don&#39;t store data this way.</span>
+
+<span class="sd">    The choice of the standard_zone is, it seems, buggy. The defaults are supposed to convert from PST/PDT to pure PST,</span>
+<span class="sd">    and the latter should be GMT-8. In a sense, this function is included before the behavior is really understood.</span>
+
+<span class="sd">    Only regular series are accepted ... this is a quirk of the implementation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Create a date range that spans the possible times and is same refinement</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">freq</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Minute</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+    <span class="n">hr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Hour</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ndx2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">hr</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">hr</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">dst_zone</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Here is the determination of whether it is dst</span>
+    <span class="n">isdst</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bool</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dst</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ndx2</span><span class="o">.</span><span class="n">to_pydatetime</span><span class="p">()]</span>
+
+    <span class="c1"># Use DataFrame indexing to perform the lookup for values in my original index</span>
+
+    <span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;isdst&quot;</span><span class="p">:</span> <span class="n">isdst</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">ndx2</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+    <span class="n">df2</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">df2</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">),</span> <span class="p">:]</span>
+
+    <span class="n">ambig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;isdst&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># Here is the real work</span>
+    <span class="n">ts2</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s2">&quot;US/Pacific&quot;</span><span class="p">,</span> <span class="n">ambiguous</span><span class="o">=</span><span class="n">ambig</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">standard_zone</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ts2</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

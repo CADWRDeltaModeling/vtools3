@@ -8,8 +8,8 @@
     <title>Averging, Filtering and Low Passing Data &#8212; vtools 0.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
-    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css?v=7f9a90b1" />
-    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
     <script src="../_static/documentation_options.js?v=7026087e"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -59,12 +59,14 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../daylight_savings.html">Daylight Savings conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Averging, Filtering and Low Passing Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tidal_envelope.html">Tidal Envelope Extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="climatology.html">Fitting and using a climatology</a></li>
-<li class="toctree-l1"><a class="reference internal" href="merge_splice.html">Merging and Splicing (ts_merge and ts_splice)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
 <li class="toctree-l1"><a class="reference internal" href="extrapolation.html">Extrapolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transition.html">Transitioning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
@@ -111,6 +113,7 @@
             
   <section id="Averging,-Filtering-and-Low-Passing-Data">
 <h1>Averging, Filtering and Low Passing Data<a class="headerlink" href="#Averging,-Filtering-and-Low-Passing-Data" title="Link to this heading">¶</a></h1>
+<p>This tutorial covers the filtering tools in VTools as well as some motivation as to when and why you might do that instead of something simpler like taking a daily average. Sometimes doing that creates a 100% error and sometimes it is trivial … when?</p>
 <p>VTools provides simple methods for period averaging, filtering and low passing data, particularly tidal data. Basic period averaging and daily averaging is easily covered by the regular Pandas API, but these methods can distort tidal data or yield unepected results with missing data.</p>
 <p>As an introduction to the topic let’s start by making a single time series with three of the most common tidal constituents. This produces a series that is complex enough to be interesting and realistic, but it doesn’t have any low frequencies in it, so a reasonable tidal filtration should look like a flat line at zero.</p>
 <div class="nbinput docutils container">

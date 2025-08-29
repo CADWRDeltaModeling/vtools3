@@ -1,6 +1,0 @@
-﻿vtools.climatology
-==================
-
-.. currentmodule:: vtools
-
-.. autofunction:: climatology

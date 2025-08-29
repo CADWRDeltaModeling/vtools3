@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>vtools package &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=7026087e"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vtools.data package" href="vtools.data.html" />
+    <link rel="prev" title="vtools" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="index.html"><img src="_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">vtools package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">vtools</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">vtools</a></li>
+      <li>Next: <a href="vtools.data.html" title="next chapter">vtools.data package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="vtools-package">
+<h1>vtools package<a class="headerlink" href="#vtools-package" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vtools.data.html">vtools.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.dst">vtools.data.dst module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#daylight-savings-time-conversion">Daylight Savings Time Conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.dst.dst_st"><code class="docutils literal notranslate"><span class="pre">dst_st()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.gap">vtools.data.gap module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.gap.describe_null"><code class="docutils literal notranslate"><span class="pre">describe_null()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.gap.describe_series_gaps"><code class="docutils literal notranslate"><span class="pre">describe_series_gaps()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.gap.example_gap"><code class="docutils literal notranslate"><span class="pre">example_gap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.gap.gap_count"><code class="docutils literal notranslate"><span class="pre">gap_count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.gap.gap_distance"><code class="docutils literal notranslate"><span class="pre">gap_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.gap.gap_size"><code class="docutils literal notranslate"><span class="pre">gap_size()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.sample_series">vtools.data.sample_series module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.sample_series.bessel_df"><code class="docutils literal notranslate"><span class="pre">bessel_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.sample_series.extra"><code class="docutils literal notranslate"><span class="pre">extra()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.sample_series.interval"><code class="docutils literal notranslate"><span class="pre">interval()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.sample_series.jay_flinchem_chirptest"><code class="docutils literal notranslate"><span class="pre">jay_flinchem_chirptest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.sample_series.small_subtide"><code class="docutils literal notranslate"><span class="pre">small_subtide()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.timeseries">vtools.data.timeseries module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__doc__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__doc__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__init__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__module__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__module__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator._edge_case"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._edge_case()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator._find_derivatives"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._find_derivatives()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.axis"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.axis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.c"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.c</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.extrapolate"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.extrapolate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.x"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.x</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.datetime_elapsed"><code class="docutils literal notranslate"><span class="pre">datetime_elapsed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.days"><code class="docutils literal notranslate"><span class="pre">days()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.elapsed_datetime"><code class="docutils literal notranslate"><span class="pre">elapsed_datetime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.example"><code class="docutils literal notranslate"><span class="pre">example()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.extrapolate_ts"><code class="docutils literal notranslate"><span class="pre">extrapolate_ts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.hours"><code class="docutils literal notranslate"><span class="pre">hours()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.is_regular"><code class="docutils literal notranslate"><span class="pre">is_regular()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.minutes"><code class="docutils literal notranslate"><span class="pre">minutes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.months"><code class="docutils literal notranslate"><span class="pre">months()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.rts"><code class="docutils literal notranslate"><span class="pre">rts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.rts_formula"><code class="docutils literal notranslate"><span class="pre">rts_formula()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.seconds"><code class="docutils literal notranslate"><span class="pre">seconds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.time_overlap"><code class="docutils literal notranslate"><span class="pre">time_overlap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.to_dataframe"><code class="docutils literal notranslate"><span class="pre">to_dataframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.transition_ts"><code class="docutils literal notranslate"><span class="pre">transition_ts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.years"><code class="docutils literal notranslate"><span class="pre">years()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.vis_gap">vtools.data.vis_gap module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vis_gap.generate_sample_data"><code class="docutils literal notranslate"><span class="pre">generate_sample_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vis_gap.interactive_gap_plot"><code class="docutils literal notranslate"><span class="pre">interactive_gap_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vis_gap.plot_missing_data"><code class="docutils literal notranslate"><span class="pre">plot_missing_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.vtime">vtools.data.vtime module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.days"><code class="docutils literal notranslate"><span class="pre">days()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.dst_to_standard_naive"><code class="docutils literal notranslate"><span class="pre">dst_to_standard_naive()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.hours"><code class="docutils literal notranslate"><span class="pre">hours()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.minutes"><code class="docutils literal notranslate"><span class="pre">minutes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.months"><code class="docutils literal notranslate"><span class="pre">months()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.seconds"><code class="docutils literal notranslate"><span class="pre">seconds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.vtime.years"><code class="docutils literal notranslate"><span class="pre">years()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vtools.datastore.html">vtools.datastore package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vtools.datastore.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore.read_ts">vtools.datastore.read_ts module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.datastore.html#vtools.datastore.read_ts.read_ts"><code class="docutils literal notranslate"><span class="pre">read_ts()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.datastore.html#module-vtools.datastore">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vtools.functions.html">vtools.functions package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.climatology.apply_climatology"><code class="docutils literal notranslate"><span class="pre">apply_climatology()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.climatology.climatology"><code class="docutils literal notranslate"><span class="pre">climatology()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.climatology.climatology_quantiles"><code class="docutils literal notranslate"><span class="pre">climatology_quantiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.envelope">vtools.functions.envelope module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__annotations__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__annotations__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__doc__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__doc__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__init__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__module__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__module__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator._edge_case"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._edge_case()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator._find_derivatives"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._find_derivatives()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.axis"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.axis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.c"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.c</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.extrapolate"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.extrapolate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.x"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.x</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.chunked_loess_smoothing"><code class="docutils literal notranslate"><span class="pre">chunked_loess_smoothing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.filter_extrema_ngood"><code class="docutils literal notranslate"><span class="pre">filter_extrema_ngood()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.find_peaks"><code class="docutils literal notranslate"><span class="pre">find_peaks()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.find_raw_extrema"><code class="docutils literal notranslate"><span class="pre">find_raw_extrema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.generate_pink_noise"><code class="docutils literal notranslate"><span class="pre">generate_pink_noise()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.generate_simplified_mixed_tide"><code class="docutils literal notranslate"><span class="pre">generate_simplified_mixed_tide()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.interpolate_envelope"><code class="docutils literal notranslate"><span class="pre">interpolate_envelope()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.lowess"><code class="docutils literal notranslate"><span class="pre">lowess()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.savgol_filter"><code class="docutils literal notranslate"><span class="pre">savgol_filter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.select_salient_extrema"><code class="docutils literal notranslate"><span class="pre">select_salient_extrema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.smooth_series"><code class="docutils literal notranslate"><span class="pre">smooth_series()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.smooth_series2"><code class="docutils literal notranslate"><span class="pre">smooth_series2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.tidal_envelope"><code class="docutils literal notranslate"><span class="pre">tidal_envelope()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.error_detect">vtools.functions.error_detect module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect._nrepeat"><code class="docutils literal notranslate"><span class="pre">_nrepeat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.bounds_test"><code class="docutils literal notranslate"><span class="pre">bounds_test()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.despike"><code class="docutils literal notranslate"><span class="pre">despike()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.example"><code class="docutils literal notranslate"><span class="pre">example()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.example2"><code class="docutils literal notranslate"><span class="pre">example2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.med_outliers"><code class="docutils literal notranslate"><span class="pre">med_outliers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.median_test"><code class="docutils literal notranslate"><span class="pre">median_test()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.nrepeat"><code class="docutils literal notranslate"><span class="pre">nrepeat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.steep_then_nan"><code class="docutils literal notranslate"><span class="pre">steep_then_nan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.error_detect.threshold"><code class="docutils literal notranslate"><span class="pre">threshold()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.example2">vtools.functions.example2 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.example2.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.filter">vtools.functions.filter module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter._gf1d"><code class="docutils literal notranslate"><span class="pre">_gf1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter._lanczos_impl"><code class="docutils literal notranslate"><span class="pre">_lanczos_impl()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.butter"><code class="docutils literal notranslate"><span class="pre">butter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.butterworth"><code class="docutils literal notranslate"><span class="pre">butterworth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.convert_span_to_nstep"><code class="docutils literal notranslate"><span class="pre">convert_span_to_nstep()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.cosine_lanczos"><code class="docutils literal notranslate"><span class="pre">cosine_lanczos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.cosine_lanczos5"><code class="docutils literal notranslate"><span class="pre">cosine_lanczos5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.filtfilt"><code class="docutils literal notranslate"><span class="pre">filtfilt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.firwin"><code class="docutils literal notranslate"><span class="pre">firwin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.gaussian_filter1d"><code class="docutils literal notranslate"><span class="pre">gaussian_filter1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.generate_godin_fir"><code class="docutils literal notranslate"><span class="pre">generate_godin_fir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.godin"><code class="docutils literal notranslate"><span class="pre">godin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.hours"><code class="docutils literal notranslate"><span class="pre">hours()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.lanczos"><code class="docutils literal notranslate"><span class="pre">lanczos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.lfilter"><code class="docutils literal notranslate"><span class="pre">lfilter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.lowpass_cosine_lanczos_filter_coef"><code class="docutils literal notranslate"><span class="pre">lowpass_cosine_lanczos_filter_coef()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.lowpass_lanczos_filter_coef"><code class="docutils literal notranslate"><span class="pre">lowpass_lanczos_filter_coef()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.minutes"><code class="docutils literal notranslate"><span class="pre">minutes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.process_cutoff"><code class="docutils literal notranslate"><span class="pre">process_cutoff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.seconds"><code class="docutils literal notranslate"><span class="pre">seconds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.filter.ts_gaussian_filter"><code class="docutils literal notranslate"><span class="pre">ts_gaussian_filter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.frequency_response">vtools.functions.frequency_response module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.butterworth"><code class="docutils literal notranslate"><span class="pre">butterworth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.compare_response"><code class="docutils literal notranslate"><span class="pre">compare_response()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.cosine_lanczos"><code class="docutils literal notranslate"><span class="pre">cosine_lanczos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.cosine_lanczos5"><code class="docutils literal notranslate"><span class="pre">cosine_lanczos5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.freqz"><code class="docutils literal notranslate"><span class="pre">freqz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.godin"><code class="docutils literal notranslate"><span class="pre">godin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.inset_axes"><code class="docutils literal notranslate"><span class="pre">inset_axes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.lanczos"><code class="docutils literal notranslate"><span class="pre">lanczos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.lowpass_cosine_lanczos_filter_coef"><code class="docutils literal notranslate"><span class="pre">lowpass_cosine_lanczos_filter_coef()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.lowpass_lanczos_filter_coef"><code class="docutils literal notranslate"><span class="pre">lowpass_lanczos_filter_coef()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.mark_inset"><code class="docutils literal notranslate"><span class="pre">mark_inset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.ts_gaussian_filter"><code class="docutils literal notranslate"><span class="pre">ts_gaussian_filter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.frequency_response.unit_impulse_ts"><code class="docutils literal notranslate"><span class="pre">unit_impulse_ts()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interannual">vtools.functions.interannual module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interannual.interannual"><code class="docutils literal notranslate"><span class="pre">interannual()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interannual.interannual_sample"><code class="docutils literal notranslate"><span class="pre">interannual_sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interannual.interannual_ticks_labels"><code class="docutils literal notranslate"><span class="pre">interannual_ticks_labels()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.interpolate">vtools.functions.interpolate module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate._monotonic_spline"><code class="docutils literal notranslate"><span class="pre">_monotonic_spline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate._ratsp1"><code class="docutils literal notranslate"><span class="pre">_ratsp1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.interpolate_to_index"><code class="docutils literal notranslate"><span class="pre">interpolate_to_index()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.monotonic_spline"><code class="docutils literal notranslate"><span class="pre">monotonic_spline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.rhist"><code class="docutils literal notranslate"><span class="pre">rhist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.rhist_bound"><code class="docutils literal notranslate"><span class="pre">rhist_bound()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.rhist_coef"><code class="docutils literal notranslate"><span class="pre">rhist_coef()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.rhist_example"><code class="docutils literal notranslate"><span class="pre">rhist_example()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.rhist_val"><code class="docutils literal notranslate"><span class="pre">rhist_val()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.rhistinterp"><code class="docutils literal notranslate"><span class="pre">rhistinterp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.interpolate.tridiagonal"><code class="docutils literal notranslate"><span class="pre">tridiagonal()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.lag_cross_correlation">vtools.functions.lag_cross_correlation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.lag_cross_correlation.calculate_lag"><code class="docutils literal notranslate"><span class="pre">calculate_lag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.lag_cross_correlation.icrosscorr"><code class="docutils literal notranslate"><span class="pre">icrosscorr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.lag_cross_correlation.mincrosscorr"><code class="docutils literal notranslate"><span class="pre">mincrosscorr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.merge">vtools.functions.merge module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.merge._apply_names"><code class="docutils literal notranslate"><span class="pre">_apply_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.merge._reindex_to_continuous"><code class="docutils literal notranslate"><span class="pre">_reindex_to_continuous()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.merge.reduce"><code class="docutils literal notranslate"><span class="pre">reduce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.merge.ts_merge"><code class="docutils literal notranslate"><span class="pre">ts_merge()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.merge.ts_splice"><code class="docutils literal notranslate"><span class="pre">ts_splice()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.period_op">vtools.functions.period_op module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.period_op.period_op"><code class="docutils literal notranslate"><span class="pre">period_op()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.period_op.window_op"><code class="docutils literal notranslate"><span class="pre">window_op()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.read_dss">vtools.functions.read_dss module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.read_dss.check_exclude"><code class="docutils literal notranslate"><span class="pre">check_exclude()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.read_dss.read_dss"><code class="docutils literal notranslate"><span class="pre">read_dss()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.savitzky_golay">vtools.functions.savitzky_golay module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay._build_vander"><code class="docutils literal notranslate"><span class="pre">_build_vander()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay._evaluate_poly"><code class="docutils literal notranslate"><span class="pre">_evaluate_poly()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay._polyfit_window"><code class="docutils literal notranslate"><span class="pre">_polyfit_window()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay.savgol_filter_numba"><code class="docutils literal notranslate"><span class="pre">savgol_filter_numba()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay.savgol_filter_weighted"><code class="docutils literal notranslate"><span class="pre">savgol_filter_weighted()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay.savgol_filter_werror"><code class="docutils literal notranslate"><span class="pre">savgol_filter_werror()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay.solve_leastsq"><code class="docutils literal notranslate"><span class="pre">solve_leastsq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.savitzky_golay.solve_polyfit"><code class="docutils literal notranslate"><span class="pre">solve_polyfit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.skill_metrics">vtools.functions.skill_metrics module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics._main"><code class="docutils literal notranslate"><span class="pre">_main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.corr_coefficient"><code class="docutils literal notranslate"><span class="pre">corr_coefficient()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.mean_error"><code class="docutils literal notranslate"><span class="pre">mean_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.median_error"><code class="docutils literal notranslate"><span class="pre">median_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.mse"><code class="docutils literal notranslate"><span class="pre">mse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.rmse"><code class="docutils literal notranslate"><span class="pre">rmse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.skill_score"><code class="docutils literal notranslate"><span class="pre">skill_score()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.tmean_error"><code class="docutils literal notranslate"><span class="pre">tmean_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.skill_metrics.willmott_score"><code class="docutils literal notranslate"><span class="pre">willmott_score()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.tidalhl">vtools.functions.tidalhl module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.cosine_lanczos"><code class="docutils literal notranslate"><span class="pre">cosine_lanczos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.filter_where_na"><code class="docutils literal notranslate"><span class="pre">filter_where_na()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_phase_diff"><code class="docutils literal notranslate"><span class="pre">get_phase_diff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_smoothed_resampled"><code class="docutils literal notranslate"><span class="pre">get_smoothed_resampled()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_amplitude"><code class="docutils literal notranslate"><span class="pre">get_tidal_amplitude()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_amplitude_diff"><code class="docutils literal notranslate"><span class="pre">get_tidal_amplitude_diff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_hl"><code class="docutils literal notranslate"><span class="pre">get_tidal_hl()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_hl_rolling"><code class="docutils literal notranslate"><span class="pre">get_tidal_hl_rolling()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_hl_zerocrossing"><code class="docutils literal notranslate"><span class="pre">get_tidal_hl_zerocrossing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_phase_diff"><code class="docutils literal notranslate"><span class="pre">get_tidal_phase_diff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.limit_to_indices"><code class="docutils literal notranslate"><span class="pre">limit_to_indices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.lmax"><code class="docutils literal notranslate"><span class="pre">lmax()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.lmin"><code class="docutils literal notranslate"><span class="pre">lmin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.periods_per_window"><code class="docutils literal notranslate"><span class="pre">periods_per_window()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.tidal_highs"><code class="docutils literal notranslate"><span class="pre">tidal_highs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.tidal_lows"><code class="docutils literal notranslate"><span class="pre">tidal_lows()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.where_changed"><code class="docutils literal notranslate"><span class="pre">where_changed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.where_same"><code class="docutils literal notranslate"><span class="pre">where_same()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhl.zerocross"><code class="docutils literal notranslate"><span class="pre">zerocross()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.tidalhours">vtools.functions.tidalhours module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.cdiff"><code class="docutils literal notranslate"><span class="pre">cdiff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.cosine_lanczos5"><code class="docutils literal notranslate"><span class="pre">cosine_lanczos5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.diff_h"><code class="docutils literal notranslate"><span class="pre">diff_h()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.find_slack"><code class="docutils literal notranslate"><span class="pre">find_slack()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.hilbert"><code class="docutils literal notranslate"><span class="pre">hilbert()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.hour_tide"><code class="docutils literal notranslate"><span class="pre">hour_tide()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.hour_tide_fn"><code class="docutils literal notranslate"><span class="pre">hour_tide_fn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d"><code class="docutils literal notranslate"><span class="pre">interp1d</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__dict__"><code class="docutils literal notranslate"><span class="pre">interp1d.__dict__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__doc__"><code class="docutils literal notranslate"><span class="pre">interp1d.__doc__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__init__"><code class="docutils literal notranslate"><span class="pre">interp1d.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__module__"><code class="docutils literal notranslate"><span class="pre">interp1d.__module__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__weakref__"><code class="docutils literal notranslate"><span class="pre">interp1d.__weakref__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_linear"><code class="docutils literal notranslate"><span class="pre">interp1d._call_linear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_linear_np"><code class="docutils literal notranslate"><span class="pre">interp1d._call_linear_np()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_nan_spline"><code class="docutils literal notranslate"><span class="pre">interp1d._call_nan_spline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_nearest"><code class="docutils literal notranslate"><span class="pre">interp1d._call_nearest()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_previousnext"><code class="docutils literal notranslate"><span class="pre">interp1d._call_previousnext()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_spline"><code class="docutils literal notranslate"><span class="pre">interp1d._call_spline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._check_and_update_bounds_error_for_extrapolation"><code class="docutils literal notranslate"><span class="pre">interp1d._check_and_update_bounds_error_for_extrapolation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._check_bounds"><code class="docutils literal notranslate"><span class="pre">interp1d._check_bounds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._evaluate"><code class="docutils literal notranslate"><span class="pre">interp1d._evaluate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._y_axis"><code class="docutils literal notranslate"><span class="pre">interp1d._y_axis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d._y_extra_shape"><code class="docutils literal notranslate"><span class="pre">interp1d._y_extra_shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.dtype"><code class="docutils literal notranslate"><span class="pre">interp1d.dtype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.interp1d.fill_value"><code class="docutils literal notranslate"><span class="pre">interp1d.fill_value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.tidal_hour_signal"><code class="docutils literal notranslate"><span class="pre">tidal_hour_signal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.tidalhours.tidal_hour_signal2"><code class="docutils literal notranslate"><span class="pre">tidal_hour_signal2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.transition">vtools.functions.transition module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__annotations__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__annotations__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__doc__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__doc__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__init__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__module__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__module__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator._edge_case"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._edge_case()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator._find_derivatives"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._find_derivatives()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.axis"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.axis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.c"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.c</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.extrapolate"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.extrapolate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.x"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.x</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.transition.transition_ts"><code class="docutils literal notranslate"><span class="pre">transition_ts()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.unit_conversions">vtools.functions.unit_conversions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.celsius_to_fahrenheit"><code class="docutils literal notranslate"><span class="pre">celsius_to_fahrenheit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.cfs_to_cms"><code class="docutils literal notranslate"><span class="pre">cfs_to_cms()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.cms_to_cfs"><code class="docutils literal notranslate"><span class="pre">cms_to_cfs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.ec_psu_25c"><code class="docutils literal notranslate"><span class="pre">ec_psu_25c()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.fahrenheit_to_celsius"><code class="docutils literal notranslate"><span class="pre">fahrenheit_to_celsius()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.ft_to_m"><code class="docutils literal notranslate"><span class="pre">ft_to_m()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.m_to_ft"><code class="docutils literal notranslate"><span class="pre">m_to_ft()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.psu_ec_25c"><code class="docutils literal notranslate"><span class="pre">psu_ec_25c()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.psu_ec_25c_scalar"><code class="docutils literal notranslate"><span class="pre">psu_ec_25c_scalar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.unit_conversions.psu_ec_resid"><code class="docutils literal notranslate"><span class="pre">psu_ec_resid()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-vtools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vtools" title="Link to this heading">¶</a></h2>
+<p>Top-level package for vtools. Most functions can be directly imported from vtools namespace</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/vtools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

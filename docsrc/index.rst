@@ -9,6 +9,7 @@ VTools represents a toolset for time series processing that the Delta Modeling S
 
    Installation <installation>
    Introduction and concepts <concepts>
+   Daylight Savings conversion <daylight_savings.rst>
    Interpolation <interpolation>
    Averaging and Filtering <notebooks/filters.ipynb>
    Tidal Envelope Extraction <notebooks/tidal_envelope.ipynb>

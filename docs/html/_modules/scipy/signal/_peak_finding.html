@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>scipy.signal._peak_finding &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for scipy.signal._peak_finding</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for identifying peaks in signals.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">scipy.signal._wavelets</span> <span class="kn">import</span> <span class="n">_cwt</span><span class="p">,</span> <span class="n">_ricker</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">scoreatpercentile</span>
+
+<span class="kn">from</span> <span class="nn">._peak_finding_utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_local_maxima_1d</span><span class="p">,</span>
+    <span class="n">_select_by_peak_distance</span><span class="p">,</span>
+    <span class="n">_peak_prominences</span><span class="p">,</span>
+    <span class="n">_peak_widths</span>
+<span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;argrelmin&#39;</span><span class="p">,</span> <span class="s1">&#39;argrelmax&#39;</span><span class="p">,</span> <span class="s1">&#39;argrelextrema&#39;</span><span class="p">,</span> <span class="s1">&#39;peak_prominences&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;peak_widths&#39;</span><span class="p">,</span> <span class="s1">&#39;find_peaks&#39;</span><span class="p">,</span> <span class="s1">&#39;find_peaks_cwt&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_boolrelextrema</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">comparator</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;clip&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the relative extrema of `data`.</span>
+
+<span class="sd">    Relative extrema are calculated by finding locations where</span>
+<span class="sd">    ``comparator(data[n], data[n+1:n+order+1])`` is True.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Array in which to find the relative extrema.</span>
+<span class="sd">    comparator : callable</span>
+<span class="sd">        Function to use to compare two data points.</span>
+<span class="sd">        Should take two arrays as arguments.</span>
+<span class="sd">    axis : int, optional</span>
+<span class="sd">        Axis over which to select from `data`. Default is 0.</span>
+<span class="sd">    order : int, optional</span>
+<span class="sd">        How many points on each side to use for the comparison</span>
+<span class="sd">        to consider ``comparator(n,n+x)`` to be True.</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        How the edges of the vector are treated. &#39;wrap&#39; (wrap around) or</span>
+<span class="sd">        &#39;clip&#39; (treat overflow as the same as the last (or first) element).</span>
+<span class="sd">        Default &#39;clip&#39;. See numpy.take.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    extrema : ndarray</span>
+<span class="sd">        Boolean array of the same shape as `data` that is True at an extrema,</span>
+<span class="sd">        False otherwise.</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    argrelmax, argrelmin</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal._peak_finding import _boolrelextrema</span>
+<span class="sd">    &gt;&gt;&gt; testdata = np.array([1,2,3,2,1])</span>
+<span class="sd">    &gt;&gt;&gt; _boolrelextrema(testdata, np.greater, axis=0)</span>
+<span class="sd">    array([False, False,  True, False, False], dtype=bool)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">!=</span> <span class="n">order</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">order</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Order must be an int &gt;= 1&#39;</span><span class="p">)</span>
+
+    <span class="n">datalen</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
+    <span class="n">locs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">datalen</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">main</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">shift</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">plus</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">locs</span> <span class="o">+</span> <span class="n">shift</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">minus</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">locs</span> <span class="o">-</span> <span class="n">shift</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">&amp;=</span> <span class="n">comparator</span><span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">plus</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">&amp;=</span> <span class="n">comparator</span><span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">minus</span><span class="p">)</span>
+        <span class="k">if</span> <span class="o">~</span><span class="n">results</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">results</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="k">def</span> <span class="nf">argrelmin</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;clip&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the relative minima of `data`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Array in which to find the relative minima.</span>
+<span class="sd">    axis : int, optional</span>
+<span class="sd">        Axis over which to select from `data`. Default is 0.</span>
+<span class="sd">    order : int, optional</span>
+<span class="sd">        How many points on each side to use for the comparison</span>
+<span class="sd">        to consider ``comparator(n, n+x)`` to be True.</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        How the edges of the vector are treated.</span>
+<span class="sd">        Available options are &#39;wrap&#39; (wrap around) or &#39;clip&#39; (treat overflow</span>
+<span class="sd">        as the same as the last (or first) element).</span>
+<span class="sd">        Default &#39;clip&#39;. See numpy.take.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    extrema : tuple of ndarrays</span>
+<span class="sd">        Indices of the minima in arrays of integers. ``extrema[k]`` is</span>
+<span class="sd">        the array of indices of axis `k` of `data`. Note that the</span>
+<span class="sd">        return value is a tuple even when `data` is 1-D.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    argrelextrema, argrelmax, find_peaks</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function uses `argrelextrema` with np.less as comparator. Therefore, it</span>
+<span class="sd">    requires a strict inequality on both sides of a value to consider it a</span>
+<span class="sd">    minimum. This means flat minima (more than one sample wide) are not detected.</span>
+<span class="sd">    In case of 1-D `data` `find_peaks` can be used to detect all</span>
+<span class="sd">    local minima, including flat ones, by calling it with negated `data`.</span>
+
+<span class="sd">    .. versionadded:: 0.11.0</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal import argrelmin</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([2, 1, 2, 3, 2, 0, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; argrelmin(x)</span>
+<span class="sd">    (array([1, 5]),)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.array([[1, 2, 1, 2],</span>
+<span class="sd">    ...               [2, 2, 0, 0],</span>
+<span class="sd">    ...               [5, 3, 4, 4]])</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; argrelmin(y, axis=1)</span>
+<span class="sd">    (array([0, 2]), array([2, 1]))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">argrelextrema</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">less</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">argrelmax</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;clip&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the relative maxima of `data`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Array in which to find the relative maxima.</span>
+<span class="sd">    axis : int, optional</span>
+<span class="sd">        Axis over which to select from `data`. Default is 0.</span>
+<span class="sd">    order : int, optional</span>
+<span class="sd">        How many points on each side to use for the comparison</span>
+<span class="sd">        to consider ``comparator(n, n+x)`` to be True.</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        How the edges of the vector are treated.</span>
+<span class="sd">        Available options are &#39;wrap&#39; (wrap around) or &#39;clip&#39; (treat overflow</span>
+<span class="sd">        as the same as the last (or first) element).</span>
+<span class="sd">        Default &#39;clip&#39;. See `numpy.take`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    extrema : tuple of ndarrays</span>
+<span class="sd">        Indices of the maxima in arrays of integers. ``extrema[k]`` is</span>
+<span class="sd">        the array of indices of axis `k` of `data`. Note that the</span>
+<span class="sd">        return value is a tuple even when `data` is 1-D.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    argrelextrema, argrelmin, find_peaks</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function uses `argrelextrema` with np.greater as comparator. Therefore,</span>
+<span class="sd">    it  requires a strict inequality on both sides of a value to consider it a</span>
+<span class="sd">    maximum. This means flat maxima (more than one sample wide) are not detected.</span>
+<span class="sd">    In case of 1-D `data` `find_peaks` can be used to detect all</span>
+<span class="sd">    local maxima, including flat ones.</span>
+
+<span class="sd">    .. versionadded:: 0.11.0</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal import argrelmax</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([2, 1, 2, 3, 2, 0, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; argrelmax(x)</span>
+<span class="sd">    (array([3, 6]),)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.array([[1, 2, 1, 2],</span>
+<span class="sd">    ...               [2, 2, 0, 0],</span>
+<span class="sd">    ...               [5, 3, 4, 4]])</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; argrelmax(y, axis=1)</span>
+<span class="sd">    (array([0]), array([1]))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">argrelextrema</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">argrelextrema</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">comparator</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;clip&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the relative extrema of `data`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Array in which to find the relative extrema.</span>
+<span class="sd">    comparator : callable</span>
+<span class="sd">        Function to use to compare two data points.</span>
+<span class="sd">        Should take two arrays as arguments.</span>
+<span class="sd">    axis : int, optional</span>
+<span class="sd">        Axis over which to select from `data`. Default is 0.</span>
+<span class="sd">    order : int, optional</span>
+<span class="sd">        How many points on each side to use for the comparison</span>
+<span class="sd">        to consider ``comparator(n, n+x)`` to be True.</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        How the edges of the vector are treated. &#39;wrap&#39; (wrap around) or</span>
+<span class="sd">        &#39;clip&#39; (treat overflow as the same as the last (or first) element).</span>
+<span class="sd">        Default is &#39;clip&#39;. See `numpy.take`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    extrema : tuple of ndarrays</span>
+<span class="sd">        Indices of the maxima in arrays of integers. ``extrema[k]`` is</span>
+<span class="sd">        the array of indices of axis `k` of `data`. Note that the</span>
+<span class="sd">        return value is a tuple even when `data` is 1-D.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    argrelmin, argrelmax</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    .. versionadded:: 0.11.0</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal import argrelextrema</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([2, 1, 2, 3, 2, 0, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; argrelextrema(x, np.greater)</span>
+<span class="sd">    (array([3, 6]),)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.array([[1, 2, 1, 2],</span>
+<span class="sd">    ...               [2, 2, 0, 0],</span>
+<span class="sd">    ...               [5, 3, 4, 4]])</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; argrelextrema(y, np.less, axis=1)</span>
+<span class="sd">    (array([0, 2]), array([2, 1]))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">_boolrelextrema</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">comparator</span><span class="p">,</span>
+                              <span class="n">axis</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_arg_x_as_expected</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure argument `x` is a 1-D C-contiguous array of dtype(&#39;float64&#39;).</span>
+
+<span class="sd">    Used in `find_peaks`, `peak_prominences` and `peak_widths` to make `x`</span>
+<span class="sd">    compatible with the signature of the wrapped Cython functions.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    value : ndarray</span>
+<span class="sd">        A 1-D C-contiguous array with dtype(&#39;float64&#39;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`x` must be a 1-D array&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">_arg_peaks_as_expected</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure argument `peaks` is a 1-D C-contiguous array of dtype(&#39;intp&#39;).</span>
+
+<span class="sd">    Used in `peak_prominences` and `peak_widths` to make `peaks` compatible</span>
+<span class="sd">    with the signature of the wrapped Cython functions.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    value : ndarray</span>
+<span class="sd">        A 1-D C-contiguous array with dtype(&#39;intp&#39;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Empty arrays default to np.float64 but are valid input</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">intp</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Safely convert to C-contiguous array of type np.intp</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intp</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">casting</span><span class="o">=</span><span class="s1">&#39;safe&#39;</span><span class="p">,</span>
+                             <span class="n">subok</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot safely cast `peaks` to dtype(&#39;intp&#39;)&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`peaks` must be a 1-D array&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">_arg_wlen_as_expected</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure argument `wlen` is of type `np.intp` and larger than 1.</span>
+
+<span class="sd">    Used in `peak_prominences` and `peak_widths`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    value : np.intp</span>
+<span class="sd">        The original `value` rounded up to an integer or -1 if `value` was</span>
+<span class="sd">        None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># _peak_prominences expects an intp; -1 signals that no value was</span>
+        <span class="c1"># supplied by the user</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">elif</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">value</span><span class="p">:</span>
+        <span class="c1"># Round up to a positive integer</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intp</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;`wlen` must be larger than 1, was </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">peak_prominences</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">wlen</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the prominence of each peak in a signal.</span>
+
+<span class="sd">    The prominence of a peak measures how much a peak stands out from the</span>
+<span class="sd">    surrounding baseline of the signal and is defined as the vertical distance</span>
+<span class="sd">    between the peak and its lowest contour line.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : sequence</span>
+<span class="sd">        A signal with peaks.</span>
+<span class="sd">    peaks : sequence</span>
+<span class="sd">        Indices of peaks in `x`.</span>
+<span class="sd">    wlen : int, optional</span>
+<span class="sd">        A window length in samples that optionally limits the evaluated area for</span>
+<span class="sd">        each peak to a subset of `x`. The peak is always placed in the middle of</span>
+<span class="sd">        the window therefore the given length is rounded up to the next odd</span>
+<span class="sd">        integer. This parameter can speed up the calculation (see Notes).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    prominences : ndarray</span>
+<span class="sd">        The calculated prominences for each peak in `peaks`.</span>
+<span class="sd">    left_bases, right_bases : ndarray</span>
+<span class="sd">        The peaks&#39; bases as indices in `x` to the left and right of each peak.</span>
+<span class="sd">        The higher base of each pair is a peak&#39;s lowest contour line.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a value in `peaks` is an invalid index for `x`.</span>
+
+<span class="sd">    Warns</span>
+<span class="sd">    -----</span>
+<span class="sd">    PeakPropertyWarning</span>
+<span class="sd">        For indices in `peaks` that don&#39;t point to valid local maxima in `x`,</span>
+<span class="sd">        the returned prominence will be 0 and this warning is raised. This</span>
+<span class="sd">        also happens if `wlen` is smaller than the plateau size of a peak.</span>
+
+<span class="sd">    Warnings</span>
+<span class="sd">    --------</span>
+<span class="sd">    This function may return unexpected results for data containing NaNs. To</span>
+<span class="sd">    avoid this, NaNs should either be removed or replaced.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    find_peaks</span>
+<span class="sd">        Find peaks inside a signal based on peak properties.</span>
+<span class="sd">    peak_widths</span>
+<span class="sd">        Calculate the width of peaks.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Strategy to compute a peak&#39;s prominence:</span>
+
+<span class="sd">    1. Extend a horizontal line from the current peak to the left and right</span>
+<span class="sd">       until the line either reaches the window border (see `wlen`) or</span>
+<span class="sd">       intersects the signal again at the slope of a higher peak. An</span>
+<span class="sd">       intersection with a peak of the same height is ignored.</span>
+<span class="sd">    2. On each side find the minimal signal value within the interval defined</span>
+<span class="sd">       above. These points are the peak&#39;s bases.</span>
+<span class="sd">    3. The higher one of the two bases marks the peak&#39;s lowest contour line. The</span>
+<span class="sd">       prominence can then be calculated as the vertical difference between the</span>
+<span class="sd">       peaks height itself and its lowest contour line.</span>
+
+<span class="sd">    Searching for the peak&#39;s bases can be slow for large `x` with periodic</span>
+<span class="sd">    behavior because large chunks or even the full signal need to be evaluated</span>
+<span class="sd">    for the first algorithmic step. This evaluation area can be limited with the</span>
+<span class="sd">    parameter `wlen` which restricts the algorithm to a window around the</span>
+<span class="sd">    current peak and can shorten the calculation time if the window length is</span>
+<span class="sd">    short in relation to `x`.</span>
+<span class="sd">    However, this may stop the algorithm from finding the true global contour</span>
+<span class="sd">    line if the peak&#39;s true bases are outside this window. Instead, a higher</span>
+<span class="sd">    contour line is found within the restricted window leading to a smaller</span>
+<span class="sd">    calculated prominence. In practice, this is only relevant for the highest set</span>
+<span class="sd">    of peaks in `x`. This behavior may even be used intentionally to calculate</span>
+<span class="sd">    &quot;local&quot; prominences.</span>
+
+<span class="sd">    .. versionadded:: 1.1.0</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Wikipedia Article for Topographic Prominence:</span>
+<span class="sd">       https://en.wikipedia.org/wiki/Topographic_prominence</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal import find_peaks, peak_prominences</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+
+<span class="sd">    Create a test signal with two overlaid harmonics</span>
+
+<span class="sd">    &gt;&gt;&gt; x = np.linspace(0, 6 * np.pi, 1000)</span>
+<span class="sd">    &gt;&gt;&gt; x = np.sin(x) + 0.6 * np.sin(2.6 * x)</span>
+
+<span class="sd">    Find all peaks and calculate prominences</span>
+
+<span class="sd">    &gt;&gt;&gt; peaks, _ = find_peaks(x)</span>
+<span class="sd">    &gt;&gt;&gt; prominences = peak_prominences(x, peaks)[0]</span>
+<span class="sd">    &gt;&gt;&gt; prominences</span>
+<span class="sd">    array([1.24159486, 0.47840168, 0.28470524, 3.10716793, 0.284603  ,</span>
+<span class="sd">           0.47822491, 2.48340261, 0.47822491])</span>
+
+<span class="sd">    Calculate the height of each peak&#39;s contour line and plot the results</span>
+
+<span class="sd">    &gt;&gt;&gt; contour_heights = x[peaks] - prominences</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.vlines(x=peaks, ymin=contour_heights, ymax=x[peaks])</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    Let&#39;s evaluate a second example that demonstrates several edge cases for</span>
+<span class="sd">    one peak at index 5.</span>
+
+<span class="sd">    &gt;&gt;&gt; x = np.array([0, 1, 0, 3, 1, 3, 0, 4, 0])</span>
+<span class="sd">    &gt;&gt;&gt; peaks = np.array([5])</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &gt;&gt;&gt; peak_prominences(x, peaks)  # -&gt; (prominences, left_bases, right_bases)</span>
+<span class="sd">    (array([3.]), array([2]), array([6]))</span>
+
+<span class="sd">    Note how the peak at index 3 of the same height is not considered as a</span>
+<span class="sd">    border while searching for the left base. Instead, two minima at 0 and 2</span>
+<span class="sd">    are found in which case the one closer to the evaluated peak is always</span>
+<span class="sd">    chosen. On the right side, however, the base must be placed at 6 because the</span>
+<span class="sd">    higher peak represents the right border to the evaluated area.</span>
+
+<span class="sd">    &gt;&gt;&gt; peak_prominences(x, peaks, wlen=3.1)</span>
+<span class="sd">    (array([2.]), array([4]), array([6]))</span>
+
+<span class="sd">    Here, we restricted the algorithm to a window from 3 to 7 (the length is 5</span>
+<span class="sd">    samples because `wlen` was rounded up to the next odd integer). Thus, the</span>
+<span class="sd">    only two candidates in the evaluated area are the two neighboring samples</span>
+<span class="sd">    and a smaller prominence is calculated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">_arg_x_as_expected</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">peaks</span> <span class="o">=</span> <span class="n">_arg_peaks_as_expected</span><span class="p">(</span><span class="n">peaks</span><span class="p">)</span>
+    <span class="n">wlen</span> <span class="o">=</span> <span class="n">_arg_wlen_as_expected</span><span class="p">(</span><span class="n">wlen</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_peak_prominences</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">wlen</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">peak_widths</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">rel_height</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">prominence_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wlen</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the width of each peak in a signal.</span>
+
+<span class="sd">    This function calculates the width of a peak in samples at a relative</span>
+<span class="sd">    distance to the peak&#39;s height and prominence.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : sequence</span>
+<span class="sd">        A signal with peaks.</span>
+<span class="sd">    peaks : sequence</span>
+<span class="sd">        Indices of peaks in `x`.</span>
+<span class="sd">    rel_height : float, optional</span>
+<span class="sd">        Chooses the relative height at which the peak width is measured as a</span>
+<span class="sd">        percentage of its prominence. 1.0 calculates the width of the peak at</span>
+<span class="sd">        its lowest contour line while 0.5 evaluates at half the prominence</span>
+<span class="sd">        height. Must be at least 0. See notes for further explanation.</span>
+<span class="sd">    prominence_data : tuple, optional</span>
+<span class="sd">        A tuple of three arrays matching the output of `peak_prominences` when</span>
+<span class="sd">        called with the same arguments `x` and `peaks`. This data are calculated</span>
+<span class="sd">        internally if not provided.</span>
+<span class="sd">    wlen : int, optional</span>
+<span class="sd">        A window length in samples passed to `peak_prominences` as an optional</span>
+<span class="sd">        argument for internal calculation of `prominence_data`. This argument</span>
+<span class="sd">        is ignored if `prominence_data` is given.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    widths : ndarray</span>
+<span class="sd">        The widths for each peak in samples.</span>
+<span class="sd">    width_heights : ndarray</span>
+<span class="sd">        The height of the contour lines at which the `widths` where evaluated.</span>
+<span class="sd">    left_ips, right_ips : ndarray</span>
+<span class="sd">        Interpolated positions of left and right intersection points of a</span>
+<span class="sd">        horizontal line at the respective evaluation height.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `prominence_data` is supplied but doesn&#39;t satisfy the condition</span>
+<span class="sd">        ``0 &lt;= left_base &lt;= peak &lt;= right_base &lt; x.shape[0]`` for each peak,</span>
+<span class="sd">        has the wrong dtype, is not C-contiguous or does not have the same</span>
+<span class="sd">        shape.</span>
+
+<span class="sd">    Warns</span>
+<span class="sd">    -----</span>
+<span class="sd">    PeakPropertyWarning</span>
+<span class="sd">        Raised if any calculated width is 0. This may stem from the supplied</span>
+<span class="sd">        `prominence_data` or if `rel_height` is set to 0.</span>
+
+<span class="sd">    Warnings</span>
+<span class="sd">    --------</span>
+<span class="sd">    This function may return unexpected results for data containing NaNs. To</span>
+<span class="sd">    avoid this, NaNs should either be removed or replaced.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    find_peaks</span>
+<span class="sd">        Find peaks inside a signal based on peak properties.</span>
+<span class="sd">    peak_prominences</span>
+<span class="sd">        Calculate the prominence of peaks.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The basic algorithm to calculate a peak&#39;s width is as follows:</span>
+
+<span class="sd">    * Calculate the evaluation height :math:`h_{eval}` with the formula</span>
+<span class="sd">      :math:`h_{eval} = h_{Peak} - P \\cdot R`, where :math:`h_{Peak}` is the</span>
+<span class="sd">      height of the peak itself, :math:`P` is the peak&#39;s prominence and</span>
+<span class="sd">      :math:`R` a positive ratio specified with the argument `rel_height`.</span>
+<span class="sd">    * Draw a horizontal line at the evaluation height to both sides, starting at</span>
+<span class="sd">      the peak&#39;s current vertical position until the lines either intersect a</span>
+<span class="sd">      slope, the signal border or cross the vertical position of the peak&#39;s</span>
+<span class="sd">      base (see `peak_prominences` for an definition). For the first case,</span>
+<span class="sd">      intersection with the signal, the true intersection point is estimated</span>
+<span class="sd">      with linear interpolation.</span>
+<span class="sd">    * Calculate the width as the horizontal distance between the chosen</span>
+<span class="sd">      endpoints on both sides. As a consequence of this the maximal possible</span>
+<span class="sd">      width for each peak is the horizontal distance between its bases.</span>
+
+<span class="sd">    As shown above to calculate a peak&#39;s width its prominence and bases must be</span>
+<span class="sd">    known. You can supply these yourself with the argument `prominence_data`.</span>
+<span class="sd">    Otherwise, they are internally calculated (see `peak_prominences`).</span>
+
+<span class="sd">    .. versionadded:: 1.1.0</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal import chirp, find_peaks, peak_widths</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+
+<span class="sd">    Create a test signal with two overlaid harmonics</span>
+
+<span class="sd">    &gt;&gt;&gt; x = np.linspace(0, 6 * np.pi, 1000)</span>
+<span class="sd">    &gt;&gt;&gt; x = np.sin(x) + 0.6 * np.sin(2.6 * x)</span>
+
+<span class="sd">    Find all peaks and calculate their widths at the relative height of 0.5</span>
+<span class="sd">    (contour line at half the prominence height) and 1 (at the lowest contour</span>
+<span class="sd">    line at full prominence height).</span>
+
+<span class="sd">    &gt;&gt;&gt; peaks, _ = find_peaks(x)</span>
+<span class="sd">    &gt;&gt;&gt; results_half = peak_widths(x, peaks, rel_height=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; results_half[0]  # widths</span>
+<span class="sd">    array([ 64.25172825,  41.29465463,  35.46943289, 104.71586081,</span>
+<span class="sd">            35.46729324,  41.30429622, 181.93835853,  45.37078546])</span>
+<span class="sd">    &gt;&gt;&gt; results_full = peak_widths(x, peaks, rel_height=1)</span>
+<span class="sd">    &gt;&gt;&gt; results_full[0]  # widths</span>
+<span class="sd">    array([181.9396084 ,  72.99284945,  61.28657872, 373.84622694,</span>
+<span class="sd">        61.78404617,  72.48822812, 253.09161876,  79.36860878])</span>
+
+<span class="sd">    Plot signal, peaks and contour lines at which the widths where calculated</span>
+
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.hlines(*results_half[1:], color=&quot;C2&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.hlines(*results_full[1:], color=&quot;C3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">_arg_x_as_expected</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">peaks</span> <span class="o">=</span> <span class="n">_arg_peaks_as_expected</span><span class="p">(</span><span class="n">peaks</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">prominence_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Calculate prominence if not supplied and use wlen if supplied.</span>
+        <span class="n">wlen</span> <span class="o">=</span> <span class="n">_arg_wlen_as_expected</span><span class="p">(</span><span class="n">wlen</span><span class="p">)</span>
+        <span class="n">prominence_data</span> <span class="o">=</span> <span class="n">_peak_prominences</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">wlen</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_peak_widths</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">rel_height</span><span class="p">,</span> <span class="o">*</span><span class="n">prominence_data</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_unpack_condition_args</span><span class="p">(</span><span class="n">interval</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse condition arguments for `find_peaks`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    interval : number or ndarray or sequence</span>
+<span class="sd">        Either a number or ndarray or a 2-element sequence of the former. The</span>
+<span class="sd">        first value is always interpreted as `imin` and the second, if supplied,</span>
+<span class="sd">        as `imax`.</span>
+<span class="sd">    x : ndarray</span>
+<span class="sd">        The signal with `peaks`.</span>
+<span class="sd">    peaks : ndarray</span>
+<span class="sd">        An array with indices used to reduce `imin` and / or `imax` if those are</span>
+<span class="sd">        arrays.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    imin, imax : number or ndarray or None</span>
+<span class="sd">        Minimal and maximal value in `argument`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        If interval border is given as array and its size does not match the size</span>
+<span class="sd">        of `x`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    .. versionadded:: 1.1.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">imin</span><span class="p">,</span> <span class="n">imax</span> <span class="o">=</span> <span class="n">interval</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">imin</span><span class="p">,</span> <span class="n">imax</span> <span class="o">=</span> <span class="p">(</span><span class="n">interval</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Reduce arrays if arrays</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">imin</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;array size of lower interval border must match x&#39;</span><span class="p">)</span>
+        <span class="n">imin</span> <span class="o">=</span> <span class="n">imin</span><span class="p">[</span><span class="n">peaks</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imax</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">imax</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;array size of upper interval border must match x&#39;</span><span class="p">)</span>
+        <span class="n">imax</span> <span class="o">=</span> <span class="n">imax</span><span class="p">[</span><span class="n">peaks</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">imin</span><span class="p">,</span> <span class="n">imax</span>
+
+
+<span class="k">def</span> <span class="nf">_select_by_property</span><span class="p">(</span><span class="n">peak_properties</span><span class="p">,</span> <span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate where the generic property of peaks confirms to an interval.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    peak_properties : ndarray</span>
+<span class="sd">        An array with properties for each peak.</span>
+<span class="sd">    pmin : None or number or ndarray</span>
+<span class="sd">        Lower interval boundary for `peak_properties`. ``None`` is interpreted as</span>
+<span class="sd">        an open border.</span>
+<span class="sd">    pmax : None or number or ndarray</span>
+<span class="sd">        Upper interval boundary for `peak_properties`. ``None`` is interpreted as</span>
+<span class="sd">        an open border.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    keep : bool</span>
+<span class="sd">        A boolean mask evaluating to true where `peak_properties` confirms to the</span>
+<span class="sd">        interval.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    find_peaks</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    .. versionadded:: 1.1.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">peak_properties</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pmin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keep</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">pmin</span> <span class="o">&lt;=</span> <span class="n">peak_properties</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pmax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keep</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">peak_properties</span> <span class="o">&lt;=</span> <span class="n">pmax</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">keep</span>
+
+
+<span class="k">def</span> <span class="nf">_select_by_peak_threshold</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">tmin</span><span class="p">,</span> <span class="n">tmax</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate which peaks fulfill the threshold condition.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : ndarray</span>
+<span class="sd">        A 1-D array which is indexable by `peaks`.</span>
+<span class="sd">    peaks : ndarray</span>
+<span class="sd">        Indices of peaks in `x`.</span>
+<span class="sd">    tmin, tmax : scalar or ndarray or None</span>
+<span class="sd">         Minimal and / or maximal required thresholds. If supplied as ndarrays</span>
+<span class="sd">         their size must match `peaks`. ``None`` is interpreted as an open</span>
+<span class="sd">         border.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    keep : bool</span>
+<span class="sd">        A boolean mask evaluating to true where `peaks` fulfill the threshold</span>
+<span class="sd">        condition.</span>
+<span class="sd">    left_thresholds, right_thresholds : ndarray</span>
+<span class="sd">        Array matching `peak` containing the thresholds of each peak on</span>
+<span class="sd">        both sides.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    .. versionadded:: 1.1.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Stack thresholds on both sides to make min / max operations easier:</span>
+    <span class="c1"># tmin is compared with the smaller, and tmax with the greater threshold to</span>
+    <span class="c1"># each peak&#39;s side</span>
+    <span class="n">stacked_thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">peaks</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="n">peaks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">x</span><span class="p">[</span><span class="n">peaks</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="n">peaks</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">peaks</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tmin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">min_thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">stacked_thresholds</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">keep</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">tmin</span> <span class="o">&lt;=</span> <span class="n">min_thresholds</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tmax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">stacked_thresholds</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">keep</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">max_thresholds</span> <span class="o">&lt;=</span> <span class="n">tmax</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">keep</span><span class="p">,</span> <span class="n">stacked_thresholds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">stacked_thresholds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="find_peaks">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.find_peaks">[docs]</a>
+<span class="k">def</span> <span class="nf">find_peaks</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">prominence</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wlen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rel_height</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+               <span class="n">plateau_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find peaks inside a signal based on peak properties.</span>
+
+<span class="sd">    This function takes a 1-D array and finds all local maxima by</span>
+<span class="sd">    simple comparison of neighboring values. Optionally, a subset of these</span>
+<span class="sd">    peaks can be selected by specifying conditions for a peak&#39;s properties.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : sequence</span>
+<span class="sd">        A signal with peaks.</span>
+<span class="sd">    height : number or ndarray or sequence, optional</span>
+<span class="sd">        Required height of peaks. Either a number, ``None``, an array matching</span>
+<span class="sd">        `x` or a 2-element sequence of the former. The first element is</span>
+<span class="sd">        always interpreted as the  minimal and the second, if supplied, as the</span>
+<span class="sd">        maximal required height.</span>
+<span class="sd">    threshold : number or ndarray or sequence, optional</span>
+<span class="sd">        Required threshold of peaks, the vertical distance to its neighboring</span>
+<span class="sd">        samples. Either a number, ``None``, an array matching `x` or a</span>
+<span class="sd">        2-element sequence of the former. The first element is always</span>
+<span class="sd">        interpreted as the  minimal and the second, if supplied, as the maximal</span>
+<span class="sd">        required threshold.</span>
+<span class="sd">    distance : number, optional</span>
+<span class="sd">        Required minimal horizontal distance (&gt;= 1) in samples between</span>
+<span class="sd">        neighbouring peaks. Smaller peaks are removed first until the condition</span>
+<span class="sd">        is fulfilled for all remaining peaks.</span>
+<span class="sd">    prominence : number or ndarray or sequence, optional</span>
+<span class="sd">        Required prominence of peaks. Either a number, ``None``, an array</span>
+<span class="sd">        matching `x` or a 2-element sequence of the former. The first</span>
+<span class="sd">        element is always interpreted as the  minimal and the second, if</span>
+<span class="sd">        supplied, as the maximal required prominence.</span>
+<span class="sd">    width : number or ndarray or sequence, optional</span>
+<span class="sd">        Required width of peaks in samples. Either a number, ``None``, an array</span>
+<span class="sd">        matching `x` or a 2-element sequence of the former. The first</span>
+<span class="sd">        element is always interpreted as the  minimal and the second, if</span>
+<span class="sd">        supplied, as the maximal required width.</span>
+<span class="sd">    wlen : int, optional</span>
+<span class="sd">        Used for calculation of the peaks prominences, thus it is only used if</span>
+<span class="sd">        one of the arguments `prominence` or `width` is given. See argument</span>
+<span class="sd">        `wlen` in `peak_prominences` for a full description of its effects.</span>
+<span class="sd">    rel_height : float, optional</span>
+<span class="sd">        Used for calculation of the peaks width, thus it is only used if `width`</span>
+<span class="sd">        is given. See argument  `rel_height` in `peak_widths` for a full</span>
+<span class="sd">        description of its effects.</span>
+<span class="sd">    plateau_size : number or ndarray or sequence, optional</span>
+<span class="sd">        Required size of the flat top of peaks in samples. Either a number,</span>
+<span class="sd">        ``None``, an array matching `x` or a 2-element sequence of the former.</span>
+<span class="sd">        The first element is always interpreted as the minimal and the second,</span>
+<span class="sd">        if supplied as the maximal required plateau size.</span>
+
+<span class="sd">        .. versionadded:: 1.2.0</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    peaks : ndarray</span>
+<span class="sd">        Indices of peaks in `x` that satisfy all given conditions.</span>
+<span class="sd">    properties : dict</span>
+<span class="sd">        A dictionary containing properties of the returned peaks which were</span>
+<span class="sd">        calculated as intermediate results during evaluation of the specified</span>
+<span class="sd">        conditions:</span>
+
+<span class="sd">        * &#39;peak_heights&#39;</span>
+<span class="sd">              If `height` is given, the height of each peak in `x`.</span>
+<span class="sd">        * &#39;left_thresholds&#39;, &#39;right_thresholds&#39;</span>
+<span class="sd">              If `threshold` is given, these keys contain a peaks vertical</span>
+<span class="sd">              distance to its neighbouring samples.</span>
+<span class="sd">        * &#39;prominences&#39;, &#39;right_bases&#39;, &#39;left_bases&#39;</span>
+<span class="sd">              If `prominence` is given, these keys are accessible. See</span>
+<span class="sd">              `peak_prominences` for a description of their content.</span>
+<span class="sd">        * &#39;width_heights&#39;, &#39;left_ips&#39;, &#39;right_ips&#39;</span>
+<span class="sd">              If `width` is given, these keys are accessible. See `peak_widths`</span>
+<span class="sd">              for a description of their content.</span>
+<span class="sd">        * &#39;plateau_sizes&#39;, left_edges&#39;, &#39;right_edges&#39;</span>
+<span class="sd">              If `plateau_size` is given, these keys are accessible and contain</span>
+<span class="sd">              the indices of a peak&#39;s edges (edges are still part of the</span>
+<span class="sd">              plateau) and the calculated plateau sizes.</span>
+
+<span class="sd">              .. versionadded:: 1.2.0</span>
+
+<span class="sd">        To calculate and return properties without excluding peaks, provide the</span>
+<span class="sd">        open interval ``(None, None)`` as a value to the appropriate argument</span>
+<span class="sd">        (excluding `distance`).</span>
+
+<span class="sd">    Warns</span>
+<span class="sd">    -----</span>
+<span class="sd">    PeakPropertyWarning</span>
+<span class="sd">        Raised if a peak&#39;s properties have unexpected values (see</span>
+<span class="sd">        `peak_prominences` and `peak_widths`).</span>
+
+<span class="sd">    Warnings</span>
+<span class="sd">    --------</span>
+<span class="sd">    This function may return unexpected results for data containing NaNs. To</span>
+<span class="sd">    avoid this, NaNs should either be removed or replaced.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    find_peaks_cwt</span>
+<span class="sd">        Find peaks using the wavelet transformation.</span>
+<span class="sd">    peak_prominences</span>
+<span class="sd">        Directly calculate the prominence of peaks.</span>
+<span class="sd">    peak_widths</span>
+<span class="sd">        Directly calculate the width of peaks.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    In the context of this function, a peak or local maximum is defined as any</span>
+<span class="sd">    sample whose two direct neighbours have a smaller amplitude. For flat peaks</span>
+<span class="sd">    (more than one sample of equal amplitude wide) the index of the middle</span>
+<span class="sd">    sample is returned (rounded down in case the number of samples is even).</span>
+<span class="sd">    For noisy signals the peak locations can be off because the noise might</span>
+<span class="sd">    change the position of local maxima. In those cases consider smoothing the</span>
+<span class="sd">    signal before searching for peaks or use other peak finding and fitting</span>
+<span class="sd">    methods (like `find_peaks_cwt`).</span>
+
+<span class="sd">    Some additional comments on specifying conditions:</span>
+
+<span class="sd">    * Almost all conditions (excluding `distance`) can be given as half-open or</span>
+<span class="sd">      closed intervals, e.g., ``1`` or ``(1, None)`` defines the half-open</span>
+<span class="sd">      interval :math:`[1, \\infty]` while ``(None, 1)`` defines the interval</span>
+<span class="sd">      :math:`[-\\infty, 1]`. The open interval ``(None, None)`` can be specified</span>
+<span class="sd">      as well, which returns the matching properties without exclusion of peaks.</span>
+<span class="sd">    * The border is always included in the interval used to select valid peaks.</span>
+<span class="sd">    * For several conditions the interval borders can be specified with</span>
+<span class="sd">      arrays matching `x` in shape which enables dynamic constrains based on</span>
+<span class="sd">      the sample position.</span>
+<span class="sd">    * The conditions are evaluated in the following order: `plateau_size`,</span>
+<span class="sd">      `height`, `threshold`, `distance`, `prominence`, `width`. In most cases</span>
+<span class="sd">      this order is the fastest one because faster operations are applied first</span>
+<span class="sd">      to reduce the number of peaks that need to be evaluated later.</span>
+<span class="sd">    * While indices in `peaks` are guaranteed to be at least `distance` samples</span>
+<span class="sd">      apart, edges of flat peaks may be closer than the allowed `distance`.</span>
+<span class="sd">    * Use `wlen` to reduce the time it takes to evaluate the conditions for</span>
+<span class="sd">      `prominence` or `width` if `x` is large or has many local maxima</span>
+<span class="sd">      (see `peak_prominences`).</span>
+
+<span class="sd">    .. versionadded:: 1.1.0</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    To demonstrate this function&#39;s usage we use a signal `x` supplied with</span>
+<span class="sd">    SciPy (see `scipy.datasets.electrocardiogram`). Let&#39;s find all peaks (local</span>
+<span class="sd">    maxima) in `x` whose amplitude lies above 0.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.datasets import electrocardiogram</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal import find_peaks</span>
+<span class="sd">    &gt;&gt;&gt; x = electrocardiogram()[2000:4000]</span>
+<span class="sd">    &gt;&gt;&gt; peaks, _ = find_peaks(x, height=0)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(np.zeros_like(x), &quot;--&quot;, color=&quot;gray&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    We can select peaks below 0 with ``height=(None, 0)`` or use arrays matching</span>
+<span class="sd">    `x` in size to reflect a changing condition for different parts of the</span>
+<span class="sd">    signal.</span>
+
+<span class="sd">    &gt;&gt;&gt; border = np.sin(np.linspace(0, 3 * np.pi, x.size))</span>
+<span class="sd">    &gt;&gt;&gt; peaks, _ = find_peaks(x, height=(-border, border))</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(-border, &quot;--&quot;, color=&quot;gray&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(border, &quot;:&quot;, color=&quot;gray&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    Another useful condition for periodic signals can be given with the</span>
+<span class="sd">    `distance` argument. In this case, we can easily select the positions of</span>
+<span class="sd">    QRS complexes within the electrocardiogram (ECG) by demanding a distance of</span>
+<span class="sd">    at least 150 samples.</span>
+
+<span class="sd">    &gt;&gt;&gt; peaks, _ = find_peaks(x, distance=150)</span>
+<span class="sd">    &gt;&gt;&gt; np.diff(peaks)</span>
+<span class="sd">    array([186, 180, 177, 171, 177, 169, 167, 164, 158, 162, 172])</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    Especially for noisy signals peaks can be easily grouped by their</span>
+<span class="sd">    prominence (see `peak_prominences`). E.g., we can select all peaks except</span>
+<span class="sd">    for the mentioned QRS complexes by limiting the allowed prominence to 0.6.</span>
+
+<span class="sd">    &gt;&gt;&gt; peaks, properties = find_peaks(x, prominence=(None, 0.6))</span>
+<span class="sd">    &gt;&gt;&gt; properties[&quot;prominences&quot;].max()</span>
+<span class="sd">    0.5049999999999999</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+
+<span class="sd">    And, finally, let&#39;s examine a different section of the ECG which contains</span>
+<span class="sd">    beat forms of different shape. To select only the atypical heart beats, we</span>
+<span class="sd">    combine two conditions: a minimal prominence of 1 and width of at least 20</span>
+<span class="sd">    samples.</span>
+
+<span class="sd">    &gt;&gt;&gt; x = electrocardiogram()[17000:18000]</span>
+<span class="sd">    &gt;&gt;&gt; peaks, properties = find_peaks(x, prominence=1, width=20)</span>
+<span class="sd">    &gt;&gt;&gt; properties[&quot;prominences&quot;], properties[&quot;widths&quot;]</span>
+<span class="sd">    (array([1.495, 2.3  ]), array([36.93773946, 39.32723577]))</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(x)</span>
+<span class="sd">    &gt;&gt;&gt; plt.plot(peaks, x[peaks], &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.vlines(x=peaks, ymin=x[peaks] - properties[&quot;prominences&quot;],</span>
+<span class="sd">    ...            ymax = x[peaks], color = &quot;C1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.hlines(y=properties[&quot;width_heights&quot;], xmin=properties[&quot;left_ips&quot;],</span>
+<span class="sd">    ...            xmax=properties[&quot;right_ips&quot;], color = &quot;C1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># _argmaxima1d expects array of dtype &#39;float64&#39;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">_arg_x_as_expected</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">distance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`distance` must be greater or equal to 1&#39;</span><span class="p">)</span>
+
+    <span class="n">peaks</span><span class="p">,</span> <span class="n">left_edges</span><span class="p">,</span> <span class="n">right_edges</span> <span class="o">=</span> <span class="n">_local_maxima_1d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">plateau_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Evaluate plateau size</span>
+        <span class="n">plateau_sizes</span> <span class="o">=</span> <span class="n">right_edges</span> <span class="o">-</span> <span class="n">left_edges</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span> <span class="o">=</span> <span class="n">_unpack_condition_args</span><span class="p">(</span><span class="n">plateau_size</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">_select_by_property</span><span class="p">(</span><span class="n">plateau_sizes</span><span class="p">,</span> <span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;plateau_sizes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plateau_sizes</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;left_edges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">left_edges</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;right_edges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">right_edges</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">array</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Evaluate height condition</span>
+        <span class="n">peak_heights</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">peaks</span><span class="p">]</span>
+        <span class="n">hmin</span><span class="p">,</span> <span class="n">hmax</span> <span class="o">=</span> <span class="n">_unpack_condition_args</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">_select_by_property</span><span class="p">(</span><span class="n">peak_heights</span><span class="p">,</span> <span class="n">hmin</span><span class="p">,</span> <span class="n">hmax</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;peak_heights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">peak_heights</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">array</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Evaluate threshold condition</span>
+        <span class="n">tmin</span><span class="p">,</span> <span class="n">tmax</span> <span class="o">=</span> <span class="n">_unpack_condition_args</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">keep</span><span class="p">,</span> <span class="n">left_thresholds</span><span class="p">,</span> <span class="n">right_thresholds</span> <span class="o">=</span> <span class="n">_select_by_peak_threshold</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">tmin</span><span class="p">,</span> <span class="n">tmax</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;left_thresholds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">left_thresholds</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;right_thresholds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">right_thresholds</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">array</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">distance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Evaluate distance condition</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">_select_by_peak_distance</span><span class="p">(</span><span class="n">peaks</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">peaks</span><span class="p">],</span> <span class="n">distance</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">array</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">prominence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Calculate prominence (required for both conditions)</span>
+        <span class="n">wlen</span> <span class="o">=</span> <span class="n">_arg_wlen_as_expected</span><span class="p">(</span><span class="n">wlen</span><span class="p">)</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;prominences&#39;</span><span class="p">,</span> <span class="s1">&#39;left_bases&#39;</span><span class="p">,</span> <span class="s1">&#39;right_bases&#39;</span><span class="p">],</span>
+            <span class="n">_peak_prominences</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">wlen</span><span class="o">=</span><span class="n">wlen</span><span class="p">)</span>
+        <span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">prominence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Evaluate prominence condition</span>
+        <span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span> <span class="o">=</span> <span class="n">_unpack_condition_args</span><span class="p">(</span><span class="n">prominence</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">_select_by_property</span><span class="p">(</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;prominences&#39;</span><span class="p">],</span> <span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">array</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Calculate widths</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;widths&#39;</span><span class="p">,</span> <span class="s1">&#39;width_heights&#39;</span><span class="p">,</span> <span class="s1">&#39;left_ips&#39;</span><span class="p">,</span> <span class="s1">&#39;right_ips&#39;</span><span class="p">],</span>
+            <span class="n">_peak_widths</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">rel_height</span><span class="p">,</span> <span class="n">properties</span><span class="p">[</span><span class="s1">&#39;prominences&#39;</span><span class="p">],</span>
+                         <span class="n">properties</span><span class="p">[</span><span class="s1">&#39;left_bases&#39;</span><span class="p">],</span> <span class="n">properties</span><span class="p">[</span><span class="s1">&#39;right_bases&#39;</span><span class="p">])</span>
+        <span class="p">))</span>
+        <span class="c1"># Evaluate width condition</span>
+        <span class="n">wmin</span><span class="p">,</span> <span class="n">wmax</span> <span class="o">=</span> <span class="n">_unpack_condition_args</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">_select_by_property</span><span class="p">(</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;widths&#39;</span><span class="p">],</span> <span class="n">wmin</span><span class="p">,</span> <span class="n">wmax</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">array</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">return</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">properties</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_identify_ridge_lines</span><span class="p">(</span><span class="n">matr</span><span class="p">,</span> <span class="n">max_distances</span><span class="p">,</span> <span class="n">gap_thresh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify ridges in the 2-D matrix.</span>
+
+<span class="sd">    Expect that the width of the wavelet feature increases with increasing row</span>
+<span class="sd">    number.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    matr : 2-D ndarray</span>
+<span class="sd">        Matrix in which to identify ridge lines.</span>
+<span class="sd">    max_distances : 1-D sequence</span>
+<span class="sd">        At each row, a ridge line is only connected</span>
+<span class="sd">        if the relative max at row[n] is within</span>
+<span class="sd">        `max_distances`[n] from the relative max at row[n+1].</span>
+<span class="sd">    gap_thresh : int</span>
+<span class="sd">        If a relative maximum is not found within `max_distances`,</span>
+<span class="sd">        there will be a gap. A ridge line is discontinued if</span>
+<span class="sd">        there are more than `gap_thresh` points without connecting</span>
+<span class="sd">        a new relative maximum.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ridge_lines : tuple</span>
+<span class="sd">        Tuple of 2 1-D sequences. `ridge_lines`[ii][0] are the rows of the</span>
+<span class="sd">        ii-th ridge-line, `ridge_lines`[ii][1] are the columns. Empty if none</span>
+<span class="sd">        found.  Each ridge-line will be sorted by row (increasing), but the</span>
+<span class="sd">        order of the ridge lines is not specified.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Bioinformatics (2006) 22 (17): 2059-2065.</span>
+<span class="sd">       :doi:`10.1093/bioinformatics/btl355`</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.signal._peak_finding import _identify_ridge_lines</span>
+<span class="sd">    &gt;&gt;&gt; rng = np.random.default_rng()</span>
+<span class="sd">    &gt;&gt;&gt; data = rng.random((5,5))</span>
+<span class="sd">    &gt;&gt;&gt; max_dist = 3</span>
+<span class="sd">    &gt;&gt;&gt; max_distances = np.full(20, max_dist)</span>
+<span class="sd">    &gt;&gt;&gt; ridge_lines = _identify_ridge_lines(data, max_distances, 1)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function is intended to be used in conjunction with `cwt`</span>
+<span class="sd">    as part of `find_peaks_cwt`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_distances</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">matr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Max_distances must have at least as many rows &#39;</span>
+                         <span class="s1">&#39;as matr&#39;</span><span class="p">)</span>
+
+    <span class="n">all_max_cols</span> <span class="o">=</span> <span class="n">_boolrelextrema</span><span class="p">(</span><span class="n">matr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Highest row for which there are any relative maxima</span>
+    <span class="n">has_relmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">all_max_cols</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">has_relmax</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">start_row</span> <span class="o">=</span> <span class="n">has_relmax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># Each ridge line is a 3-tuple:</span>
+    <span class="c1"># rows, cols,Gap number</span>
+    <span class="n">ridge_lines</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">start_row</span><span class="p">],</span>
+                   <span class="p">[</span><span class="n">col</span><span class="p">],</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">all_max_cols</span><span class="p">[</span><span class="n">start_row</span><span class="p">])[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">final_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start_row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">matr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">this_max_cols</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">all_max_cols</span><span class="p">[</span><span class="n">row</span><span class="p">]]</span>
+
+        <span class="c1"># Increment gap number of each line,</span>
+        <span class="c1"># set it to zero later if appropriate</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ridge_lines</span><span class="p">:</span>
+            <span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># XXX These should always be all_max_cols[row]</span>
+        <span class="c1"># But the order might be different. Might be an efficiency gain</span>
+        <span class="c1"># to make sure the order is the same and avoid this iteration</span>
+        <span class="n">prev_ridge_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ridge_lines</span><span class="p">])</span>
+        <span class="c1"># Look through every relative maximum found at current row</span>
+        <span class="c1"># Attempt to connect them with existing ridge lines.</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">this_max_cols</span><span class="p">):</span>
+            <span class="c1"># If there is a previous ridge line within</span>
+            <span class="c1"># the max_distance to connect to, do so.</span>
+            <span class="c1"># Otherwise start a new one.</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_ridge_cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">col</span> <span class="o">-</span> <span class="n">prev_ridge_cols</span><span class="p">)</span>
+                <span class="n">closest</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">diffs</span><span class="p">[</span><span class="n">closest</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_distances</span><span class="p">[</span><span class="n">row</span><span class="p">]:</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">ridge_lines</span><span class="p">[</span><span class="n">closest</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Found a point close enough, extend current ridge line</span>
+                <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                <span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_line</span> <span class="o">=</span> <span class="p">[[</span><span class="n">row</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">col</span><span class="p">],</span>
+                            <span class="mi">0</span><span class="p">]</span>
+                <span class="n">ridge_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_line</span><span class="p">)</span>
+
+        <span class="c1"># Remove the ridge lines with gap_number too high</span>
+        <span class="c1"># XXX Modifying a list while iterating over it.</span>
+        <span class="c1"># Should be safe, since we iterate backwards, but</span>
+        <span class="c1"># still tacky.</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ridge_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">ridge_lines</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">gap_thresh</span><span class="p">:</span>
+                <span class="n">final_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">ridge_lines</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+    <span class="n">out_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="n">final_lines</span> <span class="o">+</span> <span class="n">ridge_lines</span><span class="p">):</span>
+        <span class="n">sortargs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sortargs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sortargs</span><span class="p">)</span>
+        <span class="n">rows</span><span class="p">[</span><span class="n">sortargs</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cols</span><span class="p">[</span><span class="n">sortargs</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">out_lines</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">out_lines</span>
+
+
+<span class="k">def</span> <span class="nf">_filter_ridge_lines</span><span class="p">(</span><span class="n">cwt</span><span class="p">,</span> <span class="n">ridge_lines</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">min_snr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_perc</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter ridge lines according to prescribed criteria. Intended</span>
+<span class="sd">    to be used for finding relative maxima.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cwt : 2-D ndarray</span>
+<span class="sd">        Continuous wavelet transform from which the `ridge_lines` were defined.</span>
+<span class="sd">    ridge_lines : 1-D sequence</span>
+<span class="sd">        Each element should contain 2 sequences, the rows and columns</span>
+<span class="sd">        of the ridge line (respectively).</span>
+<span class="sd">    window_size : int, optional</span>
+<span class="sd">        Size of window to use to calculate noise floor.</span>
+<span class="sd">        Default is ``cwt.shape[1] / 20``.</span>
+<span class="sd">    min_length : int, optional</span>
+<span class="sd">        Minimum length a ridge line needs to be acceptable.</span>
+<span class="sd">        Default is ``cwt.shape[0] / 4``, ie 1/4-th the number of widths.</span>
+<span class="sd">    min_snr : float, optional</span>
+<span class="sd">        Minimum SNR ratio. Default 1. The signal is the value of</span>
+<span class="sd">        the cwt matrix at the shortest length scale (``cwt[0, loc]``), the</span>
+<span class="sd">        noise is the `noise_perc`\\ th percentile of datapoints contained within a</span>
+<span class="sd">        window of `window_size` around ``cwt[0, loc]``.</span>
+<span class="sd">    noise_perc : float, optional</span>
+<span class="sd">        When calculating the noise floor, percentile of data points</span>
+<span class="sd">        examined below which to consider noise. Calculated using</span>
+<span class="sd">        scipy.stats.scoreatpercentile.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Bioinformatics (2006) 22 (17): 2059-2065.</span>
+<span class="sd">       :doi:`10.1093/bioinformatics/btl355`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_points</span> <span class="o">=</span> <span class="n">cwt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">min_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">min_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">cwt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">window_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">window_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_points</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
+
+    <span class="n">window_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">window_size</span><span class="p">)</span>
+    <span class="n">hf_window</span><span class="p">,</span> <span class="n">odd</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">window_size</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Filter based on SNR</span>
+    <span class="n">row_one</span> <span class="o">=</span> <span class="n">cwt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">noises</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">row_one</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row_one</span><span class="p">):</span>
+        <span class="n">window_start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ind</span> <span class="o">-</span> <span class="n">hf_window</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">window_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ind</span> <span class="o">+</span> <span class="n">hf_window</span> <span class="o">+</span> <span class="n">odd</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+        <span class="n">noises</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">scoreatpercentile</span><span class="p">(</span><span class="n">row_one</span><span class="p">[</span><span class="n">window_start</span><span class="p">:</span><span class="n">window_end</span><span class="p">],</span>
+                                        <span class="n">per</span><span class="o">=</span><span class="n">noise_perc</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">filt_func</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">snr</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">cwt</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">/</span> <span class="n">noises</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">snr</span> <span class="o">&lt;</span> <span class="n">min_snr</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">filt_func</span><span class="p">,</span> <span class="n">ridge_lines</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">find_peaks_cwt</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">wavelet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">gap_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">min_snr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_perc</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find peaks in a 1-D array with wavelet transformation.</span>
+
+<span class="sd">    The general approach is to smooth `vector` by convolving it with</span>
+<span class="sd">    `wavelet(width)` for each width in `widths`. Relative maxima which</span>
+<span class="sd">    appear at enough length scales, and with sufficiently high SNR, are</span>
+<span class="sd">    accepted.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vector : ndarray</span>
+<span class="sd">        1-D array in which to find the peaks.</span>
+<span class="sd">    widths : float or sequence</span>
+<span class="sd">        Single width or 1-D array-like of widths to use for calculating</span>
+<span class="sd">        the CWT matrix. In general,</span>
+<span class="sd">        this range should cover the expected width of peaks of interest.</span>
+<span class="sd">    wavelet : callable, optional</span>
+<span class="sd">        Should take two parameters and return a 1-D array to convolve</span>
+<span class="sd">        with `vector`. The first parameter determines the number of points</span>
+<span class="sd">        of the returned wavelet array, the second parameter is the scale</span>
+<span class="sd">        (`width`) of the wavelet. Should be normalized and symmetric.</span>
+<span class="sd">        Default is the ricker wavelet.</span>
+<span class="sd">    max_distances : ndarray, optional</span>
+<span class="sd">        At each row, a ridge line is only connected if the relative max at</span>
+<span class="sd">        row[n] is within ``max_distances[n]`` from the relative max at</span>
+<span class="sd">        ``row[n+1]``.  Default value is ``widths/4``.</span>
+<span class="sd">    gap_thresh : float, optional</span>
+<span class="sd">        If a relative maximum is not found within `max_distances`,</span>
+<span class="sd">        there will be a gap. A ridge line is discontinued if there are more</span>
+<span class="sd">        than `gap_thresh` points without connecting a new relative maximum.</span>
+<span class="sd">        Default is the first value of the widths array i.e. widths[0].</span>
+<span class="sd">    min_length : int, optional</span>
+<span class="sd">        Minimum length a ridge line needs to be acceptable.</span>
+<span class="sd">        Default is ``cwt.shape[0] / 4``, ie 1/4-th the number of widths.</span>
+<span class="sd">    min_snr : float, optional</span>
+<span class="sd">        Minimum SNR ratio. Default 1. The signal is the maximum CWT coefficient</span>
+<span class="sd">        on the largest ridge line. The noise is `noise_perc` th percentile of</span>
+<span class="sd">        datapoints contained within the same ridge line.</span>
+<span class="sd">    noise_perc : float, optional</span>
+<span class="sd">        When calculating the noise floor, percentile of data points</span>
+<span class="sd">        examined below which to consider noise. Calculated using</span>
+<span class="sd">        `stats.scoreatpercentile`.  Default is 10.</span>
+<span class="sd">    window_size : int, optional</span>
+<span class="sd">        Size of window to use to calculate noise floor.</span>
+<span class="sd">        Default is ``cwt.shape[1] / 20``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    peaks_indices : ndarray</span>
+<span class="sd">        Indices of the locations in the `vector` where peaks were found.</span>
+<span class="sd">        The list is sorted.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    cwt</span>
+<span class="sd">        Continuous wavelet transform.</span>
+<span class="sd">    find_peaks</span>
+<span class="sd">        Find peaks inside a signal based on peak properties.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This approach was designed for finding sharp peaks among noisy data,</span>
+<span class="sd">    however with proper parameter selection it should function well for</span>
+<span class="sd">    different peak shapes.</span>
+
+<span class="sd">    The algorithm is as follows:</span>
+<span class="sd">     1. Perform a continuous wavelet transform on `vector`, for the supplied</span>
+<span class="sd">        `widths`. This is a convolution of `vector` with `wavelet(width)` for</span>
+<span class="sd">        each width in `widths`. See `cwt`.</span>
+<span class="sd">     2. Identify &quot;ridge lines&quot; in the cwt matrix. These are relative maxima</span>
+<span class="sd">        at each row, connected across adjacent rows. See identify_ridge_lines</span>
+<span class="sd">     3. Filter the ridge_lines using filter_ridge_lines.</span>
+
+<span class="sd">    .. versionadded:: 0.11.0</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Bioinformatics (2006) 22 (17): 2059-2065.</span>
+<span class="sd">       :doi:`10.1093/bioinformatics/btl355`</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import signal</span>
+<span class="sd">    &gt;&gt;&gt; xs = np.arange(0, np.pi, 0.05)</span>
+<span class="sd">    &gt;&gt;&gt; data = np.sin(xs)</span>
+<span class="sd">    &gt;&gt;&gt; peakind = signal.find_peaks_cwt(data, np.arange(1,10))</span>
+<span class="sd">    &gt;&gt;&gt; peakind, xs[peakind], data[peakind]</span>
+<span class="sd">    ([32], array([ 1.6]), array([ 0.9995736]))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gap_thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gap_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">widths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">max_distances</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_distances</span> <span class="o">=</span> <span class="n">widths</span> <span class="o">/</span> <span class="mf">4.0</span>
+    <span class="k">if</span> <span class="n">wavelet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wavelet</span> <span class="o">=</span> <span class="n">_ricker</span>
+
+    <span class="n">cwt_dat</span> <span class="o">=</span> <span class="n">_cwt</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">wavelet</span><span class="p">,</span> <span class="n">widths</span><span class="p">)</span>
+    <span class="n">ridge_lines</span> <span class="o">=</span> <span class="n">_identify_ridge_lines</span><span class="p">(</span><span class="n">cwt_dat</span><span class="p">,</span> <span class="n">max_distances</span><span class="p">,</span> <span class="n">gap_thresh</span><span class="p">)</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="n">_filter_ridge_lines</span><span class="p">(</span><span class="n">cwt_dat</span><span class="p">,</span> <span class="n">ridge_lines</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="n">min_length</span><span class="p">,</span>
+                                   <span class="n">window_size</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span> <span class="n">min_snr</span><span class="o">=</span><span class="n">min_snr</span><span class="p">,</span>
+                                   <span class="n">noise_perc</span><span class="o">=</span><span class="n">noise_perc</span><span class="p">)</span>
+    <span class="n">max_locs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">filtered</span><span class="p">])</span>
+    <span class="n">max_locs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">max_locs</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

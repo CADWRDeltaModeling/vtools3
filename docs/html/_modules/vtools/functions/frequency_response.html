@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.frequency_response &#8212; vtools 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.functions.frequency_response</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">vtools.functions.filter</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">freqz</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1.inset_locator</span> <span class="kn">import</span> <span class="n">inset_axes</span><span class="p">,</span> <span class="n">mark_inset</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="c1"># &quot;compare_response&quot;,</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;compare_response&quot;</span><span class="p">,</span> <span class="s2">&quot;unit_impulse_ts&quot;</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">([</span><span class="s2">&quot;seaborn-v0_8-deep&quot;</span><span class="p">,</span> <span class="s2">&quot;seaborn-v0_8-talk&quot;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="unit_impulse_ts">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.frequency_response.unit_impulse_ts">[docs]</a>
+<span class="k">def</span> <span class="nf">unit_impulse_ts</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    size : int</span>
+<span class="sd">        Length of impluse time series, odd number.</span>
+
+<span class="sd">    interval : string</span>
+<span class="sd">        time series interval, such as &quot;15min&quot;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas.Dataframe</span>
+<span class="sd">        time series value 0.0 except 1 at the middle of time series.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s2">&quot;2001-1-1&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">mid_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">val</span><span class="p">[</span><span class="n">mid_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="c1"># return pd.Series(val,index=idx) # series doesn&#39;t works with godin</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">val</span><span class="p">)</span></div>
+
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1.inset_locator</span> <span class="kn">import</span> <span class="n">inset_axes</span><span class="p">,</span> <span class="n">mark_inset</span>
+
+
+<div class="viewcode-block" id="compare_response">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.frequency_response.compare_response">[docs]</a>
+<span class="k">def</span> <span class="nf">compare_response</span><span class="p">(</span><span class="n">cutoff_period</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate frequency response plot of low-pass filters: cosine_lanczos, boxcar 24h, boxcar 25h, and godin.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cutoff_period : int</span>
+<span class="sd">        Low-pass filter cutoff period in number of hours.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">unit_impulse</span> <span class="o">=</span> <span class="n">unit_impulse_ts</span><span class="p">(</span><span class="mi">5001</span><span class="p">,</span> <span class="s2">&quot;15min&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">)</span>
+    <span class="n">worN</span> <span class="o">=</span> <span class="mi">4096</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">unit_impulse</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">unit_impulse</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cf</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">dt</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="p">(</span><span class="n">cutoff_period</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)</span>
+    <span class="n">dt_hours_ratio</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mf">3600.0</span>
+    <span class="n">cl_size_hours1</span> <span class="o">=</span> <span class="mi">70</span>
+    <span class="n">cl_size1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cl_size_hours1</span> <span class="o">*</span> <span class="mf">3600.0</span> <span class="o">/</span> <span class="n">dt</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="n">default_cl_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.25</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">cf</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">default_cl_size</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">godin</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">unit_impulse_response</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="s2">&quot;40h&quot;</span><span class="p">,</span> <span class="n">filter_len</span><span class="o">=</span><span class="n">cl_size1</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;cos-Lanczos (width=</span><span class="si">{</span><span class="n">cl_size1</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="s2">&quot;40h&quot;</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;cos-Lanczos (width=</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span><span class="n">lanczos</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="s2">&quot;40h&quot;</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Lanczos (width=</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">unit_impulse</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">96</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="s2">&quot;Boxcar 24h&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">unit_impulse</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="s2">&quot;Boxcar 25h&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">godin</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">),</span> <span class="s2">&quot;Godin 25-24-24 (width=72h)&quot;</span><span class="p">),</span>
+    <span class="p">]:</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">unit_impulse_response</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Unit impulse length for </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> is not long enough&quot;</span><span class="p">)</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">freqz</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">worN</span><span class="o">=</span><span class="n">worN</span><span class="p">)</span>
+        <span class="n">pw</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">period</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">pw</span>
+        <span class="n">period</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">period</span> <span class="o">*</span> <span class="n">dt_hours_ratio</span>
+        <span class="n">hh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">period</span><span class="p">,</span> <span class="n">hh</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># Main plot settings</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">360</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cutoff_period</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.25&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Vertical annotation: &quot;Cutoff 40h&quot; to the left of the line</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+        <span class="n">cutoff_period</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span>  <span class="c1"># Shift left</span>
+        <span class="mf">0.7</span><span class="p">,</span>  <span class="c1"># Center vertically along the line</span>
+        <span class="s2">&quot;Cutoff 40h&quot;</span><span class="p">,</span>
+        <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>  <span class="c1"># Vertical text</span>
+        <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>  <span class="c1"># Left-align to be on the left side of the line</span>
+        <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.25&quot;</span><span class="p">,</span>
+        <span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span>
+        <span class="p">),</span>  <span class="c1"># Background for readability</span>
+    <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Magnitude&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Period (hours)&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.9&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># Move legend **slightly left** to avoid overlapping the cutoff period text</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper center&quot;</span><span class="p">,</span>
+        <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">framealpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span>
+        <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># Two-column layout</span>
+        <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.15</span><span class="p">),</span>  <span class="c1"># Shift slightly left</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create an inset axis at **compromise position**, but 0.08 lower on the y-axis</span>
+    <span class="n">ax_inset</span> <span class="o">=</span> <span class="n">inset_axes</span><span class="p">(</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="s2">&quot;45%&quot;</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="s2">&quot;35%&quot;</span><span class="p">,</span>
+        <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower left&quot;</span><span class="p">,</span>
+        <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.38</span><span class="p">,</span> <span class="mf">0.22</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span>
+        <span class="n">bbox_transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ax_inset</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+    <span class="n">ax_inset</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.23</span><span class="p">)</span>
+
+    <span class="c1"># Plot the same response curves in the inset</span>
+    <span class="k">for</span> <span class="n">unit_impulse_response</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="s2">&quot;40h&quot;</span><span class="p">,</span> <span class="n">filter_len</span><span class="o">=</span><span class="n">cl_size1</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;cos-Lanczos, width=</span><span class="si">{</span><span class="n">cl_size1</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="s2">&quot;40h&quot;</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;cos-Lanczos (width=</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span><span class="n">lanczos</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="s2">&quot;40h&quot;</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Lanczos (width=</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">unit_impulse</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">96</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="s2">&quot;Boxcar 24h&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">unit_impulse</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="s2">&quot;Boxcar 25h&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">godin</span><span class="p">(</span><span class="n">unit_impulse</span><span class="p">),</span> <span class="s2">&quot;Godin 25-24-24&quot;</span><span class="p">),</span>
+    <span class="p">]:</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">unit_impulse_response</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">freqz</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">worN</span><span class="o">=</span><span class="n">worN</span><span class="p">)</span>
+        <span class="n">pw</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">period</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">pw</span>
+        <span class="n">period</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">period</span> <span class="o">*</span> <span class="n">dt_hours_ratio</span>
+        <span class="n">hh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">ax_inset</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">period</span><span class="p">,</span> <span class="n">hh</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># Tidal constituent markers in the inset (adjusted for spacing)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;$M_2$&quot;</span><span class="p">,</span> <span class="s2">&quot;$K_1$&quot;</span><span class="p">,</span> <span class="s2">&quot;$O_1$&quot;</span><span class="p">]</span>
+    <span class="n">pers</span> <span class="o">=</span> <span class="p">[</span><span class="mf">12.42</span><span class="p">,</span> <span class="mf">23.93</span><span class="p">,</span> <span class="mf">25.82</span><span class="p">]</span>
+    <span class="n">shifts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>  <span class="c1"># K1 shifted left, O1 shifted right</span>
+
+    <span class="k">for</span> <span class="n">mx</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">shift</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pers</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">shifts</span><span class="p">):</span>
+        <span class="n">ax_inset</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+            <span class="n">mx</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.012</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>  <span class="c1"># Raised a bit more</span>
+        <span class="n">ax_inset</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+            <span class="n">mx</span> <span class="o">+</span> <span class="n">shift</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span>
+        <span class="p">)</span>  <span class="c1"># Smaller font</span>
+
+    <span class="c1"># Hide inset tick labels for clarity</span>
+    <span class="n">ax_inset</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="c1"># Connect inset to main plot **with a proper box**</span>
+    <span class="n">mark_inset</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax_inset</span><span class="p">,</span> <span class="n">loc1</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">loc2</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;0.5&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.frequency_response.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># compare response for data with 15min interval</span>
+
+    <span class="n">compare_response</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;frequency_response.png&quot;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
