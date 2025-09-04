@@ -7,9 +7,21 @@ import os
 import sys
 
 try:
-    from ._version import __version__
+    from importlib.metadata import version, PackageNotFoundError
 except ImportError:
-    __version__ = "0.0.0"  # fallback for weird dev cases
+    from pkg_resources import get_distribution, DistributionNotFound
+    def version(pkg): return get_distribution(pkg).version
+    PackageNotFoundError = DistributionNotFound
+
+try:
+    __version__ = version("vtools")
+except PackageNotFoundError:
+    # Fallback for running from a VCS checkout without installation
+    try:
+        from setuptools_scm import get_version
+        __version__ = get_version(root="..", relative_to=__file__)
+    except Exception:
+        __version__ = "unknown"
 
 from vtools.data.gap import *
 from vtools.data.vtime import *

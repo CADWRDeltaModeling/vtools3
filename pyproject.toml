@@ -3,7 +3,7 @@ requires = ["setuptools>=61", "wheel", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vtools3"
+name = "vtools"
 dynamic = ["version"] # Placeholder; setuptools-scm will manage this
 description = "Timeseries analysis and processing tools using pandas/xarray"
 readme = "README.md"
@@ -14,12 +14,11 @@ license-files = [
 authors = [
     { name = "California Department of Water Resources", email = "Eli.Ateljevich@water.ca.gov"}
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 classifiers = [
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9"
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"	
 ]
 keywords = ["vtools"]
 dependencies = [
