@@ -30,8 +30,7 @@ dependencies = [
     "matplotlib",
     "scikit-learn",
     "scipy",
-    "statsmodels>=0.13",
-    "pyhecdss"
+    "statsmodels>=0.13"
 ]
 
 [project.optional-dependencies]
