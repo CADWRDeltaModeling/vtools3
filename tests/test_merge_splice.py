@@ -289,7 +289,7 @@ class TestErrorConditions:
                            index=pd.date_range("2023-01-01", periods=5, freq="D"))
         df2 = pd.DataFrame({"Y": [10, 20, np.nan, 40, 50]}, 
                            index=pd.date_range("2023-01-03", periods=5, freq="D"))
-        with pytest.raises(ValueError, match="All input DataFrames must have the same columns when `names` is None."):
+        with pytest.raises(ValueError, match="All input columns must be identical when `names` is None"):
             ts_merge((df1, df2))
 
     def test_empty_series_list(self):

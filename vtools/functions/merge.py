@@ -6,56 +6,39 @@ __all__ = ["ts_merge", "ts_splice"]
 import pandas as pd
 import numpy as np
 from functools import reduce
-
-
-################ Helpers 
-def _apply_names(result, names):
-    """Helper to apply renaming and column selection based on `names`."""
-    if names:
-        if isinstance(result, pd.Series):
-            result.name = names
-        elif isinstance(names, str):
-            result = result.rename(columns={result.columns[0]: names})
-        elif hasattr(names, "__iter__"):
-            result = result[names]
-    return result
+from vtools.functions.colname_align import align_inputs_strict
 
 
 def _reindex_to_continuous(result, first_freq):
-    """
-    Reindex the given result (DataFrame or Series) to a continuous index spanning
-    from the minimum to maximum timestamp of the current index using the provided frequency.
-
-    Parameters
-    ----------
-    result : pandas.DataFrame or pandas.Series
-        The merged or spliced result whose index will be reindexed.
-    first_freq : frequency
-        The frequency (e.g. 'D' for daily) to use for the continuous index, taken from the first input series.
-
-    Returns
-    -------
-    result : pandas.DataFrame or pandas.Series
-        The result reindexed to a continuous index. Any gaps in the timeline will be filled with NaN.
-        If the index is a PeriodIndex, the index is rebuilt with the proper frequency.
-    """
     if first_freq is None:
         return result
 
     start = result.index.min()
-    end = result.index.max()
+    end   = result.index.max()
 
     if isinstance(result.index, pd.DatetimeIndex):
-        continuous_index = pd.date_range(start=start, end=end, freq=first_freq)
+        cont = pd.date_range(start=start, end=end, freq=first_freq)
     elif isinstance(result.index, pd.PeriodIndex):
-        continuous_index = pd.period_range(start=start, end=end, freq=first_freq)
+        cont = pd.period_range(start=start, end=end, freq=first_freq)
     else:
-        continuous_index = result.index  # For other types, leave unchanged
+        return result  # unknown index type; do nothing
 
-    result = result.reindex(continuous_index)
+    # --- NEW: never drop existing stamps
+    # If any current stamp isn't on 'cont', skip reindexing
+    try:
+        if not pd.Index(result.index).isin(cont).all():
+            # preserve data; just avoid forcing a conflicting freq
+            try:
+                result.index.freq = None
+            except ValueError:
+                pass
+            return result
+    except Exception:
+        return result
+
+    result = result.reindex(cont)
 
     if isinstance(result.index, pd.PeriodIndex):
-        # For PeriodIndex, rebuild the index because .freq is read-only.
         result.index = pd.PeriodIndex(result.index, freq=first_freq)
     else:
         try:
@@ -65,7 +48,7 @@ def _reindex_to_continuous(result, first_freq):
     return result
 
 #####################
-
+@align_inputs_strict(seq_arg=0, names_kw="names") 
 def ts_merge(series,
              names=None,
              strict_priority = False):
@@ -202,16 +185,14 @@ def ts_merge(series,
         if isinstance(merged, pd.Series):
             merged = merged.to_frame()
 
-    # Apply naming / selection consistent with your helpers
-    merged = _apply_names(merged, names)  # uses your existing helper
-
+    
     # Reindex to a continuous index using the first series' freq (your helper)
     merged = _reindex_to_continuous(merged, first_freq)
-
+    # Name alignment will be added by decorator
 
     return merged
 
-
+@align_inputs_strict(seq_arg=0, names_kw="names") 
 def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     """
     Splice multiple time series together, prioritizing series in patches of time.
@@ -354,10 +335,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     if dup.any():
         spliced = spliced[~dup]
 
-    # Apply renaming/column selection.
-    spliced = _apply_names(spliced, names)
-
-    # ***** NEW STEP: Reindex to a continuous index *****
+    # Reindex to a continuous index *****
     spliced = _reindex_to_continuous(spliced, first_freq)
     return spliced
 

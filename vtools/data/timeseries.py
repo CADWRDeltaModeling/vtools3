@@ -14,6 +14,7 @@ import datetime as _datetime
 
 __all__ = [
     "to_dataframe",
+    "rename_columns",
     "time_overlap",
     "rts",
     "rts_formula",
@@ -30,6 +31,122 @@ def to_dataframe(ts):
         return ts
     else:
         return ts.to_frame()
+
+from typing import Union, Sequence, Mapping, Callable
+import pandas as pd
+
+def rename_columns(
+    ts: Union[pd.Series, pd.DataFrame],
+    colnames: Union[str, Sequence[str], Mapping[str, str], Callable[[str], str]],
+    convert_df: bool = True
+) -> Union[pd.Series, pd.DataFrame]:
+    """
+    Rename columns (for DataFrame) or the name (for Series).
+
+    Parameters
+    ----------
+    ts
+        pandas Series or DataFrame to rename.
+    colnames
+        - str
+            * Series: set `Series.name` to this value.
+            * DataFrame: treated as a single target name; the DataFrame must have exactly
+              one column. Raises if there are multiple columns.
+        - Sequence[str]
+            * Series: must be length 1; that single value becomes `Series.name`.
+            * DataFrame: length must equal the number of columns; these become the new
+              column names in order.
+        - Mapping[str, str]
+            * DataFrame: passed to `DataFrame.rename(columns=...)`.
+            * Series: if the current `Series.name` is a key, it is mapped to the value.
+              If not present, the name is left unchanged. Mapping with `None` can be
+              used to rename a nameless series.
+        - Callable[[str], str]
+            * DataFrame: applied to each column name (via `rename`).
+            * Series: called with the current `Series.name` to compute the new name.
+    convert_df : bool, default True
+        If True and `ts` is a Series, convert it to a single-column DataFrame before renaming.
+
+    Returns
+    -------
+    pandas Series or DataFrame
+        A copy of `ts` with updated name(s).
+
+    Raises
+    ------
+    TypeError
+        If `ts` is not a Series or DataFrame, or `colnames` has an unsupported type.
+    ValueError
+        If a provided list length does not match the number of columns (DataFrame) or
+        is not exactly 1 (Series), or if a single string is given for a multi-column
+        DataFrame.
+    """
+    if isinstance(ts,pd.Series) and convert_df:
+        ts = ts.to_frame()
+
+    if isinstance(ts, pd.DataFrame):
+        # Disallow MultiIndex columns in this helper
+        if isinstance(ts.columns, pd.MultiIndex):
+            raise TypeError("rename_columns does not support MultiIndex columns")
+
+        if isinstance(colnames, str):
+            if ts.shape[1] != 1:
+                raise ValueError(
+                    "rename_columns: single string provided for a DataFrame with "
+                    f"{ts.shape[1]} columns; provide a list of names or a mapper."
+                )
+            out = ts.copy()
+            out.columns = [colnames]
+            return out
+
+        if isinstance(colnames, Sequence) and not isinstance(colnames, (str, bytes)):
+            colnames = list(colnames)
+            if len(colnames) != ts.shape[1]:
+                raise ValueError(
+                    f"rename_columns: list length ({len(colnames)}) must match DataFrame columns ({ts.shape[1]})"
+                )
+            out = ts.copy()
+            out.columns = colnames
+            return out
+
+        if callable(colnames) or isinstance(colnames, Mapping):
+            return ts.rename(columns=colnames)
+
+        raise TypeError("rename_columns: 'colnames' must be str, list/sequence, dict/mapping, or callable for DataFrame")
+
+    elif isinstance(ts, pd.Series):
+        out = ts.copy()
+
+        if isinstance(colnames, str):
+            out.name = colnames
+            return out
+
+        if isinstance(colnames, Sequence) and not isinstance(colnames, (str, bytes)):
+            colnames = list(colnames)
+            if len(colnames) != 1:
+                raise ValueError(
+                    f"rename_columns: list length for Series must be 1, got {len(colnames)}"
+                )
+            out.name = colnames[0]
+            return out
+
+        if isinstance(colnames, Mapping):
+            key = out.name
+            if key in colnames:
+                out.name = colnames[key]
+            elif key is None and None in colnames:
+                out.name = colnames[None]
+            return out
+
+        if callable(colnames):
+            out.name = colnames(out.name)
+            return out
+
+        raise TypeError("rename_columns: 'colnames' must be str, list/sequence, dict/mapping, or callable for Series")
+
+    else:
+        raise TypeError("rename_columns: expected a pandas Series or DataFrame")
+
 
 
 def time_overlap(ts0, ts1, valid=True):

@@ -119,6 +119,56 @@ def climatology_quantiles(
     return clim
 
 
+def apply_climatology(climate, index=None, start=None, end=None, freq=None):
+    """Apply daily or monthly climatology to a new index or generate index from start/end/freq
+
+    Parameters
+    ----------
+    climate : DataFrame or Series
+        DataFrame with integer index representing month of year (Jan=1) or day of year. Must be of size 12, 365, or 366. Day 366 will be inferred from day 365 value.
+    index : pandas.DatetimeIndex, optional
+        Locations to be inferred. If not provided, must specify start, end, and freq.
+    start : str or datetime-like, optional
+        Start date for generating index (used if index is None).
+    end : str or datetime-like, optional
+        End date for generating index (used if index is None).
+    freq : str, optional
+        Frequency string for generating index (used if index is None). E.g., 'D' for daily, 'M' for monthly.
+
+    Returns
+    -------
+    DataFrame or Series
+        Values extracted from climatology for the month or day at the specified index.
+
+    Notes
+    -----
+    - If index is not provided, start, end, and freq must be specified to generate a DatetimeIndex using pandas.date_range.
+    - Backward compatible: original behavior is preserved if index is provided.
+    """
+    if len(climate) not in [12, 365, 366]:
+        raise ValueError("Length of climatology must be 12, 365 or 366")
+    if len(climate) == 365:
+        climate.loc[366, :] = climate.loc[365, :]
+
+    freq_type = "month" if len(climate) == 12 else "day"
+
+    if index is None:
+        if start is None or end is None or freq is None:
+            raise ValueError("If index is not provided, start, end, and freq must be specified")
+        index = pd.date_range(start=start, end=end, freq=freq)
+
+    # Vectorized lookup
+    if freq_type == "day":
+        dayofyear = index.dayofyear
+        # Ensure day 366 is handled
+        dayofyear = np.where(dayofyear > 365, 366, dayofyear)
+        out = climate.loc[dayofyear].set_index(index)
+    else:
+        month = index.month
+        out = climate.loc[month].set_index(index)
+
+    return out
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from dms_datastore.read_ts import read_ts
@@ -131,39 +181,3 @@ if __name__ == "__main__":
     clim = climatology_quantiles(ts, 182, 305, window)
     clim.plot()
     plt.show()
-
-
-def apply_climatology(climate, index):
-    """Apply daily or monthly climatology to a new index
-
-    Parameters
-    ----------
-
-    climate: DataFrame with integer index representing month of year (Jan=1) or day of year. Must be of size 12 365,366. Day 366 will be inferred from day 365 value
-
-    index: DatetimeIndex representing locations to be inferred
-
-    Returns
-    -------
-    DataFrame or Series as given by climate with values extracted from climatology for the month or day
-    """
-
-
-    if len(climate) not in [12, 365, 366]:
-        raise ValueError("Length of climatology must be 12,365 or 366")
-    if len(climate) == 365:
-        climate.loc[366, :] = climate.loc[365, :]
-
-    freq = "month" if len(climate) == 12 else "day"
-
-    # Vectorized lookup
-    if freq == "day":
-        dayofyear = index.dayofyear
-        # Ensure day 366 is handled
-        dayofyear = np.where(dayofyear > 365, 366, dayofyear)
-        out = climate.loc[dayofyear].set_index(index)
-    else:
-        month = index.month
-        out = climate.loc[month].set_index(index)
-
-    return out
