@@ -32,7 +32,6 @@ dependencies = [
     "scikit-learn",
     "scipy",
     "statsmodels>=0.13",
-    "pyhecdss"
 ]
 
 [project.optional-dependencies]
