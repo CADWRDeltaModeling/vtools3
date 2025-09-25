@@ -4,14 +4,12 @@ __author__ = """Eli Ateljevich, Nicky Sandhu, Kijin Nam"""
 __email__ = "Eli.Ateljevich@water.ca.gov; Kijin.Nam@water.ca.gov"
 
 import os
-import sys
 
 try:
     from importlib.metadata import version, PackageNotFoundError
 except ImportError:
-    from pkg_resources import get_distribution, DistributionNotFound
-    def version(pkg): return get_distribution(pkg).version
-    PackageNotFoundError = DistributionNotFound
+    # For Python <3.8, use importlib_metadata backport
+    from importlib_metadata import version, PackageNotFoundError
 
 try:
     __version__ = version("vtools")
@@ -19,6 +17,7 @@ except PackageNotFoundError:
     # Fallback for running from a VCS checkout without installation
     try:
         from setuptools_scm import get_version
+
         __version__ = get_version(root="..", relative_to=__file__)
     except Exception:
         __version__ = "unknown"
