@@ -31,7 +31,7 @@ dependencies = [
     "scikit-learn",
     "scipy",
     "statsmodels>=0.13",
-	"plib"
+	"pint"
 ]
 
 [project.optional-dependencies]
