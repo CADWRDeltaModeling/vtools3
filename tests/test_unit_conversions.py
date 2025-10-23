@@ -62,19 +62,20 @@ def test_dataframe_conversion(sample_series_df):
     assert out.index.equals(df.index)
     assert (out.columns == df.columns).all()
     np.testing.assert_allclose(out.values, df.values * uc.CFS2CMS, atol=1e-12)
+
+
 # ----------------------------------------------------------------import importlib.util
 
+
 @pytest.mark.skipif(
-    importlib.util.find_spec("cf_units") is None,
-    reason="cf_units not installed")
+    importlib.util.find_spec("cf_units") is None, reason="cf_units not installed"
+)
 def test_optional_cf_units_backend(monkeypatch):
     x = np.array([0.0, 1.0, 3.0])
     monkeypatch.setenv("VTOOLS_UNITS_BACKEND", "cf_units")
     out = uc.convert_units(x, "m", "ft")
     np.testing.assert_allclose(out, x * uc.M2FT, atol=1e-12)
     monkeypatch.delenv("VTOOLS_UNITS_BACKEND", raising=False)
-
-
 
 
 # Aliases, backend consistency
@@ -126,11 +127,11 @@ def test_backend_consistency_with_constants():
     )
 
 
-#@pytest.mark.skipif(
+# @pytest.mark.skipif(
 #    not pytest.importorskip("cf_units", reason="cf_units not installed"),
 #    reason="cf_units not available",
-#)
-#def test_optional_cf_units_backend(monkeypatch):
+# )
+# def test_optional_cf_units_backend(monkeypatch):
 #    x = np.array([0.0, 1.0, 3.0])
 #    monkeypatch.setenv("VTOOLS_UNITS_BACKEND", "cf_units")
 #    out = uc.convert_units(x, "m", "ft")

@@ -10,7 +10,7 @@ This module provides:
 - a general-purpose unit conversion function `convert_units()` that uses Pint
   by default (with an optional cf_units backend via an environment variable),
   and that has fast paths for the above common conversions.
-  
+
 Notes
 -----
 - PSU is treated here as a practical “unit” for salinity in workflows,
@@ -35,7 +35,6 @@ import pandas as pd
 from scipy.optimize import brentq
 
 
-
 # -----------------------------------------------------------------------------
 # Constants for conversions (kept from legacy implementation)
 # -----------------------------------------------------------------------------
@@ -52,15 +51,15 @@ K5 = -6.4788
 K6 = 2.5842
 k = 0.0162
 
-s_sea = 35.0        # representative ocean salinity, PSU
-ec_sea = 53087.0    # EC (μS/cm) associated with s_sea at 25 °C
+s_sea = 35.0  # representative ocean salinity, PSU
+ec_sea = 53087.0  # EC (μS/cm) associated with s_sea at 25 °C
 
 # exact base
 FT2M = 0.3048  # exact by definition
 
 # derive reciprocals/products to avoid mismatch and rounding drift
-M2FT    = 1.0 / FT2M
-CFS2CMS = FT2M ** 3           # (ft^3/s) → (m^3/s)
+M2FT = 1.0 / FT2M
+CFS2CMS = FT2M**3  # (ft^3/s) → (m^3/s)
 CMS2CFS = 1.0 / CFS2CMS
 
 
@@ -76,13 +75,11 @@ _ALIASES = {
     "cms": "m^3 s-1",
     "m3/s": "m^3 s-1",
     "m^3/s": "m^3 s-1",
-
     # temperature (return case-sensitive names Pint expects)
     "deg f": "degF",
     "degree_fahrenheit": "degF",
     "deg c": "degC",
     "degree_celsius": "degC",
-
     # conductivity spellings
     "us/cm": "uS cm-1",
     "μs/cm": "uS cm-1",
@@ -91,6 +88,7 @@ _ALIASES = {
     "us/cm@25c": "uS cm-1",
     "micromhos/cm@25c": "uS cm-1",
 }
+
 
 def _norm(u: str) -> str:
     """Normalize common shorthands to canonical spellings without
@@ -102,6 +100,7 @@ def _norm(u: str) -> str:
     k = s.lower()
     return _ALIASES.get(k, s)
 
+
 def _rewrap_like(values, arr):
     if isinstance(values, pd.DataFrame):
         return pd.DataFrame(arr, index=values.index, columns=values.columns)
@@ -109,9 +108,11 @@ def _rewrap_like(values, arr):
         return pd.Series(arr, index=values.index, name=values.name)
     return arr
 
+
 # ---- Optional backend flip via env var (no public API) -----------------------
 def _want_cf_units() -> bool:
     return os.environ.get("VTOOLS_UNITS_BACKEND", "").lower() == "cf_units"
+
 
 @functools.lru_cache(maxsize=128)
 def _get_converter(iu: str, ou: str):
@@ -119,35 +120,46 @@ def _get_converter(iu: str, ou: str):
     if _want_cf_units():
         try:
             from cf_units import Unit
+
             u_in, u_out = Unit(iu), Unit(ou)
-            def conv(arr): return u_in.convert(np.asarray(arr), u_out)
+
+            def conv(arr):
+                return u_in.convert(np.asarray(arr), u_out)
+
             return conv
         except Exception:
             # fall through to Pint if cf_units not available
             pass
 
     import pint
+
     ureg = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
 
     q_in, q_out = 1.0 * ureg(iu), 1.0 * ureg(ou)
     # --- Skip fast scaling for temperature units (affine with offsets) ---
     OFFSET_UNITS = {"degC", "degF", "degree_Celsius", "degree_Fahrenheit", "degR"}
     if iu in OFFSET_UNITS or ou in OFFSET_UNITS:
+
         def conv(arr):
             a = np.asarray(arr)
             return (a * ureg(iu)).to(ureg(ou)).m
+
         return conv
 
     # --- Otherwise use fast pure-scale path ---
     try:
         factor = q_in.to(q_out).magnitude
+
         def conv(arr):
             return np.asarray(arr) * factor
+
         return conv
     except Exception:
+
         def conv(arr):
             a = np.asarray(arr)
             return (a * ureg(iu)).to(ureg(ou)).m
+
         return conv
 
 
@@ -177,12 +189,11 @@ def convert_units(values, in_unit: str, out_unit: str):
     # --- Custom domain-first paths -------------------------------------------
     # Temperature
     if iu == "degf" and ou == "degc":
-        arr = (np.asarray(values) - 32.0) * (5.0/9.0)
+        arr = (np.asarray(values) - 32.0) * (5.0 / 9.0)
         return _rewrap_like(values, arr)
     if iu == "degc" and ou == "degf":
         arr = np.asarray(values) * 1.8 + 32.0
         return _rewrap_like(values, arr)
-
 
     # Length / Flow shorthands (scale only)
     if iu == "ft" and ou == "m":
@@ -196,7 +207,7 @@ def convert_units(values, in_unit: str, out_unit: str):
 
     # EC ↔ PSU at 25C (never hand 'psu' to a generic backend)
     if iu in ("ec", "us/cm", "uS cm-1", "micromhos/cm") and ou == "psu":
-        return ec_psu_25c(values, hill_correction=True)   # uses your existing impl
+        return ec_psu_25c(values, hill_correction=True)  # uses your existing impl
     if iu == "psu" and ou in ("ec", "us/cm", "uS cm-1", "micromhos/cm"):
         out = psu_ec_25c(values, refine=True, hill_correction=True)
         return out
@@ -206,8 +217,6 @@ def convert_units(values, in_unit: str, out_unit: str):
     base = values.values if isinstance(values, (pd.Series, pd.DataFrame)) else values
     out = conv(base)
     return _rewrap_like(values, out)
-
-
 
 
 # -----------------------------------------------------------------------------
@@ -425,7 +434,11 @@ def ec_psu_25c(ec, hill_correction=True):
         a_0 = 0.008
         f_ = (25.0 - 15.0) / (1.0 + k * (25.0 - 15.0))  # f(T=25)
         b_0_f = 0.0005 * f_
-        s = s - a_0 / (1.0 + 1.5 * x + x * x) - b_0_f / (1.0 + np.sqrt(y) + y + y * np.sqrt(y))
+        s = (
+            s
+            - a_0 / (1.0 + 1.5 * x + x * x)
+            - b_0_f / (1.0 + np.sqrt(y) + y + y * np.sqrt(y))
+        )
 
     if np.isscalar(ec):
         return float(s) if not np.isnan(s) else s
@@ -473,7 +486,9 @@ def psu_ec_25c_scalar(psu, refine=True, hill_correction=True):
         return np.nan
 
     if hill_correction and not refine:
-        raise ValueError("Unrefined (refine=False) psu-to-ec correction cannot have hill_correction")
+        raise ValueError(
+            "Unrefined (refine=False) psu-to-ec correction cannot have hill_correction"
+        )
 
     if refine:
         if psu > 34.99969:
@@ -481,11 +496,15 @@ def psu_ec_25c_scalar(psu, refine=True, hill_correction=True):
         ec = brentq(psu_ec_resid, 1.0, ec_sea, args=(psu, hill_correction))
     else:
         sqrtpsu = np.sqrt(psu)
-        ec = (psu / s_sea) * ec_sea + psu * (psu - s_sea) * (J1 + J2 * sqrtpsu + J3 * psu + J4 * sqrtpsu * psu)
+        ec = (psu / s_sea) * ec_sea + psu * (psu - s_sea) * (
+            J1 + J2 * sqrtpsu + J3 * psu + J4 * sqrtpsu * psu
+        )
     return ec
 
 
-psu_ec_25c_vec = np.vectorize(psu_ec_25c_scalar, otypes="d", excluded=["refine", "hill_correction"])
+psu_ec_25c_vec = np.vectorize(
+    psu_ec_25c_scalar, otypes="d", excluded=["refine", "hill_correction"]
+)
 
 
 def psu_ec_25c(psu, refine=True, hill_correction=True):
