@@ -309,9 +309,17 @@ def cfs_to_cms(x):
     -----
     1 ft³/s = 0.028316847 m³/s.
     """
-    arr = np.asarray(x)
-    out = arr * CFS2CMS
-    return out.item() if np.isscalar(x) else out
+
+    if isinstance(x, pd.DataFrame):
+        # Element-wise multiply, preserving index/columns
+        return x * CFS2CMS
+    elif isinstance(x, pd.Series):
+        # Preserve Series index and name
+        return x * CFS2CMS
+    else:
+        arr = np.asarray(x)
+        out = arr * CFS2CMS
+        return out.item() if np.isscalar(x) else out
 
 
 def fahrenheit_to_celsius(x):
