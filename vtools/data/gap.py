@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 import pandas as pd
 import numpy as np
+from enum import Enum, auto
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, Tuple
 
 __all__ = ["gap_count", "gap_size", "gap_distance"]
 
@@ -199,8 +202,6 @@ def gap_distance(ts, disttype="count", to="good"):
         raise ValueError("invalid input disttype, must be count or freq")
 
 
-import pandas as pd
-import numpy as np
 
 
 def describe_series_gaps(s: pd.Series, name: str, context: int = 2):
@@ -264,7 +265,7 @@ def describe_null(dset, name, context=2):
 
 
 def example_gap():
-    import numpy as np
+
 
     ndx = pd.date_range(pd.Timestamp(2017, 1, 1, 12), freq="15min", periods=10)
     vals0 = np.arange(0.0, 10.0, dtype="d")
@@ -286,5 +287,103 @@ def example_gap():
     print(out)
 
 
+ #---------------------------- Gap creation ----------------------------- #
+
+
+
+class GapStrategy(Enum):
+    """Where to create synthetic gaps."""
+    TARGET_ONLY = auto()
+    BOTH = auto()            # gap target and neighbor on the same windows
+    STAGGERED = auto()       # gap target and neighbor on different windows
+
+
+@dataclass
+class GapSpec:
+    n_gaps: int = 60
+    min_len: int = 70
+    max_len: int = 900
+    seed: Optional[int] = 123
+    strategy: GapStrategy = GapStrategy.TARGET_ONLY
+    ensure_room: int = 2  # min number of intact points between gaps
+
+
+def _choose_gap_windows(n: int, spec: GapSpec) -> List[Tuple[int, int]]:
+    rng = np.random.default_rng(spec.seed)
+    windows: List[Tuple[int, int]] = []
+    attempts = 0
+    while len(windows) < spec.n_gaps and attempts < spec.n_gaps * 100:
+        attempts += 1
+        length = int(rng.integers(spec.min_len, spec.max_len + 1))
+        start = int(rng.integers(0, max(1, n - length)))
+        end = start + length
+        # enforce spacing and non-overlap
+        ok = True
+        for (s0, e0) in windows:
+            if not (end + spec.ensure_room <= s0 or start >= e0 + spec.ensure_room):
+                ok = False
+                break
+        if ok:
+            windows.append((start, min(n, end)))
+    windows.sort()
+    return windows
+
+
+def apply_gaps(
+    target: pd.Series,
+    neighbor: pd.Series | pd.DataFrame,
+    spec: GapSpec,
+) -> Tuple[pd.Series, pd.Series | pd.DataFrame, Dict[str, List[Tuple[pd.Timestamp, pd.Timestamp]]]]:
+    """Apply synthetic gaps to target and/or neighbor.
+
+    Parameters
+    ----------
+    target, neighbor : time-aligned inputs
+    spec : GapSpec
+
+    Returns
+    -------
+    (target_gapped, neighbor_gapped, gap_windows)
+        - `gap_windows` provides timestamp ranges actually masked under keys
+          'target' and possibly 'neighbor'.
+    """
+    idx = target.index
+    n = len(idx)
+    gaps_t = _choose_gap_windows(n, spec)
+
+    def _mask_series(s: pd.Series, windows: List[Tuple[int, int]]):
+        m = s.copy()
+        for (i0, i1) in windows:
+            m.iloc[i0:i1] = np.nan
+        return m
+
+    # Decide neighbor gaps
+    if spec.strategy == GapStrategy.TARGET_ONLY:
+        gaps_n: List[Tuple[int, int]] = []
+    elif spec.strategy == GapStrategy.BOTH:
+        gaps_n = gaps_t
+    else:  # STAGGERED
+        # Draw new windows for neighbor
+        gaps_n = _choose_gap_windows(n, spec)
+
+    t_gap = _mask_series(target, gaps_t)
+    if isinstance(neighbor, pd.DataFrame):
+        n_gap = neighbor.copy()
+        for col in n_gap.columns:
+            n_gap[col] = _mask_series(n_gap[col], gaps_n)
+    else:
+        n_gap = _mask_series(neighbor, gaps_n)
+
+    # Build human-readable windows with timestamps
+    to_ts = lambda w: (idx[w[0]], idx[min(len(idx)-1, w[1]-1)])
+    gap_dict = {
+        "target": [to_ts(w) for w in gaps_t],
+        "neighbor": [to_ts(w) for w in gaps_n],
+    }
+    return t_gap, n_gap, gap_dict
+
+
+
 if __name__ == "__main__":
     example_gap()
+

@@ -102,10 +102,33 @@ class FillResult:
 
 # ---------------------------- Utilities ------------------------------------ #
 
-_DEF_FREQ_ERR = (
-    "Target and neighbor have no common frequency. Provide equally spaced time "
-    "indices or pass resample='15min'/'H' to regularize."
-)
+_DEF_FREQ_ERR = "Target and neighbor must arrive on the same regular time grid (same step and phase). "
+
+def _assert_same_regular_grid(idx_y: pd.DatetimeIndex, idx_x: pd.DatetimeIndex) -> None:
+    """Raise if the two indices are not on the same regular grid (same step & phase)."""
+    for name, idx in (("target", idx_y), ("neighbor", idx_x)):
+        if idx.tz is not None and idx_y.tz != idx_x.tz:
+            raise ValueError("Mixed timezones between target and neighbor are not allowed.")
+        if idx.size < 2:
+            continue  # trivially OK (we'll fail later if there is no overlap)
+        # check monotone and constant step
+        if not idx.is_monotonic_increasing:
+            raise ValueError(f"{name} index must be sorted/monotonic increasing.")
+        d = np.diff(idx.view("i8"))
+        if not np.all(d == d[0]):
+            raise ValueError(f"{name} index is not equally spaced.")
+    # compare steps
+    if idx_y.size >= 2 and idx_x.size >= 2:
+        step_y = (idx_y[1] - idx_y[0]).to_numpy()
+        step_x = (idx_x[1] - idx_x[0]).to_numpy()
+        if step_y != step_x:
+            raise ValueError(_DEF_FREQ_ERR + f" (step mismatch: {pd.Timedelta(step_y)} vs {pd.Timedelta(step_x)})")
+        # compare phase relative to a fixed epoch
+        epoch = pd.Timestamp("1970-01-01", tz=idx_y.tz)
+        rem_y = (idx_y[0] - epoch).to_timedelta64() % step_y
+        rem_x = (idx_x[0] - epoch).to_timedelta64() % step_x
+        if rem_y != rem_x:
+            raise ValueError(_DEF_FREQ_ERR + " (phase mismatch: grids are offset in time)")
 
 
 def _as_series_like(x: Union[pd.Series, pd.DataFrame], name: str) -> pd.DataFrame:
@@ -122,14 +145,11 @@ def _as_series_like(x: Union[pd.Series, pd.DataFrame], name: str) -> pd.DataFram
 def _align(
     y: pd.Series,
     X: Union[pd.Series, pd.DataFrame],
-    resample: Optional[str] = None,
     how: str = "inner",
     allow_empty: bool = False,
 ) -> Tuple[pd.Series, pd.DataFrame]:
     """Align target and neighbor(s) on a common DatetimeIndex.
 
-    If `resample` is given (e.g., "H", "15min"), both target and neighbors are
-    resampled to that frequency using mean aggregation.
     """
     if not isinstance(y.index, pd.DatetimeIndex):
         raise TypeError("target index must be a DatetimeIndex")
@@ -137,12 +157,9 @@ def _align(
     if not isinstance(X.index, pd.DatetimeIndex):
         raise TypeError("neighbor index must be a DatetimeIndex")
 
-    if resample is not None:
-        y_al = y.resample(resample).mean()
-        X_al = X.resample(resample).mean()
-    else:
-        y_al = y
-        X_al = X
+    _assert_same_regular_grid(y.index, X.index)
+    y_al = y
+    X_al = X
 
     y2, X2 = y_al.align(X_al, join=how)
     if (len(y2) == 0 or len(X2) == 0) and not allow_empty:
@@ -227,6 +244,26 @@ def _compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]
 
 
 # ------------------------- Model Backends ---------------------------------- #
+
+def _fit_substitute(y: pd.Series, X: pd.Series | pd.DataFrame):
+    x = X.iloc[:, 0] if isinstance(X, pd.DataFrame) else X
+
+    # Use ONLY target timestamps; no need for union alignment here
+    x_on_y = x.reindex(y.index)
+
+    # Start from target and fill only its gaps from neighbor
+    yhat = y.copy()
+    gap_mask = yhat.isna() & x_on_y.notna()
+    yhat.loc[gap_mask] = x_on_y.loc[gap_mask]
+
+    info = {
+        "method": "substitute",
+        "n_filled": int(gap_mask.sum()),
+        "coverage_all": float(yhat.notna().mean()),
+        "note": "Filled target gaps with neighbor where available; kept original data elsewhere.",
+    }
+    return yhat, None, None, info
+
 
 def _fit_ols(y: pd.Series, X: pd.DataFrame) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
     if not HAVE_SM:
@@ -460,66 +497,6 @@ def _fit_loess(
     info = {"method": "loess", "frac": frac, "sigma": sigma}
     return yhat, pi_lower, pi_upper, info
 
-    def _fit_state_space(
-        y: pd.Series,
-        X: pd.DataFrame,
-        lags: Iterable[int] = (0,),
-        level: str = "local level",
-        beta_random_walk: bool = False,
-    ) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
-        if not HAVE_SM:
-            raise ImportError("statsmodels is required for state-space models")
-
-        # 1) Build lagged exog on the aligned X
-        Z = _add_lagged_X(X, lags)
-
-        # 2) Use a single, common index (DatetimeIndex) that includes gaps
-        full_index = Z.index
-        endog_full = y.reindex(full_index)  # keep NaNs so the filter can handle missing obs
-
-        # Basic sanity: need some observed data to estimate params
-        if endog_full.notna().sum() < 20:
-            raise ValueError("Insufficient observed samples to fit state-space model")
-
-        # 3) Fit with missing='none' so gaps are honored; keep things label-based
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            mod = sm.tsa.UnobservedComponents(endog=endog_full, level=level, exog=Z, missing="none")
-            res = mod.fit(disp=False)
-
-        # 4) Smoothed reconstruction y_t ≈ Z_t E[state_t | all data]
-        # Grab smoothed state and state cov
-        S = res.smoothed_state                       # (k_states, nobs)
-        P = res.smoothed_state_cov                   # (k_states, k_states, nobs)
-
-        # Pull the state-space system matrices
-        ssm = res.model.ssm
-        Z_t = ssm['design']                          # (k_endog, k_states, nobs)
-        H_t = ssm['obs_cov']                         # (k_endog, k_endog, nobs)
-
-        # We need only the target row (index 0) at each t
-        yhat_vals = np.einsum('tks,sk->t', np.transpose(Z_t[0, :, :], (1,0)), S)  # vectorized: Zy_t · S_t
-        yhat = pd.Series(yhat_vals, index=endog_full.index, name="yhat")
-
-        # Simple 95% PI: Var(y_t|all) = Zy_t P_t Zy_t' + H_yy(t)
-        var_y = np.empty(P.shape[2], dtype=float)
-        for t in range(P.shape[2]):
-            Zy = Z_t[0, :, t].reshape(1, -1)        # (1, k_states)
-            var_y[t] = float(Zy @ P[:, :, t] @ Zy.T + H_t[0, 0, t])
-        se = np.sqrt(np.clip(var_y, 0.0, np.inf))
-        pi_lower = pd.Series(yhat.values - 1.96 * se, index=yhat.index, name="pi_lower")
-        pi_upper = pd.Series(yhat.values + 1.96 * se, index=yhat.index, name="pi_upper")
-
-        info = {
-            "method": "state_space",
-            "lags": list(map(int, lags)),
-            "level": level,
-            "aic": float(getattr(res, "aic", np.nan)),
-        }
-        return yhat, pi_lower, pi_upper, info
-
-
-
 
 # -------------------- Configurable DFM (factor/anomaly options) -------------------- #
 # --- helpers (add near your _DFM2) ------------------------------------------
@@ -549,10 +526,10 @@ def _opt_debug(mod, res):
     cs = _constrained(sp)
     ce = _constrained(ep)
 
-    print("\n=== Optimization summary ===")
-    print("converged:", getattr(res, "mle_retvals", {}).get("converged"))
-    print("niter:", getattr(res, "mle_retvals", {}).get("nit") or getattr(res, "mle_retvals", {}).get("niter"))
-    print(f"{'name':<14} {'start':>12} {'fitted':>12}   {'constrained(start)':>20} {'constrained(fitted)':>20}")
+    #print("\n=== Optimization summary ===")
+    #print("converged:", getattr(res, "mle_retvals", {}).get("converged"))
+    #print("niter:", getattr(res, "mle_retvals", {}).get("nit") or getattr(res, "mle_retvals", {}).get("niter"))
+    #print(f"{'name':<14} {'start':>12} {'fitted':>12}   {'constrained(start)':>20} {'constrained(fitted)':>20}")
     for i, n in enumerate(names):
         s = float(sp[i])
         e = float(ep[i])
@@ -562,6 +539,108 @@ def _opt_debug(mod, res):
         ce_v = ce.get(k, float('nan'))
         print(f"{n:<14} {s:12.4g} {e:12.4g}   {cs_v:20.6g} {ce_v:20.6g}")
     print("============================\n")
+
+
+def _fit_resid_interp(
+    y: pd.Series,
+    X: pd.DataFrame,
+    kind: str = "linear",   # "linear" | "pchip"
+) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
+    """
+    Fill y using neighbor via interpolated residuals.
+
+    Steps:
+      1) Fit baseline y ≈ a + b x on overlap (OLS; falls back to ratio if needed).
+      2) Residuals r = y - (a + b x) on overlap.
+      3) Interpolate r only inside gaps (bounded on both sides) using 'linear' or 'pchip'.
+      4) Reconstruct yhat = (a + b x) + r_interp wherever x is available.
+    """
+    # Reduce to one neighbor
+    x = X.iloc[:, 0] if isinstance(X, pd.DataFrame) else X
+
+    # Align to common index; keep outer so we can predict everywhere x is present
+    y_al, x_al = y.align(x, join="outer")
+    m_fit = y_al.notna() & x_al.notna()
+
+    if m_fit.sum() < 3:
+        # fall back: simple scaling
+        raise ValueError("Insufficient overlap to fit residual-interp baseline (need ≥3 points).")
+
+    # --- 1) Fit baseline y ≈ a + b x on overlap
+    try:
+        import statsmodels.api as sm  # prefer stable OLS if available
+        X1 = sm.add_constant(x_al[m_fit].values, has_constant="add")
+        res = sm.OLS(y_al[m_fit].values, X1, missing="drop").fit()
+        a_hat = float(res.params[0]); b_hat = float(res.params[1])
+    except Exception:
+        # Ratio fallback if statsmodels not present
+        b_hat = float(np.nanmedian((y_al[m_fit] / x_al[m_fit]).replace([np.inf, -np.inf], np.nan)))
+        if not np.isfinite(b_hat):
+            b_hat = 1.0
+        a_hat = float(np.nanmedian(y_al[m_fit] - b_hat * x_al[m_fit]))
+
+    # Base prediction everywhere x exists
+    y_base = pd.Series(index=y_al.index, dtype=float, name="yhat_base")
+    y_base.loc[x_al.notna()] = a_hat + b_hat * x_al.loc[x_al.notna()]
+
+    # --- 2) Residuals on overlap
+    resid = y_al[m_fit] - (a_hat + b_hat * x_al[m_fit])
+    resid = resid.sort_index()
+
+    # --- 3) Interpolate residuals inside gaps only
+    # We'll interpolate in time; no extrapolation past the first/last observed residual.
+    r_all = pd.Series(index=y_al.index, dtype=float, name="r_interp")
+    if kind == "pchip":
+        try:
+            from scipy.interpolate import PchipInterpolator
+            # Numeric time in seconds for monotonic grid
+            t = resid.index.view("i8") / 1e9
+            r = resid.values.astype(float)
+            # Need strictly increasing unique t; drop duplicates if any
+            t_unique, idx_unique = np.unique(t, return_index=True)
+            r_unique = r[idx_unique]
+            p = PchipInterpolator(t_unique, r_unique, extrapolate=False)
+            t_all = y_al.index.view("i8") / 1e9
+            r_interp = p(t_all)
+            r_all[:] = r_interp
+        except Exception:
+            # Graceful fallback to linear
+            kind = "linear"
+            # continue into linear branch below
+
+    if kind == "linear":
+        # Pandas 'time' interpolation uses the DatetimeIndex and stays inside by default with limit_area='inside'
+        r_series = pd.Series(index=y_al.index, dtype=float)
+        r_series.loc[resid.index] = resid.values
+        r_all = r_series.interpolate(method="time", limit_area="inside")
+
+    # We only want residuals where the gap is bounded AND neighbor exists
+    pred_mask = x_al.notna()
+    # yhat = base + interpolated residual (where available)
+    yhat = pd.Series(index=y_al.index, dtype=float, name="yhat")
+    yhat.loc[pred_mask] = y_base.loc[pred_mask]
+    # add residuals where we have an interpolated value
+    ok_r = pred_mask & r_all.notna()
+    yhat.loc[ok_r] = y_base.loc[ok_r] + r_all.loc[ok_r]
+
+    # --- 4) Simple PI: constant residual sigma from overlap
+    sigma = float(np.nanstd(resid.values)) if resid.size else np.nan
+    if np.isfinite(sigma):
+        pi_lower = yhat - 1.96 * sigma
+        pi_upper = yhat + 1.96 * sigma
+    else:
+        pi_lower = None
+        pi_upper = None
+
+    info = {
+        "method": "resid_interp_" + kind,
+        "baseline": {"a": a_hat, "b": b_hat},
+        "sigma_resid": sigma,
+        "n_overlap": int(m_fit.sum()),
+    }
+    return yhat, pi_lower, pi_upper, info
+
+
 
 
 class DFMFill(MLEModel):
@@ -726,19 +805,141 @@ class DFMFill(MLEModel):
         self["design"]     = Z
         self["obs_cov"]    = H
 
-def _fit_dfm(y: pd.Series,
-              X: pd.Series | pd.DataFrame,
-              *,
-              factor: str,
-              anomaly_mode: str,
-              anom_var: str,
-              rx_scale: float = 3.0,
-              maxiter: int = 80, # todo was 200
-              disp: int = 0):
-    # Reduce neighbor to a single series; align and standardize on overlap
+# --- DFM parameter helpers (no side effects) -------------------
+# --- YAML-first DFM param helpers (public API) -------------------------------
+from typing import Any, Dict
+import os
+
+def dfm_pack_params(model_info: dict) -> dict:
+    """
+    Return a portable blob of fitted DFM params.
+
+    Preferred: model_info['fitted_params'] with:
+        - 'param_names': list[str]
+        - 'transformed': list[float]
+        - 'constrained': dict[str, float]
+        - optional: 'mle', 'reused'
+    Fallback (legacy): build a blob from 'param_names' + 'params' if present.
+    """
+    if not isinstance(model_info, dict):
+        raise TypeError("model_info must be a dict (from fill_from_neighbor).")
+
+    blob = model_info.get("fitted_params")
+    if isinstance(blob, dict) and "param_names" in blob and "transformed" in blob:
+        return blob
+
+    # ---- legacy fallback: older code returned only param_names + params ----
+    if "param_names" in model_info and "params" in model_info:
+        return {
+            "param_names": list(map(str, model_info["param_names"])),
+            "transformed": list(map(float, model_info["params"])),
+            "constrained": {},                # unknown in legacy
+            "mle": {"converged": True},       # best-effort
+            "reused": False,
+        }
+
+    raise ValueError(
+        "No fitted params found. You may be importing an older neighbor_fill "
+        "that does not populate model_info['fitted_params'] for DFM."
+    )
+
+def save_dfm_params(params: Dict[str, Any], path: str) -> None:
+    """
+    Save a DFM parameter blob to YAML (preferred for this codebase).
+    File extension may be .yaml or .yml. Other extensions raise.
+    """
+    ext = os.path.splitext(path)[1].lower()
+    if ext not in (".yaml", ".yml"):
+        raise ValueError("Please use a .yaml or .yml filename for DFM params.")
+    try:
+        import yaml  # type: ignore
+    except Exception as e:
+        raise RuntimeError("PyYAML is required to save YAML. Install 'pyyaml'.") from e
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(params, f, sort_keys=False)
+
+def load_dfm_params(path: str) -> Dict[str, Any]:
+    """
+    Load a DFM parameter blob from YAML and validate minimal schema.
+    """
+    ext = os.path.splitext(path)[1].lower()
+    if ext not in (".yaml", ".yml"):
+        raise ValueError("Expected a .yaml or .yml file for DFM params.")
+    try:
+        import yaml  # type: ignore
+    except Exception as e:
+        raise RuntimeError("PyYAML is required to load YAML. Install 'pyyaml'.") from e
+    with open(path, "r", encoding="utf-8") as f:
+        blob = yaml.safe_load(f)
+    if not isinstance(blob, dict):
+        raise ValueError("Loaded DFM params are not a dict.")
+    if "param_names" not in blob or "transformed" not in blob or "constrained" not in blob:
+        raise ValueError("DFM params missing 'param_names', 'transformed', or 'constrained'.")
+    return blob
+# ---------------------------------------------------------------------------
+
+
+
+
+
+
+
+def _dfm_params_to_vector(mod, params):
+    """
+    Build transformed vector in the exact order of mod.param_names from either:
+      - {'transformed': [...], 'param_names': [...]}, or
+      - a constrained dict {'q_beta':..., 'q_ax':..., 'r_y':..., 'r_x':..., 'phi_x':..., 'load':...}
+    """
+    if params is None or (isinstance(params, dict) and len(params) == 0):
+        raise ValueError("params is empty; pass a saved blob or constrained dict.")
+    names = list(mod.param_names)
+
+    # Case A: transformed vector given
+    if isinstance(params, dict) and "transformed" in params:
+        vec = np.asarray(params["transformed"], dtype=float)
+        if vec.shape[0] != len(names):
+            raise ValueError("Length of transformed vector does not match model param_names.")
+        return vec
+
+    # Case B: constrained dict -> transformed in correct order
+    c = params
+    def _logpos(x):
+        x = float(x)
+        if x <= 0: raise ValueError("All variances must be > 0 in constrained dict.")
+        return np.log(x)
+    def _phi_to_logit(phi):
+        p = (float(phi) + 1.0)/2.0
+        p = np.clip(p, 1e-9, 1-1e-9)
+        return np.log(p/(1-p))
+
+    out = []
+    for n in names:
+        if n.startswith("log_q_"):
+            out.append(_logpos(c[n.replace("log_","")]))
+        elif n.startswith("log_r_"):
+            out.append(_logpos(c[n.replace("log_","")]))
+        elif n.startswith("logit_phi_"):
+            out.append(_phi_to_logit(c[n.replace("logit_","")]))
+        elif n == "load":
+            out.append(float(c.get("load", 1.0)))
+        else:
+            raise ValueError(f"Unrecognized parameter '{n}' in model param_names.")
+    return np.asarray(out, dtype=float)
+# ---------------------------------------------------------------
+def _fit_dfm(
+    y, X,
+    *,
+    factor: str = "default",
+    anomaly_mode: str = "ar",
+    anom_var: str = "neighbor",
+    rx_scale: float = 3.0,
+    maxiter: int = 80,
+    disp: int = 0,
+    params: dict | None = None,   # <-- ONLY control now
+):
+    # 1) align + standardize
     x = X.iloc[:, 0] if isinstance(X, pd.DataFrame) else X
     y, x = y.align(x, join="outer")
-
     m = y.notna() & x.notna()
     if m.sum() >= 10:
         y_mu, y_sd = float(y[m].mean()), float(y[m].std(ddof=0) or 1.0)
@@ -746,16 +947,82 @@ def _fit_dfm(y: pd.Series,
     else:
         y_mu, y_sd = 0.0, float(y.std(ddof=0) or 1.0)
         x_mu, x_sd = 0.0, float(x.std(ddof=0) or 1.0)
+    endog = pd.DataFrame({"y": (y - y_mu)/y_sd, "x": (x - x_mu)/x_sd})
 
-    ys = (y - y_mu) / y_sd
-    xs = (x - x_mu) / x_sd
-    endog = pd.DataFrame({"y": ys, "x": xs})
+    # 2) build model
+    mod = DFMFill(endog=endog, factor=factor, anomaly_mode=anomaly_mode, anom_var=anom_var, rx_scale=rx_scale)
 
-    mod = DFMFill(endog=endog, factor=factor,
-                anomaly_mode=anomaly_mode, anom_var=anom_var, rx_scale=rx_scale)
+    # 3) reuse OR fit; always produce fitted_params
+    reused = False
+    if isinstance(params, dict) and len(params) == 0:
+        params = None  # treat {} as None
+
+    if params is not None:
+        vec = _dfm_params_to_vector(mod, params)         # transformed in model order
+        res = mod.smooth(vec)                             # no optimizer
+        mod.update(vec, transformed=False)
+        constrained = mod._constrain(vec)
+        transformed = np.asarray(vec, dtype=float)
+        mle = {"converged": True, "nit": 0}
+        reused = True
+    else:
+        res = mod.fit(maxiter=maxiter, disp=disp)         # optimizer runs
+        vec = np.asarray(res.params, dtype=float)
+        mod.update(vec, transformed=False)
+        constrained = mod._constrain(vec)
+        transformed = vec
+        mr = getattr(res, "mle_retvals", {}) or {}
+        mle = {"converged": bool(mr.get("converged", True)), "nit": int(mr.get("nit") or mr.get("niter") or 0)}
+
+    # 4) back-transform yhat + PI
+    S = res.smoothed_state
+    Z = mod["design"]; H = mod["obs_cov"]; P = res.smoothed_state_cov
+    Zy = Z[0, :].reshape(1, -1)
+    yhat_s = (Zy @ S).ravel()
+    yhat = pd.Series(yhat_s * y_sd + y_mu, index=endog.index, name="yhat")
+
+    nobs = P.shape[2]
+    var_y = np.empty(nobs, dtype=float)
+    for t in range(nobs):
+        var_y[t] = float(Zy @ P[:, :, t] @ Zy.T + H[0, 0])
+    se = np.sqrt(np.clip(var_y, 0.0, np.inf))
+    pi_lower = pd.Series(yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower")
+    pi_upper = pd.Series(yhat.values + 1.96 * se * y_sd, index=yhat.index, name="pi_upper")
+
+    # 5) prints (unchanged)
+    print("Z(y):", np.round(Z[0, :], 4), " Z(x):", np.round(Z[1, :], 4))
+    print("diag(T):", np.round(np.diag(mod["transition"]), 4))
+    print("diag(Q):", np.round(np.diag(mod["state_cov"]), 8), " diag(H):", np.round(np.diag(H), 8))
+    print("modes:", f"factor={factor}", f"anom_mode={anomaly_mode}", f"anom_var={anom_var}")
+    print("active params:", mod.param_names)
+
+    # 6) always-populated param blob
+    fitted_params = {
+        "param_names": list(mod.param_names),
+        "transformed": transformed.tolist(),
+        "constrained": constrained,
+        "mle": mle,
+        "reused": reused,
+    }
+
+    info = {
+        "method": "dfm",
+        "factor": factor, "anomaly_mode": anomaly_mode, "anom_var": anom_var, "rx_scale": float(rx_scale),
+        "param_names": list(mod.param_names),
+        "fitted_params": fitted_params,      # <- keep this!
+        "scaling": {"y_mu": y_mu, "y_sd": y_sd, "x_mu": x_mu, "x_sd": x_sd},
+        "llf": float(getattr(res, "llf", np.nan)),
+        "aic": float(getattr(res, "aic", np.nan)),
+        "bic": float(getattr(res, "bic", np.nan)),
+    }
+    return yhat, pi_lower, pi_upper, info
+
+
+
+
     res = mod.fit(maxiter=maxiter, disp=disp)
     mod.update(res.params, transformed=False)   # ensure matrices reflect constrained params
-    _opt_debug(mod, res)
+    #_opt_debug(mod, res)
 
     # Smoothed y = Z_y · E[state|all]
     S = res.smoothed_state
@@ -791,6 +1058,17 @@ def _fit_dfm(y: pd.Series,
         "aic": float(getattr(res, "aic", np.nan)),
         "bic": float(getattr(res, "bic", np.nan)),
     }
+
+    info = {
+        # ... your existing fields ...
+    }
+    # If we actually fit, return the fitted params for persistence.
+    if fit and params is None and hasattr(res, "params"):
+        try:
+            info["fitted_params"] = _dfm_pack_params(mod, res)
+        except Exception:
+            pass
+
     return yhat, pi_lower, pi_upper, info
 
 
@@ -800,62 +1078,217 @@ def _fit_dfm(y: pd.Series,
 def fill_from_neighbor(
     target: pd.Series,
     neighbor: Union[pd.Series, pd.DataFrame],
-    method: str = "state_space",
+    method: str = "substitute",
     regime: Optional[pd.Series] = None,
-    lags: Optional[Union[int, Iterable[int]]] = None,
-    resample: Optional[str] = None,
-    window: Optional[Union[int, str]] = None,
-    cv: Optional[Dict[str, Any]] = None,
     bounds: Tuple[Optional[float], Optional[float]] = (None, None),
-    arimax_order: Tuple[int, int, int] = (1, 0, 0),
+    *,
+    params: Optional[dict] = None,
+    **kwargs,
 ) -> Dict[str, Any]:
-    """Fill gaps in ``target`` using information from ``neighbor``.
+    """
+    Fill gaps in ``target`` using information from ``neighbor``.
+
+    This is a high-level wrapper with multiple method backends (OLS/robust,
+    rolling regression, lagged regression, LOESS-in-time, Trimbur-style DFM
+    variants, residual-interpolation baselines, or simple substitution).
+    Inputs must already lie on the **same regular time grid** (same step and phase);
+    this function does **not** resample.
 
     Parameters
     ----------
-    target : pd.Series
-        Target time series (DatetimeIndex). Values may be missing.
-    neighbor : pd.Series or pd.DataFrame
-        One or more neighbor series (DatetimeIndex). Must be on the same or
-        resampled-to frequency as the target.
-    method : {'ols','huber','rolling','lagged_reg','arimax','state_space'}
-        Algorithm to use.
-    regime : pd.Series, optional
-        Optional categorical series indexed like target/neighbor to stratify
-        fits (e.g., barrier status). If provided, models are fit per category,
-        and predictions are stitched back together.
-    lags : int or iterable of int, optional
-        Non-negative lags (in number of steps) to include for lagged models. If
-        an integer ``m`` is provided, lags ``range(0, m+1)`` are used. If None,
-        a simple heuristic will propose lags up to 6 steps.
-    resample : str, optional
-        Pandas offset alias to regularize both series (e.g., 'H', '15min').
-    window : int or str, optional
-        Window length for rolling regression. If str, it's converted via
-        resampling first; prefer an integer count of samples.
-    cv : dict, optional
-        Forward-chaining CV config: {"n_splits": int, "min_train": int}.
-    bounds : (lo, hi)
-        Optional bounds to clip final filled values.
-    arimax_order : tuple
-        (p,d,q) for ARIMAX backend.
+    target : pandas.Series
+        Target time series with a ``DatetimeIndex`` on a regular grid. Values may be NaN.
+    neighbor : pandas.Series or pandas.DataFrame
+        One or more neighbor series with a ``DatetimeIndex`` on the **same grid**
+        as ``target`` (same step and phase). Values may be NaN.
+    method : {'substitute', 'ols', 'huber', 'rolling', 'lagged_reg',
+            'loess', 'dfm_trimbur_rw', 'dfm_trimbur_ar',
+            'resid_interp_linear', 'resid_interp_pchip'}
+        Algorithm to use:
+
+        - ``'substitute'``: pass-through neighbor after mean/scale alignment.
+        - ``'ols'``: ordinary least squares on overlap (optionally with lags).
+        - ``'huber'``: robust regression with Huber loss (optionally with lags).
+        - ``'rolling'``: rolling-window OLS in *sample* units (not time offsets).
+        - ``'lagged_reg'``: multivariate regression on specified neighbor lags.
+        - ``'loess'``: LOESS (time → value) smoothing using neighbor as scaffold.
+        - ``'dfm_trimbur_rw'``: dynamic factor model (Trimbur factor) with
+        random-walk anomaly for the target.
+        - ``'dfm_trimbur_ar'``: dynamic factor model (Trimbur factor) with AR anomaly
+        on the neighbor.
+        - ``'resid_interp_linear'`` / ``'resid_interp_pchip'``: baseline y≈a+bx fit
+        on overlap, then interpolate residuals (linear or PCHIP) across gaps.
+
+    regime : pandas.Series, optional
+        Optional categorical series indexed like ``target`` to stratify fits
+        (e.g., barrier in/out). If provided, models are fit per category and
+        stitched back together.
+    bounds : (float or None, float or None)
+        Lower/upper bounds to clip the final filled values (applied at the end).
+    params : dict, optional
+        Pre-fitted/packed parameter blob for methods that support parameter reuse
+        (e.g., the DFM backends). If provided, fitting is skipped and the supplied
+        parameters are used directly.
+
+    **kwargs
+        Method-specific optional arguments. Unsupported keys are ignored unless
+        otherwise noted. Typical extras by method:
+
+        Common
+            lags : int or Sequence[int], optional
+                Non-negative lags (in samples) for neighbor features. If an int m is
+                provided, implementations may expand to range(0, m+1). Default behavior
+                varies by method (often no lags or a small heuristic set).
+            seed : int, optional
+                Random seed for any stochastic initializations (where applicable).
+
+        'ols'
+            lags : int or Sequence[int], optional
+            add_const : bool, default True
+                Include an intercept term.
+            fit_intercept : bool, alias of ``add_const``.
+
+        'huber'
+            lags : int or Sequence[int], optional
+            huber_t : float, default 1.35
+                Huber threshold (in residual σ units).
+            maxiter : int, default 200
+            tol : float, default 1e-6
+
+        'rolling'
+            window : int, required
+                Rolling window length **in samples** (integer). Time-offset strings
+                (e.g., '14D') are **not** supported here.
+            min_periods : int, optional
+                Minimum non-NaN samples required inside each window (default = window).
+            center : bool, default False
+                Whether to center the rolling window.
+            lags : int or Sequence[int], optional
+                If provided, each regression uses lagged neighbor columns inside
+                the window.
+
+        'lagged_reg'
+            lags : int or Sequence[int], recommended
+            alpha : float, optional
+                Ridge/L2 penalty (if the backend supports it).
+            l1_ratio : float, optional
+                Elastic-net mixing (if the backend supports it).
+            standardize : bool, default True
+                Standardize columns before regression.
+
+        'loess'
+            frac : float, default 0.25
+                LOESS span as a fraction of the data length (used in time→value smoothing).
+            it : int, default 0
+                Number of robustifying reweighting iterations.
+            degree : int, default 1
+                Local polynomial degree.
+
+        'dfm_trimbur_rw' / 'dfm_trimbur_ar'
+            rx_scale : float, default 1.0
+                Relative scale factor for neighbor measurement noise.
+            maxiter : int, default 80
+                Maximum optimizer iterations during parameter fitting.
+            disp : int, default 0
+                Optimizer verbosity (0 = silent).
+            anom_var : {'target','neighbor'}, optional
+                Which series carries the anomaly/noise term (fixed by the variant,
+                but may be overridden).
+            ar_order : int, optional
+                AR order for the anomaly in the ``'_ar'`` variant (default may be 1).
+            param_names : list[str], optional
+                For advanced users: explicit parameter naming (used when packing).
+            # Note: DFM backends accept ``params=...`` at the top level for reuse.
+
+        'resid_interp_linear' / 'resid_interp_pchip'
+            min_overlap : int, default 3
+                Minimum overlapping samples required to fit the baseline y≈a+bx.
+            clip_residuals_sigma : float, optional
+                Winsorize residuals before interpolation (σ units).
+            enforce_monotone : bool, default False
+                For PCHIP path only: enforce monotonic segments where applicable.
 
     Returns
     -------
     dict
-        Same fields as :class:`FillResult` via ``.to_dict()``.
+        Dictionary with the following keys:
+
+        yhat : pandas.Series
+            Filled series on the same index as ``target``.
+        pi_lower : pandas.Series or None
+            Lower uncertainty band (if the method provides one), otherwise None.
+        pi_upper : pandas.Series or None
+            Upper uncertainty band (if the method provides one), otherwise None.
+        model_info : dict
+            Method-specific diagnostics and metadata. Typical fields include:
+            ``method``, ``param_names``, ``fitted_params`` (packed blob for reuse),
+            ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,
+            ``bic``), and per-regime info when ``regime`` is provided.
+
+
+    Raises
+    ------
+    ValueError
+        If indices are not equally spaced, or grids mismatch in step or phase,
+        or if required method-specific kwargs are missing (e.g., ``window`` for
+        ``method='rolling'``).
+    KeyError
+        If an unknown method name is provided.
+
+    Returns
+    -------
+    dict
+        Dictionary with the following keys:
+
+        yhat : pandas.Series
+            Filled series on the same index as ``target``.
+        pi_lower : pandas.Series or None
+            Lower uncertainty band (if the method provides one), otherwise None.
+        pi_upper : pandas.Series or None
+            Upper uncertainty band (if the method provides one), otherwise None.
+        model_info : dict
+            Method-specific diagnostics and metadata. Typical fields include:
+            ``method``, ``param_names``, ``fitted_params`` (packed blob for reuse),
+            ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,
+            ``bic``), and per-regime info when ``regime`` is provided.
+
+    Raises
+    ------
+    ValueError
+        If indices are not equally spaced, or grids mismatch in step or phase,
+        or if required method-specific kwargs are missing (e.g., ``window`` for
+        ``method='rolling'``).
+    KeyError
+        If an unknown method name is provided.
     """
-    recognized = {"ols","huber","rolling","lagged_reg","arimax","state_space","loess","dfm",
- "dfm_trimbur_ar","dfm_trimbur_rw"} 
+
+
+
+    # add these names in the set:
+    recognized = {
+        "ols","huber","rolling","lagged_reg","loess",
+        "dfm","dfm_trimbur_ar","dfm_trimbur_rw",
+        "resid_interp_linear","resid_interp_pchip",
+        "substitute",  
+    }
+
     if method not in recognized:
         raise ValueError("Unknown method: %s" % method)
+
+    if (params is not None) and method not in {"dfm_trimbur_rw","dfm_trimbur_ar"}:
+        raise ValueError("'fit'/'params' are only supported for DFM methods.")
 
 
     y0 = target.copy()
     X0 = _as_series_like(neighbor, name="x")
 
+    # Pull optional tuning params from **kwargs (keeps backward compat in notebooks)
+    lags   = kwargs.pop("lags",   None)
+    window = kwargs.pop("window", None)
+
+
     # Align to common grid; for rolling with str window we regularize first
-    y_al, X_al = _align(y0, X0, resample=resample, how="outer", allow_empty=False)
+    y_al, X_al = _align(y0, X0, how="outer", allow_empty=False)
 
     # If regime given, process per category and stitch
     if regime is not None:
@@ -870,7 +1303,8 @@ def fill_from_neighbor(
             y_c = y_al.where(mask)
             X_c = X_al.where(mask)
             res_c = fill_from_neighbor(
-                y_c, X_c, method=method, lags=lags, resample=None, window=window, cv=cv, bounds=bounds, arimax_order=arimax_order
+                y_c, X_c, method=method, lags=lags, window=window, 
+                bounds=bounds
             )
             yhats.append(pd.Series(res_c["yhat"], name=str(cat)))
             pil_list.append(pd.Series(res_c.get("pi_lower"), name=str(cat)))
@@ -882,48 +1316,54 @@ def fill_from_neighbor(
         pi_upper = pd.concat(piu_list, axis=1).bfill(axis=1).iloc[:, 0]
         info = info_all
     else:
-        # Single fit path
-        # Choose/add lags if relevant
-        if lags is None:
-            # heuristic: scan up to 6 steps against the strongest single neighbor
-            first_col = X_al.columns[0]
-            max_lag = 6
-            try:
-                lag_list = _suggest_lags(*_mask_overlap(y_al, X_al[[first_col]]), max_lag=max_lag)[:3]
-            except Exception:
-                lag_list = [0]
-        elif isinstance(lags, int):
-            lag_list = list(range(0, int(lags) + 1))
-        else:
-            lag_list = list(map(int, lags))
-
-        if method == "ols":
+        if method == "substitute":
+            yhat, pi_lower, pi_upper, info = _fit_substitute(y_al, X_al)
+        elif method == "ols":
             yhat, pi_lower, pi_upper, info = _fit_ols(y_al, X_al)
         elif method == "huber":
             yhat, pi_lower, pi_upper, info = _fit_huber(y_al, X_al)
         elif method == "rolling":
             if window is None:
                 raise ValueError("window must be provided for rolling regression (in samples)")
-            if isinstance(window, str):
-                # convert to count by resampling length
-                y_tmp, X_tmp = _align(y_al, X_al, resample=window, how="inner")
-                window_n = len(y_tmp)
+            elif isinstance(window, str):
+                raise TypeError("String window (e.g., '30D') no longer supported. Pass an integer number of samples.")
             else:
                 window_n = int(window)
             yhat, pi_lower, pi_upper, info = _fit_rolling_regression(y_al, X_al, window=window_n)
         elif method == "lagged_reg":
+            if lags is None:
+                first_col = X_al.columns[0]
+                max_lag = 6
+                try:
+                    lag_list = _suggest_lags(*_mask_overlap(y_al, X_al[[first_col]]), max_lag=max_lag)[:3]
+                except Exception:
+                    lag_list = [0]
+            elif isinstance(lags, int):
+                lag_list = list(range(0, int(lags) + 1))
+            else:
+                lag_list = list(map(int, lags))
+
             yhat, pi_lower, pi_upper, info = _fit_lagged_elasticnet(y_al, X_al, lags=lag_list)
         elif method == "loess":
             yhat, pi_lower, pi_upper, info = fit_loess_time_value(y_al, X_al)
-        elif method == "dfm_trimbur_ar":
-            yhat, pi_lower, pi_upper, info = _fit_dfm(
-                y_al, X_al, factor="trimbur", anomaly_mode="ar", anom_var="neighbor", rx_scale=1.0
-            )
         elif method == "dfm_trimbur_rw":
             yhat, pi_lower, pi_upper, info = _fit_dfm(
-                y_al, X_al, factor="trimbur", anomaly_mode="rw", anom_var="neighbor", rx_scale=1.0
+                y_al, X_al,
+                factor="trimbur", anomaly_mode="rw", anom_var="target",
+                rx_scale=1.0, maxiter=80, disp=0,
+                params=params
             )
-
+        elif method == "dfm_trimbur_ar":
+            yhat, pi_lower, pi_upper, info = _fit_dfm(
+                y_al, X_al,
+                factor="trimbur", anomaly_mode="ar", anom_var="neighbor",
+                rx_scale=1.0, maxiter=80, disp=0,
+                params=params
+            )
+        elif method == "resid_interp_linear":
+            yhat, pi_lower, pi_upper, info = _fit_resid_interp(y_al, X_al, kind="linear")
+        elif method == "resid_interp_pchip":
+            yhat, pi_lower, pi_upper, info = _fit_resid_interp(y_al, X_al, kind="pchip")
 
         else:
             raise ValueError("Unknown method: %s" % method)
@@ -942,24 +1382,6 @@ def fill_from_neighbor(
 
     # Forward-chaining CV (optional, rough)
     metrics: Dict[str, float] = {}
-    if cv is not None and regime is None:
-        n_splits = int(cv.get("n_splits", 3))
-        min_train = int(cv.get("min_train", 50))
-        # Evaluate on overlapping, non-missing portion
-        y_fit, X_fit = _mask_overlap(y_al, _as_series_like(yhat, name="yhat"))
-        y_arr = y_fit.values
-        yhat_arr = X_fit.iloc[:, 0].values
-        splits = _forward_chain_splits(len(y_arr), n_splits=n_splits, min_train=min_train)
-        # Here we only evaluate naive persistence of the already-fit predictor (since we don't refit per fold in this quick path)
-        all_true = []
-        all_pred = []
-        for tr, te in splits:
-            all_true.append(y_arr[te])
-            all_pred.append(yhat_arr[te])
-        if all_true:
-            yt = np.concatenate(all_true)
-            yp = np.concatenate(all_pred)
-            metrics = _compute_metrics(yt, yp)
 
     result = FillResult(
         filled=filled,

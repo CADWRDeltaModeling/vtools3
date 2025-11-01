@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pandas.tseries.frequencies import to_offset
 
 __all__ = ["calculate_lag"]
 
@@ -22,6 +23,12 @@ def icrosscorr(lag, ts0, ts1):
 def mincrosscorr(lag, ts0, ts1):
     return -icrosscorr(lag, ts0, ts1)
 
+def _coerce_fixed_duration(x, name):
+    off = to_offset(x)  # accepts '15min', Minute(15), Timedelta, etc.
+    nanos = getattr(off, "nanos", None)
+    if nanos is None:
+        raise ValueError(f"{name} must be a fixed interval (e.g., '15min', '3600s').")
+    return pd.Timedelta(nanos, unit="ns")
 
 def calculate_lag(lagged, base, max_lag, res, interpolate_method="linear"):
     """Calculate shift in lagged, that maximizes cross-correlation with base.
@@ -68,11 +75,15 @@ def calculate_lag(lagged, base, max_lag, res, interpolate_method="linear"):
     if not isinstance(lagged, pd.Series):
         raise ValueError("base and lagged arguments must be Series")
 
+    res     = _coerce_fixed_duration(res, "res")
+    max_lag = _coerce_fixed_duration(max_lag, "max_lag")
+    L = int(np.round(max_lag / res))  # robust step count
+
     lagged_hr = lagged.resample(res).interpolate(interpolate_method)
     do_plot = False
     if do_plot:
         lagstride = 6
-        ilag = np.arange(-max_lag / res, max_lag / res, lagstride)
+        ilag = np.arange(-L, L, lagstride)
         ccors = []
         for i in ilag:
             ccors.append(icrosscorr(i, base, lagged_hr))
