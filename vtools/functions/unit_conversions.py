@@ -207,10 +207,13 @@ def convert_units(values, in_unit: str, out_unit: str):
 
     # EC ↔ PSU at 25C (never hand 'psu' to a generic backend)
     if iu in ("ec", "us/cm", "uS cm-1", "micromhos/cm") and ou == "psu":
-        return ec_psu_25c(values, hill_correction=True)  # uses your existing impl
+        # preserve Series/DataFrame structure if present
+        return _rewrap_like(values, ec_psu_25c(values, hill_correction=True))
+
     if iu == "psu" and ou in ("ec", "us/cm", "uS cm-1", "micromhos/cm"):
         out = psu_ec_25c(values, refine=True, hill_correction=True)
-        return out
+        # preserve Series/DataFrame structure if present
+        return _rewrap_like(values, out)
 
     # --- Backend fallback (Pint by default; cf_units if env forces it) -------
     conv = _get_converter(iu, ou)
@@ -223,92 +226,72 @@ def convert_units(values, in_unit: str, out_unit: str):
 # Linear / affine engineering conversions (functional)
 # -----------------------------------------------------------------------------
 def m_to_ft(x):
-    """
-    Convert metres to feet.
+    """Convert metres to feet.
 
     Parameters
     ----------
-    x : array-like or scalar
+    x : scalar | array-like | pd.Series | pd.DataFrame
         Value(s) in metres.
 
     Returns
     -------
-    ndarray or scalar
+    same type as `x`
         Value(s) in feet.
-
-    Notes
-    -----
-    1 m = 3.28084 ft.
     """
     arr = np.asarray(x)
     out = arr * M2FT
-    return out.item() if np.isscalar(x) else out
-
+    return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
 def ft_to_m(x):
-    """
-    Convert feet to metres.
-
+    """Convert feet to metres.
+    
     Parameters
     ----------
-    x : array-like or scalar
+    x : scalar | array-like | pd.Series | pd.DataFrame
         Value(s) in feet.
 
     Returns
     -------
-    ndarray or scalar
-        Value(s) in metres.
-
-    Notes
-    -----
-    1 ft = 0.3048 m.
+    same type as `x`
+        Value(s) in meters.
     """
     arr = np.asarray(x)
     out = arr * FT2M
-    return out.item() if np.isscalar(x) else out
-
+    return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
 def cms_to_cfs(x):
-    """
-    Convert cubic metres per second (cms) to cubic feet per second (cfs).
-
+    """Convert m³/s to ft³/s.
+    
     Parameters
     ----------
-    x : array-like or scalar
-        Flow in m³/s.
+    x : scalar | array-like | pd.Series | pd.DataFrame
+        Value(s) in cms.
 
     Returns
     -------
-    ndarray or scalar
-        Flow in ft³/s.
-
-    Notes
-    -----
-    1 m³/s = 35.31466621 ft³/s.
+    same type as `x`
+        Value(s) in cfs.
     """
     arr = np.asarray(x)
     out = arr * CMS2CFS
-    return out.item() if np.isscalar(x) else out
-
+    return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
 def cfs_to_cms(x):
-    """
-    Convert cubic feet per second (cfs) to cubic metres per second (cms).
-
+    """Convert ft³/s to m³/s.
+    
     Parameters
     ----------
-    x : array-like or scalar
-        Flow in ft³/s.
+    x : scalar | array-like | pd.Series | pd.DataFrame
+        Value(s) in cfs.
 
     Returns
     -------
-    ndarray or scalar
-        Flow in m³/s.
-
-    Notes
-    -----
-    1 ft³/s = 0.028316847 m³/s.
+    same type as `x`
+        Value(s) in cubic meters per second.    
     """
+    arr = np.asarray(x)
+    out = arr * CFS2CMS
+    return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
     if isinstance(x, pd.DataFrame):
         # Element-wise multiply, preserving index/columns
@@ -323,72 +306,41 @@ def cfs_to_cms(x):
 
 
 def fahrenheit_to_celsius(x):
-    """
-    Convert degrees Fahrenheit to degrees Celsius.
-
+    """Convert °F to °C.
+    
     Parameters
     ----------
-    x : array-like or scalar
-        Temperature in °F.
+    x : scalar | array-like | pd.Series | pd.DataFrame
+        Value(s) in degrees F.
 
     Returns
     -------
-    ndarray or scalar
-        Temperature in °C.
-
-    Notes
-    -----
-    °C = (°F − 32) × 5/9.
+    same type as `x`
+        Value(s) in degrees celsius.
     """
-    arr = np.asarray(x)
+    cfs= np.asarray(x)
     out = (arr - 32.0) * (5.0 / 9.0)
-    return out.item() if np.isscalar(x) else out
-
+    return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
 def celsius_to_fahrenheit(x):
-    """
-    Convert degrees Celsius to degrees Fahrenheit.
-
+    """Convert °C to °F.
+    
     Parameters
     ----------
-    x : array-like or scalar
-        Temperature in °C.
+    x : scalar | array-like | pd.Series | pd.DataFrame
+        Value(s) in celsius.
 
     Returns
     -------
-    ndarray or scalar
-        Temperature in °F.
-
-    Notes
-    -----
-    °F = (°C × 1.8) + 32.
+    same type as `x`
+        Value(s) in farenheit. 
     """
     arr = np.asarray(x)
     out = arr * 1.8 + 32.0
-    return out.item() if np.isscalar(x) else out
+    return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
 
-# -----------------------------------------------------------------------------
-# EC (μS/cm) ↔ PSU at 25 °C
-# -----------------------------------------------------------------------------
 def psu_ec_resid(x, psu, hill_correction):
-    """
-    Residual function for root finding in PSU→EC conversion.
-
-    Parameters
-    ----------
-    x : float
-        Candidate EC (μS/cm) value.
-    psu : float
-        Target practical salinity (PSU).
-    hill_correction : bool
-        If True, apply Hill low-salinity correction in EC→PSU mapping.
-
-    Returns
-    -------
-    float
-        `ec_psu_25c(x) - psu` evaluated at `x`.
-    """
     return ec_psu_25c(x, hill_correction) - psu
 
 
@@ -448,12 +400,16 @@ def ec_psu_25c(ec, hill_correction=True):
             - b_0_f / (1.0 + np.sqrt(y) + y + y * np.sqrt(y))
         )
 
-    if np.isscalar(ec):
-        return float(s) if not np.isnan(s) else s
     out = np.asarray(s, dtype=float)
-    if np.any(neg_mask):
+
+    # Single scalar branch: `s` already encodes NaN for invalid scalar inputs
+    if np.isscalar(ec):
+        return float(out)
+
+    # Array-like branch: apply the invalid mask (if any) and rewrap
+    if 'neg_mask' in locals() and np.any(neg_mask):
         out[neg_mask] = np.nan
-    return out
+    return _rewrap_like(ec, out)
 
 
 def psu_ec_25c_scalar(psu, refine=True, hill_correction=True):
@@ -534,7 +490,11 @@ def psu_ec_25c(psu, refine=True, hill_correction=True):
         EC in μS/cm. Scalar input returns a scalar; array-like input returns
         a NumPy array of the same shape.
     """
+
     if np.isscalar(psu):
         return psu_ec_25c_scalar(psu, refine, hill_correction)
     arr = np.asarray(psu)
-    return psu_ec_25c_vec(arr, refine, hill_correction)
+    out = psu_ec_25c_vec(arr, refine, hill_correction)
+    return _rewrap_like(psu, out)
+
+
