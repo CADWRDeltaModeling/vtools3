@@ -36,3 +36,4 @@ from vtools.functions.merge import *
 from vtools.functions.interpolate import *
 from vtools.functions.lag_cross_correlation import *
 from vtools.functions.envelope import *
+from vtools.functions.neighbor_fill import *

@@ -50,6 +50,8 @@ import warnings
 import numpy as np
 import pandas as pd
 
+__all__ = ["fill_from_neighbor", "FillResult"]
+
 # Optional heavy dependencies
 try:
     import statsmodels.api as sm
