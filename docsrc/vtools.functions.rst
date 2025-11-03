@@ -12,6 +12,14 @@ vtools.functions.climatology module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.colname\_align module
+--------------------------------------
+
+.. automodule:: vtools.functions.colname_align
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.envelope module
 --------------------------------
 
@@ -84,6 +92,14 @@ vtools.functions.merge module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.neighbor\_fill module
+--------------------------------------
+
+.. automodule:: vtools.functions.neighbor_fill
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.period\_op module
 ----------------------------------
 
@@ -92,18 +108,18 @@ vtools.functions.period\_op module
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.read\_dss module
----------------------------------
-
-.. automodule:: vtools.functions.read_dss
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 vtools.functions.savitzky\_golay module
 ---------------------------------------
 
 .. automodule:: vtools.functions.savitzky_golay
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.functions.separate\_species module
+-----------------------------------------
+
+.. automodule:: vtools.functions.separate_species
    :members:
    :undoc-members:
    :show-inheritance:

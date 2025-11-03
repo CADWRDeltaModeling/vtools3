@@ -117,8 +117,10 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">vtools.data.vtime</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">_datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span> <span class="k">as</span> <span class="n">numtype</span>
+<span class="kn">from</span> <span class="nn">vtools.data.vtime</span> <span class="kn">import</span> <span class="o">*</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -144,8 +146,7 @@
         <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span></div>
 
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Callable</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
 
 <div class="viewcode-block" id="rename_columns">
 <a class="viewcode-back" href="../../../vtools.data.html#vtools.data.timeseries.rename_columns">[docs]</a>
@@ -345,7 +346,7 @@
 <span class="sd">        A regular time series with the `freq` attribute set</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span> <span class="k">as</span> <span class="n">numtype</span>
+
 
     <span class="n">ndx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
     <span class="n">secs</span> <span class="o">=</span> <span class="p">(</span><span class="n">ndx</span> <span class="o">-</span> <span class="n">ndx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
@@ -630,7 +631,6 @@
 
 
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
 <div class="viewcode-block" id="is_regular">
@@ -716,116 +716,6 @@
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="kc">True</span></div>
 
-
-
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">PchipInterpolator</span>
-
-
-<div class="viewcode-block" id="transition_ts">
-<a class="viewcode-back" href="../../../vtools.data.html#vtools.data.timeseries.transition_ts">[docs]</a>
-<span class="k">def</span> <span class="nf">transition_ts</span><span class="p">(</span>
-    <span class="n">ts0</span><span class="p">,</span> <span class="n">ts1</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">create_gap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;series&quot;</span>
-<span class="p">):</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts0</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts1</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">ts0</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ts0 and ts1 must be of the same type (Series or DataFrame).&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span> <span class="o">!=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ts0 and ts1 must have the same frequency.&quot;</span><span class="p">)</span>
-
-    <span class="n">freq</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
-
-    <span class="c1"># Determine transition interval</span>
-    <span class="k">if</span> <span class="n">create_gap</span><span class="p">:</span>
-        <span class="n">trans_start</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">create_gap</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">trans_end</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">create_gap</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-        <span class="c1"># Start anchor</span>
-        <span class="k">if</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">trans_start</span><span class="p">:</span>
-            <span class="n">start_time</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">start_val</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">start_time</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[:</span><span class="n">trans_start</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">start_val</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[:</span><span class="n">trans_start</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="c1"># End anchor</span>
-        <span class="k">if</span> <span class="n">ts1</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">trans_end</span><span class="p">:</span>
-            <span class="n">end_time</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">end_val</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">end_time</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trans_end</span><span class="p">:]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">end_val</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trans_end</span><span class="p">:]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">trans_start</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">freq</span>
-        <span class="n">trans_end</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">freq</span>
-        <span class="n">start_time</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">start_val</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">end_time</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">end_val</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="n">trans_index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">trans_start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">trans_end</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trans_index</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Transition zone must have at least two steps.&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Interpolation</span>
-    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
-        <span class="n">total_duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
-        <span class="n">rel_pos</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="n">total_duration</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trans_index</span>
-        <span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts0</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-            <span class="n">interpolated</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">rel_pos</span><span class="p">,</span> <span class="n">start_val</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">rel_pos</span><span class="p">,</span> <span class="n">end_val</span><span class="p">),</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">trans_index</span><span class="p">,</span>
-                <span class="n">columns</span><span class="o">=</span><span class="n">ts0</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">interpolated</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-                <span class="p">[(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="n">start_val</span> <span class="o">+</span> <span class="n">p</span> <span class="o">*</span> <span class="n">end_val</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rel_pos</span><span class="p">],</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">trans_index</span><span class="p">,</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">ts0</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="p">)</span>
-
-    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;pchip&quot;</span><span class="p">:</span>
-        <span class="n">n_before</span><span class="p">,</span> <span class="n">n_after</span> <span class="o">=</span> <span class="n">overlap</span>
-
-        <span class="n">seg0</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[:</span><span class="n">trans_start</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="n">n_before</span><span class="p">:]</span>
-            <span class="k">if</span> <span class="n">n_before</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="k">else</span> <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span>
-        <span class="p">)</span>
-        <span class="n">seg1</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trans_end</span><span class="p">:]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n_after</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">n_after</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="k">else</span> <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="n">ts1</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
-        <span class="p">)</span>
-        <span class="n">all_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">seg0</span><span class="p">,</span> <span class="n">seg1</span><span class="p">])</span>
-        <span class="n">all_data</span> <span class="o">=</span> <span class="n">all_data</span><span class="p">[</span><span class="o">~</span><span class="n">all_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()]</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts0</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
-            <span class="n">interp</span> <span class="o">=</span> <span class="n">PchipInterpolator</span><span class="p">(</span><span class="n">all_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span> <span class="n">all_data</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-            <span class="n">interpolated</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-                <span class="n">interp</span><span class="p">(</span><span class="n">trans_index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)),</span> <span class="n">index</span><span class="o">=</span><span class="n">trans_index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">ts0</span><span class="o">.</span><span class="n">name</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">interpolated</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">trans_index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">ts0</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ts0</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">interp</span> <span class="o">=</span> <span class="n">PchipInterpolator</span><span class="p">(</span>
-                    <span class="n">all_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span> <span class="n">all_data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-                <span class="p">)</span>
-                <span class="n">interpolated</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">trans_index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only &#39;linear&#39; and &#39;pchip&#39; methods are supported.&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Final output</span>
-    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;glue&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">interpolated</span>
-    <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;series&quot;</span><span class="p">:</span>
-        <span class="n">ts0_trunc</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[:</span> <span class="n">trans_start</span> <span class="o">-</span> <span class="n">freq</span><span class="p">]</span>
-        <span class="n">ts1_trunc</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trans_end</span> <span class="o">+</span> <span class="n">freq</span> <span class="p">:]</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">ts0_trunc</span><span class="p">,</span> <span class="n">interpolated</span><span class="p">,</span> <span class="n">ts1_trunc</span><span class="p">])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;return_type must be either &#39;glue&#39; or &#39;series&#39;.&quot;</span><span class="p">)</span></div>
 
 
 

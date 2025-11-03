@@ -224,12 +224,20 @@
 <span class="sd">    ts1 : pandas.Series or pandas.DataFrame</span>
 <span class="sd">        The final time series segment. Must share the same frequency and type as `ts0`.</span>
 
-<span class="sd">    method : {&quot;linear&quot;, &quot;pchip&quot;}, default=&quot;linear&quot;</span>
-<span class="sd">        The interpolation method to use for generating the transition.</span>
+<span class="sd">    method : {&quot;linear&quot;, &quot;pchip&quot;, &quot;blend&quot;}, default=&quot;linear&quot;</span>
+<span class="sd">        The interpolation strategy:</span>
+<span class="sd">        - &quot;linear&quot;: interpolate across a gap using endpoints from ts0/ts1.</span>
+<span class="sd">        - &quot;pchip&quot;: shape-preserving interpolation using nearby points (see `overlap`).</span>
+<span class="sd">        - &quot;blend&quot;: requires an explicit `window=(start, end)` where both ts0 and ts1</span>
+<span class="sd">          have values on every timestamp; returns a linear combination</span>
+<span class="sd">          (1 - w(t)) * ts0(t) + w(t) * ts1(t) with w(start)=0 → w(end)=1.</span>
 
 <span class="sd">    window : [start, end] or None</span>
-<span class="sd">        If None and there&#39;s a natural gap (ts0.last &lt; ts1.first), that full gap is used.</span>
-<span class="sd">        If provided, start&lt;end, ts0 must have samples at/before start, ts1 at/after end.</span>
+<span class="sd">        - For &quot;linear&quot;/&quot;pchip&quot;: If None and there&#39;s a natural gap (ts0.last &lt; ts1.first),</span>
+<span class="sd">          that full gap is used. If provided, start&lt;end, ts0 must have a sample at/before</span>
+<span class="sd">          start and ts1 at/after end; optional widening to a natural gap via `max_snap`.</span>
+<span class="sd">        - For &quot;blend&quot;: **Required.** Both series must cover every timestamp in</span>
+<span class="sd">          [start, end] with non-missing values; no widening or gap logic is applied.</span>
 
 <span class="sd">    names : None, str, or iterable of str, optional</span>
 <span class="sd">        - If `None` (default), inputs must share compatible column names.</span>
@@ -267,6 +275,49 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ts0 and ts1 must have the same frequency.&quot;</span><span class="p">)</span>
 
     <span class="n">freq</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span>
+
+
+    <span class="c1"># --- BLEND mode: explicit overlap with non-missing values in both series ---</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;blend&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;method=&#39;blend&#39; requires window=(start, end).&quot;</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">window</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="n">end</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;blend window start must be strictly before end.&quot;</span><span class="p">)</span>
+        <span class="c1"># exact inclusive grid for the blend interval</span>
+        <span class="n">trans_index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trans_index</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;blend window must contain at least two timestamps.&quot;</span><span class="p">)</span>
+        <span class="c1"># require full coverage with no NaNs</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">seg0</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trans_index</span><span class="p">]</span>
+            <span class="n">seg1</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trans_index</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both series must cover every timestamp in the blend window.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ts0</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">seg0</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="n">seg1</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NaNs found within blend window in ts0/ts1.&quot;</span><span class="p">)</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">trans_index</span><span class="p">))[:,</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">blended_vals</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">seg0</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="n">seg1</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">blended</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">blended_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">trans_index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">ts0</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">seg0</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="n">seg1</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NaNs found within blend window in ts0/ts1.&quot;</span><span class="p">)</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">trans_index</span><span class="p">))</span>
+            <span class="n">blended_vals</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">seg0</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="n">seg1</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">blended</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">blended_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">trans_index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">ts0</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># splice: ts0 before start, blend in [start,end], ts1 after end</span>
+        <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;glue&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">blended</span>
+        <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;series&quot;</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="n">ts0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ts0</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">]</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="n">ts1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ts1</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">left</span><span class="p">,</span> <span class="n">blended</span><span class="p">,</span> <span class="n">right</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;return_type must be either &#39;glue&#39; or &#39;series&#39;.&quot;</span><span class="p">)</span>
+
+
 
     <span class="c1"># `resolved` is either:</span>
     <span class="c1">#   • (start_time, end_time): data-aligned gap anchors computed from `window`</span>
@@ -349,7 +400,7 @@
                 <span class="p">)</span>
                 <span class="n">interpolated</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">trans_index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only &#39;linear&#39; and &#39;pchip&#39; methods are supported.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only &#39;linear&#39; and &#39;pchip&#39; and &#39;blend&#39; methods are supported.&quot;</span><span class="p">)</span>
 
     <span class="c1"># Final output</span>
     <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;glue&quot;</span><span class="p">:</span>

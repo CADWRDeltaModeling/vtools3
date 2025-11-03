@@ -107,12 +107,20 @@ def transition_ts(
     ts1 : pandas.Series or pandas.DataFrame
         The final time series segment. Must share the same frequency and type as `ts0`.
 
-    method : {"linear", "pchip"}, default="linear"
-        The interpolation method to use for generating the transition.
+    method : {"linear", "pchip", "blend"}, default="linear"
+        The interpolation strategy:
+        - "linear": interpolate across a gap using endpoints from ts0/ts1.
+        - "pchip": shape-preserving interpolation using nearby points (see `overlap`).
+        - "blend": requires an explicit `window=(start, end)` where both ts0 and ts1
+          have values on every timestamp; returns a linear combination
+          (1 - w(t)) * ts0(t) + w(t) * ts1(t) with w(start)=0 → w(end)=1.
 
     window : [start, end] or None
-        If None and there's a natural gap (ts0.last < ts1.first), that full gap is used.
-        If provided, start<end, ts0 must have samples at/before start, ts1 at/after end.
+        - For "linear"/"pchip": If None and there's a natural gap (ts0.last < ts1.first),
+          that full gap is used. If provided, start<end, ts0 must have a sample at/before
+          start and ts1 at/after end; optional widening to a natural gap via `max_snap`.
+        - For "blend": **Required.** Both series must cover every timestamp in
+          [start, end] with non-missing values; no widening or gap logic is applied.
 
     names : None, str, or iterable of str, optional
         - If `None` (default), inputs must share compatible column names.
@@ -150,6 +158,49 @@ def transition_ts(
         raise ValueError("ts0 and ts1 must have the same frequency.")
 
     freq = ts0.index.freq
+
+
+    # --- BLEND mode: explicit overlap with non-missing values in both series ---
+    if method == "blend":
+        if window is None:
+            raise ValueError("method='blend' requires window=(start, end).")
+        start = pd.Timestamp(window[0])
+        end = pd.Timestamp(window[1])
+        if start >= end:
+            raise ValueError("blend window start must be strictly before end.")
+        # exact inclusive grid for the blend interval
+        trans_index = pd.date_range(start=start, end=end, freq=freq)
+        if len(trans_index) < 2:
+            raise ValueError("blend window must contain at least two timestamps.")
+        # require full coverage with no NaNs
+        try:
+            seg0 = ts0.loc[trans_index]
+            seg1 = ts1.loc[trans_index]
+        except KeyError:
+            raise ValueError("Both series must cover every timestamp in the blend window.")
+        if isinstance(ts0, pd.DataFrame):
+            if seg0.isna().any().any() or seg1.isna().any().any():
+                raise ValueError("NaNs found within blend window in ts0/ts1.")
+            w = np.linspace(0.0, 1.0, len(trans_index))[:, None]
+            blended_vals = (1.0 - w) * seg0.to_numpy(dtype=float) + w * seg1.to_numpy(dtype=float)
+            blended = pd.DataFrame(blended_vals, index=trans_index, columns=ts0.columns)
+        else:
+            if seg0.isna().any() or seg1.isna().any():
+                raise ValueError("NaNs found within blend window in ts0/ts1.")
+            w = np.linspace(0.0, 1.0, len(trans_index))
+            blended_vals = (1.0 - w) * seg0.to_numpy(dtype=float) + w * seg1.to_numpy(dtype=float)
+            blended = pd.Series(blended_vals, index=trans_index, name=ts0.name)
+        # splice: ts0 before start, blend in [start,end], ts1 after end
+        if return_type == "glue":
+            return blended
+        elif return_type == "series":
+            left = ts0.loc[ts0.index < start]
+            right = ts1.loc[ts1.index > end]
+            return pd.concat([left, blended, right])
+        else:
+            raise ValueError("return_type must be either 'glue' or 'series'.")
+
+
 
     # `resolved` is either:
     #   • (start_time, end_time): data-aligned gap anchors computed from `window`
@@ -232,7 +283,7 @@ def transition_ts(
                 )
                 interpolated[col] = interp(trans_index.astype(np.int64))
     else:
-        raise ValueError("Only 'linear' and 'pchip' methods are supported.")
+        raise ValueError("Only 'linear' and 'pchip' and 'blend' methods are supported.")
 
     # Final output
     if return_type == "glue":

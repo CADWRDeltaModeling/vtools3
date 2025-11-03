@@ -264,7 +264,7 @@
 
 
 <div class="viewcode-block" id="PchipInterpolator">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.PchipInterpolator">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.PchipInterpolator">[docs]</a>
 <span class="k">class</span> <span class="nc">PchipInterpolator</span><span class="p">(</span><span class="n">CubicHermiteSpline</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;PCHIP 1-D monotonic cubic interpolation.</span>
 
@@ -342,7 +342,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PchipInterpolator.__init__">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.PchipInterpolator.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">extrapolate</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">prepare_input</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
         <span class="n">xp</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span><span class="o">*</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">ndim</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
@@ -352,7 +352,7 @@
 
 
 <div class="viewcode-block" id="PchipInterpolator._edge_case">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.PchipInterpolator._edge_case">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.PchipInterpolator._edge_case">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_edge_case</span><span class="p">(</span><span class="n">h0</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">m0</span><span class="p">,</span> <span class="n">m1</span><span class="p">):</span>
         <span class="c1"># one-sided three-point estimate for the derivative</span>
@@ -370,7 +370,7 @@
 
 
 <div class="viewcode-block" id="PchipInterpolator._find_derivatives">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.data.timeseries.PchipInterpolator._find_derivatives">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.envelope.PchipInterpolator._find_derivatives">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_find_derivatives</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="c1"># Determine the derivatives at the points y_k, d_k, by using</span>
