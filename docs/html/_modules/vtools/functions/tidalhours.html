@@ -107,72 +107,31 @@
           <div class="body" role="main">
             
   <h1>Source code for vtools.functions.tidalhours</h1><div class="highlight"><pre>
-<span></span><span class="c1">################################################################</span>
-<span class="c1"># Three related functions for analyzing tidal cycles from time series data:</span>
-<span class="c1"># 1. `find_slack(jd, u, leave_mean=False, which=&#39;both&#39;)`</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for analyzing tidal cycles from time series data.</span>
 
-<span class="c1"># - **Purpose:**</span>
-<span class="c1">#   Identifies the times of &quot;slack water&quot;—the moments when tidal current velocity (`u`) crosses zero (i.e., transitions between ebb and flood tides).</span>
-<span class="c1"># - **Inputs:**</span>
-<span class="c1">#   - `jd`: Array of time values (Julian days or similar).</span>
-<span class="c1">#   - `u`: Array of velocity values (flood-positive).</span>
-<span class="c1">#   - `leave_mean`: If `False`, removes the mean (low-frequency) component from `u`.</span>
-<span class="c1">#   - `which`: `&#39;both&#39;`, `&#39;high&#39;`, or `&#39;low&#39;`—specifies which zero-crossings to return.</span>
-<span class="c1"># - **Process:**</span>
-<span class="c1">#   - Applies a lowpass filter to smooth `u`.</span>
-<span class="c1">#   - Optionally removes the mean (longer-term trend).</span>
-<span class="c1">#   - Interpolates missing values.</span>
-<span class="c1">#   - Finds indices where `u` crosses zero (from negative to positive or vice versa).</span>
-<span class="c1">#   - Interpolates to estimate the exact time of zero-crossing.</span>
-<span class="c1">#   - Determines whether the series starts with ebb or flood.</span>
-<span class="c1"># - **Returns:**</span>
-<span class="c1">#   - `jd_slack`: Array of times when slack water occurs.</span>
-<span class="c1">#   - `start`: String, either `&#39;ebb&#39;` or `&#39;flood&#39;`, indicating the initial state.</span>
+<span class="sd">This module provides functions to analyze tidal time series, identify slack water times,</span>
+<span class="sd">and map any time to its position within the tidal cycle (tidal hour). This is useful for</span>
+<span class="sd">tidal phase analysis in estuarine and coastal studies.</span>
 
-<span class="c1"># ---</span>
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">find_slack(jd, u, leave_mean=False, which=&#39;both&#39;)</span>
+<span class="sd">    Identifies the times of &quot;slack water&quot;—the moments when tidal current velocity (`u`) crosses zero.</span>
 
-<span class="c1"># ### 2. `hour_tide(jd, u=None, h=None, jd_new=None, leave_mean=False)`</span>
+<span class="sd">hour_tide(jd, u=None, h=None, jd_new=None, leave_mean=False)</span>
+<span class="sd">    Calculates the &quot;tidal hour&quot; for each time point, i.e., the phase of the tidal cycle (0–12, where 0 is slack before ebb).</span>
 
-<span class="c1"># - **Purpose:**</span>
-<span class="c1">#   Calculates the &quot;tidal hour&quot; for each time point, i.e., the phase of the tidal cycle (0–12, where 0 is slack before ebb).</span>
-<span class="c1"># - **Inputs:**</span>
-<span class="c1">#   - `jd`: Array of time values.</span>
-<span class="c1">#   - `u`: Velocity time series (optional).</span>
-<span class="c1">#   - `h`: Water level time series (optional).</span>
-<span class="c1">#   - `jd_new`: Optional new time points to evaluate.</span>
-<span class="c1">#   - `leave_mean`: See above.</span>
-<span class="c1"># - **Process:**</span>
-<span class="c1">#   - If only `h` is given, computes velocity as the time derivative of `h`.</span>
-<span class="c1">#   - Calls `hour_tide_fn` to get a function mapping time to tidal hour.</span>
-<span class="c1">#   - Evaluates this function at `jd_new` (or `jd` if not provided).</span>
-<span class="c1"># - **Returns:**</span>
-<span class="c1">#   - Array of tidal hour values (0–12) for each time point.</span>
+<span class="sd">hour_tide_fn(jd, u, leave_mean=False)</span>
+<span class="sd">    Returns a function that computes tidal hour for arbitrary time points, based on the provided time/velocity series.</span>
 
-<span class="c1"># ---</span>
+<span class="sd">tidal_hour_signal(ts, filter=True)</span>
+<span class="sd">    Compute the tidal hour of a semidiurnal signal.</span>
 
-<span class="c1"># ### 3. `hour_tide_fn(jd, u, leave_mean=False)`</span>
+<span class="sd">diff_h(tidal_hour_series)</span>
+<span class="sd">    Compute the time derivative of tidal hour.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
-<span class="c1"># - **Purpose:**</span>
-<span class="c1">#   Returns a function that computes tidal hour for arbitrary time points, based on the provided time/velocity series.</span>
-<span class="c1"># - **Inputs:**</span>
-<span class="c1">#   - `jd`: Time array.</span>
-<span class="c1">#   - `u`: Velocity array.</span>
-<span class="c1">#   - `leave_mean`: See above.</span>
-<span class="c1"># - **Process:**</span>
-<span class="c1">#   - Finds slack water times using `find_slack`.</span>
-<span class="c1">#   - Interpolates between slacks to assign a tidal hour (0–12) to each time.</span>
-<span class="c1">#   - Uses angular interpolation to handle the cyclic nature of the tidal hour.</span>
-<span class="c1">#   - Returns a function that maps new time points to tidal hour.</span>
-<span class="c1"># - **Returns:**</span>
-<span class="c1">#   - Function: `fn(jd_new)` → tidal hour array.</span>
-
-<span class="c1"># ---</span>
-
-<span class="c1"># **Summary:**</span>
-<span class="c1"># These functions are used to analyze tidal time series, identifying slack water times and mapping</span>
-<span class="c1"># any time to its position within the tidal cycle (tidal hour). This is useful for tidal phase analysis</span>
-<span class="c1"># in estuarine and coastal studies.</span>
-<span class="c1">#################################################################</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 <span class="kn">from</span> <span class="nn">vtools.functions.filter</span> <span class="kn">import</span> <span class="n">cosine_lanczos5</span>
@@ -186,7 +145,32 @@
 <div class="viewcode-block" id="find_slack">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.tidalhours.find_slack">[docs]</a>
 <span class="k">def</span> <span class="nf">find_slack</span><span class="p">(</span><span class="n">jd</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">leave_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
-    <span class="c1"># returns ([jd, ...], &#39;high&#39;|&#39;low&#39;)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify slack water times from a velocity time series.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jd : array-like</span>
+<span class="sd">        Array of time values (Julian days or similar).</span>
+<span class="sd">    u : array-like</span>
+<span class="sd">        Array of velocity values (flood-positive).</span>
+<span class="sd">    leave_mean : bool, optional</span>
+<span class="sd">        If False, removes the mean (low-frequency) component from `u`.</span>
+<span class="sd">    which : {&#39;both&#39;, &#39;high&#39;, &#39;low&#39;}, optional</span>
+<span class="sd">        Specifies which zero-crossings to return.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    jd_slack : ndarray</span>
+<span class="sd">        Array of times when slack water occurs.</span>
+<span class="sd">    start : {&#39;ebb&#39;, &#39;flood&#39;}</span>
+<span class="sd">        String indicating the initial state.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function detects transitions in the velocity time series where the current</span>
+<span class="sd">    reverses direction (i.e., crosses zero), which correspond to slack water events.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dt</span> <span class="o">=</span> <span class="n">jd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">jd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">dtdelta</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>
     <span class="n">dayindex</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">timedelta_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">jd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">periods</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">jd</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="n">dtdelta</span><span class="p">)</span>
@@ -225,19 +209,33 @@
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.tidalhours.hour_tide">[docs]</a>
 <span class="k">def</span> <span class="nf">hour_tide</span><span class="p">(</span><span class="n">jd</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jd_new</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">leave_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">start_datum</span><span class="o">=</span><span class="s2">&quot;ebb&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calculate tide-hour from a time series of u (velocity, flood-positive)</span>
-<span class="sd">    or h (water level, i.e. positive-up).</span>
+<span class="sd">    Calculate tidal hour from a time series of velocity or water level.</span>
 
-<span class="sd">    jd: time in days, i.e. julian day, datenum, etc.</span>
-<span class="sd">    u: velocity, flood-positive</span>
-<span class="sd">    h: water level, positive up.</span>
-<span class="sd">    jd_new: if you want to evaluate the tidal hour at a different</span>
-<span class="sd">      (but overlapping) set of times.</span>
-<span class="sd">    leave_mean: by default, the time series mean is removed, but this</span>
-<span class="sd">     can be disabled by passing True here.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jd : array-like</span>
+<span class="sd">        Time in days (e.g., Julian day, datenum, etc.).</span>
+<span class="sd">    u : array-like, optional</span>
+<span class="sd">        Velocity, flood-positive.</span>
+<span class="sd">    h : array-like, optional</span>
+<span class="sd">        Water level, positive up.</span>
+<span class="sd">    jd_new : array-like, optional</span>
+<span class="sd">        Optional new time points to evaluate.</span>
+<span class="sd">    leave_mean : bool, optional</span>
+<span class="sd">        By default, the time series mean is removed, but this can be disabled by passing True.</span>
+<span class="sd">    start_datum : {&#39;ebb&#39;, &#39;flood&#39;}, optional</span>
+<span class="sd">        Desired starting datum for tidal hour.</span>
 
-<span class="sd">    the return values are between 0 and 12, with 0 being slack before</span>
-<span class="sd">    ebb (hmm - may need to verify that.).</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray</span>
+<span class="sd">        Array of tidal hour values (0–12) for each time point.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function computes the phase of the tidal cycle (tidal hour) for each time point,</span>
+<span class="sd">    based on either velocity or water level time series. The tidal hour is defined such that</span>
+<span class="sd">    0 corresponds to slack before ebb.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="p">(</span><span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Must specify one of u,h&quot;</span>
     <span class="k">if</span> <span class="n">h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -259,8 +257,27 @@
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.tidalhours.cdiff">[docs]</a>
 <span class="k">def</span> <span class="nf">cdiff</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Like np.diff, but include difference from last element back</span>
-<span class="sd">    to first.</span>
+<span class="sd">    Like np.diff, but include difference from last element back to first.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a : array-like</span>
+<span class="sd">        Input array.</span>
+<span class="sd">    n : int, optional</span>
+<span class="sd">        Order of the difference. Only n=1 is supported.</span>
+<span class="sd">    axis : int, optional</span>
+<span class="sd">        Axis along which the difference is taken.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray</span>
+<span class="sd">        Array of differences, same shape as input.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function computes the difference between consecutive elements of the input array,</span>
+<span class="sd">    and also includes the difference from the last element back to the first, preserving</span>
+<span class="sd">    the array shape.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span>  <span class="c1"># not ready for higher order</span>
     <span class="c1"># assert axis==-1 # also not ready for weird axis</span>
@@ -282,10 +299,29 @@
 <div class="viewcode-block" id="hour_tide_fn">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.tidalhours.hour_tide_fn">[docs]</a>
 <span class="k">def</span> <span class="nf">hour_tide_fn</span><span class="p">(</span><span class="n">jd</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">start_datum</span><span class="o">=</span><span class="s2">&quot;ebb&quot;</span><span class="p">,</span> <span class="n">leave_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a function for extracting tidal hour</span>
-<span class="sd">    from the time/velocity given.</span>
-<span class="sd">    Use the _fn version if making repeated calls with different jd_new,</span>
-<span class="sd">    but the same jd,u</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a function for extracting tidal hour from the time/velocity given.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jd : array-like</span>
+<span class="sd">        Time array.</span>
+<span class="sd">    u : array-like</span>
+<span class="sd">        Velocity array.</span>
+<span class="sd">    start_datum : {&#39;ebb&#39;, &#39;flood&#39;}, optional</span>
+<span class="sd">        Desired starting datum for tidal hour.</span>
+<span class="sd">    leave_mean : bool, optional</span>
+<span class="sd">        If False, removes the mean (low-frequency) component from `u`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function</span>
+<span class="sd">        Function: `fn(jd_new)` → tidal hour array.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function generates a callable that computes tidal hour for arbitrary time points,</span>
+<span class="sd">    based on the provided time and velocity series. The tidal hour is referenced to slack water.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># function hr_tide=hour_tide(jd,u,[jd_new],[leave_mean]);</span>
     <span class="c1">#  translated from rocky&#39;s m-files</span>
@@ -408,15 +444,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the tidal hour of a semidiurnal signal.</span>
 
-<span class="sd">    This function returns the instantaneous phase-based tidal hour for a time series,</span>
-<span class="sd">    assuming a semidiurnal signal. Optionally applies a cosine Lanczos low-pass</span>
-<span class="sd">    filter (e.g., 40h) to isolate tidal components from subtidal or noisy fluctuations.</span>
-
-<span class="sd">    The tidal hour is computed using the phase of the analytic signal obtained</span>
-<span class="sd">    via the Hilbert transform. This phase is then scaled to range from 0 to 12 hours</span>
-<span class="sd">    to represent one semidiurnal tidal cycle. The output is a pandas Series aligned</span>
-<span class="sd">    with the input time index.</span>
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ts : pandas.Series</span>
@@ -432,6 +459,15 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
+<span class="sd">    This function returns the instantaneous phase-based tidal hour for a time series,</span>
+<span class="sd">    assuming a semidiurnal signal. Optionally applies a cosine Lanczos low-pass</span>
+<span class="sd">    filter (e.g., 40h) to isolate tidal components from subtidal or noisy fluctuations.</span>
+
+<span class="sd">    The tidal hour is computed using the phase of the analytic signal obtained</span>
+<span class="sd">    via the Hilbert transform. This phase is then scaled to range from 0 to 12 hours</span>
+<span class="sd">    to represent one semidiurnal tidal cycle. The output is a pandas Series aligned</span>
+<span class="sd">    with the input time index.</span>
+
 <span class="sd">    The tidal hour is derived from the instantaneous phase of the analytic signal.</span>
 <span class="sd">    This signal is computed as:</span>
 
@@ -473,10 +509,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the time derivative of tidal hour.</span>
 
-<span class="sd">    This derivative is often included to capture how rapidly the tidal phase is changing,</span>
-<span class="sd">    which can be important in modeling flow reversals, estuarine dynamics, or for detecting</span>
-<span class="sd">    slack tide conditions where the rate of change is near zero.</span>
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    tidal_hour_series : pandas.Series</span>
@@ -486,6 +518,12 @@
 <span class="sd">    -------</span>
 <span class="sd">    pandas.Series</span>
 <span class="sd">        Time derivative of tidal hour (dH/dt) in hours/hour, indexed by datetime.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This derivative is often included to capture how rapidly the tidal phase is changing,</span>
+<span class="sd">    which can be important in modeling flow reversals, estuarine dynamics, or for detecting</span>
+<span class="sd">    slack tide conditions where the rate of change is near zero.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">tidal_hour_series</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>

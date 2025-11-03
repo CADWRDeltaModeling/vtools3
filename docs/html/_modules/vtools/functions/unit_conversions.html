@@ -111,21 +111,22 @@
 <span class="sd">Unit conversion helpers.</span>
 
 <span class="sd">This module provides:</span>
-<span class="sd">- linear/affine converters for common engineering units:</span>
-<span class="sd">  metres↔feet, cms↔cfs, °F↔°C (all *functional*, no in-place mutation).</span>
-<span class="sd">- Domain-specific conversions between electrical conductivity (EC, μS/cm)</span>
-<span class="sd">  and practical salinity (PSU) at 25 °C, with optional Hill low-salinity</span>
-<span class="sd">  correction and an accuracy-improving root-finding “refinement” step.</span>
-<span class="sd">- a general-purpose unit conversion function `convert_units()` that uses Pint</span>
-<span class="sd">  by default (with an optional cf_units backend via an environment variable),</span>
-<span class="sd">  and that has fast paths for the above common conversions.</span>
+<span class="sd">  - linear/affine converters for common engineering units:</span>
+<span class="sd">    metres↔feet, cms↔cfs, °F↔°C (all *functional*, no in-place mutation).</span>
+<span class="sd">  - Domain-specific conversions between electrical conductivity (EC, μS/cm)</span>
+<span class="sd">    and practical salinity (PSU) at 25 °C, with optional Hill low-salinity</span>
+<span class="sd">    correction and an accuracy-improving root-finding “refinement” step.</span>
+<span class="sd">  - a general-purpose unit conversion function `convert_units()` that uses Pint</span>
+<span class="sd">    by default (with an optional cf_units backend via an environment variable),</span>
+<span class="sd">    and that has fast paths for the above common conversions.</span>
 
 <span class="sd">Notes</span>
 <span class="sd">-----</span>
-<span class="sd">- PSU is treated here as a practical “unit” for salinity in workflows,</span>
-<span class="sd">  even though in a strict metrological sense it is unitless.</span>
-<span class="sd">- The EC↔PSU conversions assume **25 °C** and no explicit temperature</span>
-<span class="sd">  dependence beyond the optional Hill correction.</span>
+
+<span class="sd">  - PSU is treated here as a practical “unit” for salinity in workflows,</span>
+<span class="sd">    even though in a strict metrological sense it is unitless.</span>
+<span class="sd">  - The EC↔PSU conversions assume **25 °C** and no explicit temperature</span>
+<span class="sd">    dependence beyond the optional Hill correction.</span>
 
 <span class="sd">References</span>
 <span class="sd">----------</span>

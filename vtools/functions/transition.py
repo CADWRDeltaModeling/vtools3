@@ -19,13 +19,13 @@ def _parse_max_snap(max_snap):
     raise ValueError("max_snap must be None, a Timedelta-like, or a (left,right) pair.")
 
 
-def _resolve_gap_endpoints_subset_snap(ts0, ts1, create_gap, max_snap=None):
+def _resolve_gap_endpoints_subset_snap(ts0, ts1, window, max_snap=None):
     """
     Contract:
-      - If create_gap is None:
+      - If window is None:
           * If there's a natural gap (ts0.last < ts1.first), use that full gap.
           * Otherwise (overlap/abut), return None to signal 'no explicit gap' (algorithms decide).
-      - If create_gap is provided:
+      - If window is provided:
           * Enforce: start < end; ts0 has <= start; ts1 has >= end. Else: ValueError.
           * If there is a natural gap AND (start,end) is a strict subset of it,
             expand start left and end right by up to max_snap (default 0) but never beyond
@@ -40,7 +40,7 @@ def _resolve_gap_endpoints_subset_snap(ts0, ts1, create_gap, max_snap=None):
     natural_gap = last0 < first1
 
     # No explicit gap
-    if create_gap is None:
+    if window is None:
         if natural_gap:
             # full natural gap
             start_time = ts0.loc[:last0].index[-1]  # == last0
@@ -49,22 +49,22 @@ def _resolve_gap_endpoints_subset_snap(ts0, ts1, create_gap, max_snap=None):
         return None  # overlap/abut: algorithms handle
 
     # Explicit gap provided
-    start = pd.Timestamp(create_gap[0])
-    end = pd.Timestamp(create_gap[1])
+    start = pd.Timestamp(window[0])
+    end = pd.Timestamp(window[1])
     if start >= end:
-        raise ValueError("create_gap start must be strictly before end.")
+        raise ValueError("window start must be strictly before end.")
 
     # Strict domain checks (no salvage for out-of-bounds)
     if ts0.loc[:start].empty:
         first0 = ts0.index.min()
         raise ValueError(
-            f"create_gap start {start} is before the first ts0 sample ({first0}); "
+            f"window start {start} is before the first ts0 sample ({first0}); "
             f"no ts0 samples at or before start."
         )
     if ts1.loc[end:].empty:
         last1 = ts1.index.max()
         raise ValueError(
-            f"create_gap end {end} is after the last ts1 sample ({last1}); "
+            f"window end {end} is after the last ts1 sample ({last1}); "
             f"ts1 must have a sample at or after end."
         )
 
@@ -81,7 +81,7 @@ def _resolve_gap_endpoints_subset_snap(ts0, ts1, create_gap, max_snap=None):
     end_time = ts1.loc[eff_end:].index[0]  # first >= eff_end
     if start_time >= end_time:
         # Shouldn't happen for legitimate gaps; guard just in case
-        raise ValueError("Effective gap has no extent; adjust create_gap or max_snap.")
+        raise ValueError("Effective gap has no extent; adjust window or max_snap.")
     return start_time, end_time
 
 
@@ -90,7 +90,7 @@ def transition_ts(
     ts0,
     ts1,
     method="linear",
-    create_gap=None,  # [start, end] or None
+    window=None,  # [start, end] or None
     overlap=(0, 0),  # as you already have
     return_type="series",
     names=None,
@@ -110,7 +110,7 @@ def transition_ts(
     method : {"linear", "pchip"}, default="linear"
         The interpolation method to use for generating the transition.
 
-    create_gap : [start, end] or None
+    window : [start, end] or None
         If None and there's a natural gap (ts0.last < ts1.first), that full gap is used.
         If provided, start<end, ts0 must have samples at/before start, ts1 at/after end.
 
@@ -126,7 +126,7 @@ def transition_ts(
         - A pandas-compatible frequency string: e.g., "2h" or "45min".
 
     max_snap : None | Timedelta-like | (Timedelta-like, Timedelta-like)
-        Optional widening ONLY when create_gap is strictly inside the natural gap.
+        Optional widening ONLY when window is strictly inside the natural gap.
         Expands start earlier and end later by up to max_snap, but never past
         (ts0.last, ts1.first). Default None = no widening.
 
@@ -142,7 +142,7 @@ def transition_ts(
     Raises
     ------
     ValueError
-        If ts0 and ts1 have mismatched types or frequencies, or if overlap exists but `create_gap` is not specified.
+        If ts0 and ts1 have mismatched types or frequencies, or if overlap exists but `window` is not specified.
     """
     if not isinstance(ts0, (pd.Series, pd.DataFrame)) or not isinstance(ts1, type(ts0)):
         raise ValueError("ts0 and ts1 must be of the same type (Series or DataFrame).")
@@ -152,14 +152,14 @@ def transition_ts(
     freq = ts0.index.freq
 
     # `resolved` is either:
-    #   • (start_time, end_time): data-aligned gap anchors computed from `create_gap`
+    #   • (start_time, end_time): data-aligned gap anchors computed from `window`
     #     (and, if applicable, widened inside the natural gap by `max_snap`), where
     #     start_time = last ts0 sample ≤ start and end_time = first ts1 sample ≥ end.
-    #   • None: no `create_gap` given and no natural gap (the series overlap/abut).
+    #   • None: no `window` given and no natural gap (the series overlap/abut).
     # In the None case we fall back to adjacent endpoints (ts0.last, ts1.first) and let
     # the width guard (`len(trans_index) < 2`) decide if there’s room to transition.
     resolved = _resolve_gap_endpoints_subset_snap(
-        ts0, ts1, create_gap, max_snap=max_snap
+        ts0, ts1, window, max_snap=max_snap
     )
 
     if resolved is None:
@@ -174,8 +174,8 @@ def transition_ts(
     trans_start = start_time + freq
     trans_end = end_time - freq
     trans_index = pd.date_range(start=trans_start, end=trans_end, freq=freq)
-    # ONLY error on short width for natural-gap (create_gap is None)
-    require_two_steps = create_gap is None
+    # ONLY error on short width for natural-gap (window is None)
+    require_two_steps = window is None
     if require_two_steps and len(trans_index) < 2:
         raise ValueError("Transition zone must have at least two steps.")
 

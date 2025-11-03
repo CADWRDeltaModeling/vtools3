@@ -307,7 +307,7 @@ def select_salient_extrema(extrema, typ, spacing_hours=14, envelope_type="outer"
     passed_right = []
     kept = []
 
-    for i, row in extrema.iterrows():
+    for _, row in extrema.iterrows():
         t, v = row["time"], row["value"]
 
         left = extrema[(extrema["time"] < t) & (extrema["time"] >= t - spacing)]

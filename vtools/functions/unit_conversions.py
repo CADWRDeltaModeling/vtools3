@@ -2,21 +2,22 @@
 Unit conversion helpers.
 
 This module provides:
-- linear/affine converters for common engineering units:
-  metres↔feet, cms↔cfs, °F↔°C (all *functional*, no in-place mutation).
-- Domain-specific conversions between electrical conductivity (EC, μS/cm)
-  and practical salinity (PSU) at 25 °C, with optional Hill low-salinity
-  correction and an accuracy-improving root-finding “refinement” step.
-- a general-purpose unit conversion function `convert_units()` that uses Pint
-  by default (with an optional cf_units backend via an environment variable),
-  and that has fast paths for the above common conversions.
+  - linear/affine converters for common engineering units:
+    metres↔feet, cms↔cfs, °F↔°C (all *functional*, no in-place mutation).
+  - Domain-specific conversions between electrical conductivity (EC, μS/cm)
+    and practical salinity (PSU) at 25 °C, with optional Hill low-salinity
+    correction and an accuracy-improving root-finding “refinement” step.
+  - a general-purpose unit conversion function `convert_units()` that uses Pint
+    by default (with an optional cf_units backend via an environment variable),
+    and that has fast paths for the above common conversions.
 
 Notes
 -----
-- PSU is treated here as a practical “unit” for salinity in workflows,
-  even though in a strict metrological sense it is unitless.
-- The EC↔PSU conversions assume **25 °C** and no explicit temperature
-  dependence beyond the optional Hill correction.
+
+  - PSU is treated here as a practical “unit” for salinity in workflows,
+    even though in a strict metrological sense it is unitless.
+  - The EC↔PSU conversions assume **25 °C** and no explicit temperature
+    dependence beyond the optional Hill correction.
 
 References
 ----------

@@ -1,39 +1,37 @@
 """Neighbor-based time-series gap filling.
 
-    This module provides a single high-level API, :func:`fill_from_neighbor`,
-    with pluggable backends for common algorithms used to infer a target series
-    from one or more nearby stations. It is designed for operational use in
-    Delta/Bay hydrodynamics workflows, but is intentionally general.
+This module provides a single high-level API, :func:`fill_from_neighbor`,
+with pluggable backends for common algorithms used to infer a target series
+from one or more nearby stations. It is designed for operational use in
+Delta/Bay hydrodynamics workflows, but is intentionally general.
 
-    Highlights
-    ----------
-    - Robust time alignment and optional resampling.
-    - Multiple modeling strategies: OLS/robust, rolling regression,
-    lagged elastic-net, and state-space/Kalman.
-    - Forward-chaining (temporal) cross-validation utilities.
-    - Optional regime stratification (e.g., barrier in/out, season).
-    - Uncertainty estimates where available (analytic or residual-based).
-    - Clear return structure with diagnostics for auditability.
+Highlights
+----------
+- Robust time alignment and optional resampling.
+- Multiple modeling strategies: OLS/robust, rolling regression, lagged elastic-net, and state-space/Kalman.
+- Forward-chaining (temporal) cross-validation utilities.
+- Optional regime stratification (e.g., barrier in/out, season).
+- Uncertainty estimates where available (analytic or residual-based).
+- Clear return structure with diagnostics for auditability.
 
-    Example
-    -------
-    >>> res = fill_from_neighbor(
-    ...     target=y, neighbor=x, method="state_space", lags=range(0, 4),
-    ...     bounds=(0.0, None), regime=regime_series
-    ... )
-    >>> filled = res["filled"]
-    >>> info = res["model_info"]
+Example
+-------
+>>> res = fill_from_neighbor(
+...     target=y, neighbor=x, method="state_space", lags=range(0, 4),
+...     bounds=(0.0, None), regime=regime_series
+... )
+>>> filled = res["filled"]
+>>> info = res["model_info"]
 
-    Notes
-    -----
-    - "Neighbor" can be one series or multiple (as a DataFrame); both are supported.
-    - Missing data in the target are left as-is where the model cannot reasonably
-    infer a value (e.g., no overlapping neighbor data). Where predictions exist,
-    they are merged into the target to produce `filled`.
-    - For state-space and ARIMAX, missing values are handled natively by the
-    Kalman filter/SARIMAX, but the model must still be trained on an overlap
-    window that contains data.
+Notes
+-----
+- "Neighbor" can be one series or multiple (as a DataFrame); both are supported.
+- Missing data in the target are left as-is where the model cannot reasonably infer a value (e.g.no
+  overlapping neighbor data). Where predictions exist, they are merged into the target to produce `filled`.
+  DFM methods can carry through a gap in the neighbor.
+
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
@@ -58,6 +56,7 @@ try:
     import statsmodels.formula.api as smf  # noqa: F401
     from statsmodels.robust.robust_linear_model import RLM
     from statsmodels.robust.norms import HuberT
+
     HAVE_SM = True
 except Exception:  # pragma: no cover
     HAVE_SM = False
@@ -66,6 +65,7 @@ try:
     from sklearn.linear_model import ElasticNetCV
     from sklearn.preprocessing import StandardScaler
     from sklearn.pipeline import Pipeline
+
     HAVE_SK = True
 except Exception:  # pragma: no cover
     HAVE_SK = False
@@ -110,11 +110,14 @@ class FillResult:
 
 _DEF_FREQ_ERR = "Target and neighbor must arrive on the same regular time grid (same step and phase). "
 
+
 def _assert_same_regular_grid(idx_y: pd.DatetimeIndex, idx_x: pd.DatetimeIndex) -> None:
     """Raise if the two indices are not on the same regular grid (same step & phase)."""
     for name, idx in (("target", idx_y), ("neighbor", idx_x)):
         if idx.tz is not None and idx_y.tz != idx_x.tz:
-            raise ValueError("Mixed timezones between target and neighbor are not allowed.")
+            raise ValueError(
+                "Mixed timezones between target and neighbor are not allowed."
+            )
         if idx.size < 2:
             continue  # trivially OK (we'll fail later if there is no overlap)
         # check monotone and constant step
@@ -128,13 +131,18 @@ def _assert_same_regular_grid(idx_y: pd.DatetimeIndex, idx_x: pd.DatetimeIndex) 
         step_y = (idx_y[1] - idx_y[0]).to_numpy()
         step_x = (idx_x[1] - idx_x[0]).to_numpy()
         if step_y != step_x:
-            raise ValueError(_DEF_FREQ_ERR + f" (step mismatch: {pd.Timedelta(step_y)} vs {pd.Timedelta(step_x)})")
+            raise ValueError(
+                _DEF_FREQ_ERR
+                + f" (step mismatch: {pd.Timedelta(step_y)} vs {pd.Timedelta(step_x)})"
+            )
         # compare phase relative to a fixed epoch
         epoch = pd.Timestamp("1970-01-01", tz=idx_y.tz)
         rem_y = (idx_y[0] - epoch).to_timedelta64() % step_y
         rem_x = (idx_x[0] - epoch).to_timedelta64() % step_x
         if rem_y != rem_x:
-            raise ValueError(_DEF_FREQ_ERR + " (phase mismatch: grids are offset in time)")
+            raise ValueError(
+                _DEF_FREQ_ERR + " (phase mismatch: grids are offset in time)"
+            )
 
 
 def _as_series_like(x: Union[pd.Series, pd.DataFrame], name: str) -> pd.DataFrame:
@@ -154,9 +162,7 @@ def _align(
     how: str = "inner",
     allow_empty: bool = False,
 ) -> Tuple[pd.Series, pd.DataFrame]:
-    """Align target and neighbor(s) on a common DatetimeIndex.
-
-    """
+    """Align target and neighbor(s) on a common DatetimeIndex."""
     if not isinstance(y.index, pd.DatetimeIndex):
         raise TypeError("target index must be a DatetimeIndex")
     X = _as_series_like(X, name="x")
@@ -209,7 +215,9 @@ def _add_lagged_X(X: pd.DataFrame, lags: Iterable[int]) -> pd.DataFrame:
     return pd.concat(Xlags, axis=1)
 
 
-def _forward_chain_splits(n: int, n_splits: int = 3, min_train: int = 50) -> List[Tuple[np.ndarray, np.ndarray]]:
+def _forward_chain_splits(
+    n: int, n_splits: int = 3, min_train: int = 50
+) -> List[Tuple[np.ndarray, np.ndarray]]:
     """Generate forward-chaining train/test index splits for time series.
 
     Parameters
@@ -241,15 +249,16 @@ def _compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]
     with np.errstate(invalid="ignore"):
         resid = y_true - y_pred
         mae = float(np.nanmean(np.abs(resid)))
-        rmse = float(np.sqrt(np.nanmean(resid ** 2)))
+        rmse = float(np.sqrt(np.nanmean(resid**2)))
         # Simple R^2 (may be negative on holdout)
-        ss_res = np.nansum(resid ** 2)
+        ss_res = np.nansum(resid**2)
         ss_tot = np.nansum((y_true - np.nanmean(y_true)) ** 2)
         r2 = float(1 - ss_res / ss_tot) if ss_tot > 0 else np.nan
     return {"MAE": mae, "RMSE": rmse, "R2": r2}
 
 
 # ------------------------- Model Backends ---------------------------------- #
+
 
 def _fit_substitute(y: pd.Series, X: pd.Series | pd.DataFrame):
     x = X.iloc[:, 0] if isinstance(X, pd.DataFrame) else X
@@ -271,7 +280,9 @@ def _fit_substitute(y: pd.Series, X: pd.Series | pd.DataFrame):
     return yhat, None, None, info
 
 
-def _fit_ols(y: pd.Series, X: pd.DataFrame) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
+def _fit_ols(
+    y: pd.Series, X: pd.DataFrame
+) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
     if not HAVE_SM:
         raise ImportError("statsmodels is required for OLS")
     y_fit, X_fit = _mask_overlap(y, X)
@@ -294,7 +305,9 @@ def _fit_ols(y: pd.Series, X: pd.DataFrame) -> Tuple[pd.Series, Optional[pd.Seri
     return yhat, pi_lower, pi_upper, info
 
 
-def _fit_huber(y: pd.Series, X: pd.DataFrame) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
+def _fit_huber(
+    y: pd.Series, X: pd.DataFrame
+) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
     if not HAVE_SM:
         raise ImportError("statsmodels is required for robust regression")
     y_fit, X_fit = _mask_overlap(y, X)
@@ -340,21 +353,24 @@ def _fit_rolling_regression(
             continue
         res = sm.OLS(yi2.values, Xi2.values).fit()
         # predict at the last row of this window
-        idx = Xc.index[end - 1]                   # <- fixed
+        idx = Xc.index[end - 1]  # <- fixed
         yhat.loc[idx] = float(res.predict(Xc.iloc[[end - 1]].values))
         beta_list.append(res.params)
 
     # PI via rolling residual std (rough)
     pi_lower = None
     pi_upper = None
-    info = {"method": "rolling_regression", "window": int(window), "center": bool(center)}
+    info = {
+        "method": "rolling_regression",
+        "window": int(window),
+        "center": bool(center),
+    }
     if beta_list:
         info["beta_summary"] = {
             "mean": np.mean(beta_list, axis=0).tolist(),
             "std": np.std(beta_list, axis=0).tolist(),
         }
     return yhat, pi_lower, pi_upper, info
-
 
 
 def _fit_lagged_elasticnet(
@@ -372,10 +388,17 @@ def _fit_lagged_elasticnet(
 
     if alphas is None:
         alphas = np.logspace(-3, 1, 20)
-    model = Pipeline([
-        ("scaler", StandardScaler(with_mean=True, with_std=True)),
-        ("enet", ElasticNetCV(l1_ratio=l1_ratio, alphas=alphas, cv=min(n_splits, 5), max_iter=5000)),
-    ])
+    model = Pipeline(
+        [
+            ("scaler", StandardScaler(with_mean=True, with_std=True)),
+            (
+                "enet",
+                ElasticNetCV(
+                    l1_ratio=l1_ratio, alphas=alphas, cv=min(n_splits, 5), max_iter=5000
+                ),
+            ),
+        ]
+    )
     model.fit(Z_fit.values, y_fit.values)
 
     # Predict only where all lagged features exist (no NaNs)
@@ -403,13 +426,11 @@ def _fit_lagged_elasticnet(
     return yhat, pi_lower, pi_upper, info
 
 
-
-
 def fit_loess_time_value(
     y: pd.Series,
     X: pd.DataFrame,
-    frac_time: float = 0.05,     # fraction of available points as neighbors
-    min_neighbors: int = 25,     # floor on neighbors
+    frac_time: float = 0.05,  # fraction of available points as neighbors
+    min_neighbors: int = 25,  # floor on neighbors
 ) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
     """
     Two-dimensional LOESS-like smoother: y(t) ~ f(x(t), t), implemented as
@@ -430,7 +451,7 @@ def fit_loess_time_value(
     # Align y and x to the same index BEFORE making masks (avoids huge align ops)
     y, x = y.align(x, join="inner")
 
-    good = y.notna() & x.notna()          # ← Series & Series (safe)
+    good = y.notna() & x.notna()  # ← Series & Series (safe)
     if good.sum() < 50:
         raise ValueError("Insufficient overlap for loess2d fit.")
 
@@ -491,8 +512,9 @@ def _fit_loess(
     yvals = y_fit.to_numpy()
 
     smoothed = lowess(yvals, xvals, frac=frac, return_sorted=False)
-    yhat = pd.Series(np.interp(X.iloc[:, 0], xvals, smoothed),
-                     index=X.index, name="yhat")
+    yhat = pd.Series(
+        np.interp(X.iloc[:, 0], xvals, smoothed), index=X.index, name="yhat"
+    )
 
     # No rigorous PI, but you can provide a rough one via residual std
     resid = y_fit - np.interp(X_fit.iloc[:, 0], xvals, smoothed)
@@ -506,18 +528,23 @@ def _fit_loess(
 
 # -------------------- Configurable DFM (factor/anomaly options) -------------------- #
 # --- helpers (add near your _DFM2) ------------------------------------------
-def _logit(x): 
-    x = np.clip(float(x), 1e-9, 1-1e-9); return np.log(x/(1-x))
+def _logit(x):
+    x = np.clip(float(x), 1e-9, 1 - 1e-9)
+    return np.log(x / (1 - x))
+
 
 def _inv_logit(z):
     z = float(np.clip(z, -20, 20))
-    return 1.0/(1.0 + np.exp(-z))
+    return 1.0 / (1.0 + np.exp(-z))
+
 
 def _phi_from_logit(z):
-    p = _inv_logit(z)            # in (0,1)
-    return 2*p - 1.0             # map to (-1,1)
+    p = _inv_logit(z)  # in (0,1)
+    return 2 * p - 1.0  # map to (-1,1)
+
 
 # --- variable-size DFM ------------------------------------------------------
+
 
 def _opt_debug(mod, res):
     """Print start vs fitted params (both transformed & constrained)."""
@@ -532,17 +559,17 @@ def _opt_debug(mod, res):
     cs = _constrained(sp)
     ce = _constrained(ep)
 
-    #print("\n=== Optimization summary ===")
-    #print("converged:", getattr(res, "mle_retvals", {}).get("converged"))
-    #print("niter:", getattr(res, "mle_retvals", {}).get("nit") or getattr(res, "mle_retvals", {}).get("niter"))
-    #print(f"{'name':<14} {'start':>12} {'fitted':>12}   {'constrained(start)':>20} {'constrained(fitted)':>20}")
+    # print("\n=== Optimization summary ===")
+    # print("converged:", getattr(res, "mle_retvals", {}).get("converged"))
+    # print("niter:", getattr(res, "mle_retvals", {}).get("nit") or getattr(res, "mle_retvals", {}).get("niter"))
+    # print(f"{'name':<14} {'start':>12} {'fitted':>12}   {'constrained(start)':>20} {'constrained(fitted)':>20}")
     for i, n in enumerate(names):
         s = float(sp[i])
         e = float(ep[i])
         # show key constrained entries if present; else blank
-        k = n.replace("log_","").replace("logit_","")
-        cs_v = cs.get(k, float('nan'))
-        ce_v = ce.get(k, float('nan'))
+        k = n.replace("log_", "").replace("logit_", "")
+        cs_v = cs.get(k, float("nan"))
+        ce_v = ce.get(k, float("nan"))
         print(f"{n:<14} {s:12.4g} {e:12.4g}   {cs_v:20.6g} {ce_v:20.6g}")
     print("============================\n")
 
@@ -550,7 +577,7 @@ def _opt_debug(mod, res):
 def _fit_resid_interp(
     y: pd.Series,
     X: pd.DataFrame,
-    kind: str = "linear",   # "linear" | "pchip"
+    kind: str = "linear",  # "linear" | "pchip"
 ) -> Tuple[pd.Series, Optional[pd.Series], Optional[pd.Series], Dict[str, Any]]:
     """
     Fill y using neighbor via interpolated residuals.
@@ -570,17 +597,23 @@ def _fit_resid_interp(
 
     if m_fit.sum() < 3:
         # fall back: simple scaling
-        raise ValueError("Insufficient overlap to fit residual-interp baseline (need ≥3 points).")
+        raise ValueError(
+            "Insufficient overlap to fit residual-interp baseline (need ≥3 points)."
+        )
 
     # --- 1) Fit baseline y ≈ a + b x on overlap
     try:
         import statsmodels.api as sm  # prefer stable OLS if available
+
         X1 = sm.add_constant(x_al[m_fit].values, has_constant="add")
         res = sm.OLS(y_al[m_fit].values, X1, missing="drop").fit()
-        a_hat = float(res.params[0]); b_hat = float(res.params[1])
+        a_hat = float(res.params[0])
+        b_hat = float(res.params[1])
     except Exception:
         # Ratio fallback if statsmodels not present
-        b_hat = float(np.nanmedian((y_al[m_fit] / x_al[m_fit]).replace([np.inf, -np.inf], np.nan)))
+        b_hat = float(
+            np.nanmedian((y_al[m_fit] / x_al[m_fit]).replace([np.inf, -np.inf], np.nan))
+        )
         if not np.isfinite(b_hat):
             b_hat = 1.0
         a_hat = float(np.nanmedian(y_al[m_fit] - b_hat * x_al[m_fit]))
@@ -599,6 +632,7 @@ def _fit_resid_interp(
     if kind == "pchip":
         try:
             from scipy.interpolate import PchipInterpolator
+
             # Numeric time in seconds for monotonic grid
             t = resid.index.view("i8") / 1e9
             r = resid.values.astype(float)
@@ -647,33 +681,34 @@ def _fit_resid_interp(
     return yhat, pi_lower, pi_upper, info
 
 
-
-
 class DFMFill(MLEModel):
     """
     Bivariate DFM with level+slope common factor and optional anomalies.
-    States (ordered):
-        [ mu, beta, (ay?), (ax?) ]
-    where ay is included iff anom_var in {"target","both"},
-          ax is included iff anom_var in {"neighbor","both"}.
+
     """
-    def __init__(self, endog: pd.DataFrame,
-                 factor: str = "default",        # {"default","trimbur"}
-                 anomaly_mode: str = "ar",       # {"ar","rw"}
-                 anom_var: str = "neighbor",     # {"target","neighbor","both"}
-                 rx_scale: float = 1.0):
-        endog = endog[["y","x"]]
-        assert factor in {"default","trimbur"}
-        assert anomaly_mode in {"ar","rw"}
-        assert anom_var in {"target","neighbor","both"}
+
+    def __init__(
+        self,
+        endog: pd.DataFrame,
+        factor: str = "default",  # {"default","trimbur"}
+        anomaly_mode: str = "ar",  # {"ar","rw"}
+        anom_var: str = "neighbor",  # {"target","neighbor","both"}
+        rx_scale: float = 1.0,
+    ):
+        endog = endog[["y", "x"]]
+        assert factor in {"default", "trimbur"}
+        assert anomaly_mode in {"ar", "rw"}
+        assert anom_var in {"target", "neighbor", "both"}
 
         # Decide which anomaly slots exist and index layout
-        have_ay = anom_var in {"target","both"}
-        have_ax = anom_var in {"neighbor","both"}
-        idx = {"mu":0, "beta":1}
+        have_ay = anom_var in {"target", "both"}
+        have_ax = anom_var in {"neighbor", "both"}
+        idx = {"mu": 0, "beta": 1}
         k = 2
-        if have_ay: idx["ay"], k = k, k+1
-        if have_ax: idx["ax"], k = k, k+1
+        if have_ay:
+            idx["ay"], k = k, k + 1
+        if have_ax:
+            idx["ax"], k = k, k + 1
         self._idx = idx
         self._have_ay, self._have_ax = have_ay, have_ax
 
@@ -692,9 +727,13 @@ class DFMFill(MLEModel):
             names += ["log_q_beta"]
 
         if have_ay:
-            names += (["log_q_ay", "logit_phi_y"] if anomaly_mode=="ar" else ["log_q_ay"])
+            names += (
+                ["log_q_ay", "logit_phi_y"] if anomaly_mode == "ar" else ["log_q_ay"]
+            )
         if have_ax:
-            names += (["log_q_ax", "logit_phi_x"] if anomaly_mode=="ar" else ["log_q_ax"])
+            names += (
+                ["log_q_ax", "logit_phi_x"] if anomaly_mode == "ar" else ["log_q_ax"]
+            )
 
         names += ["log_r_y", "log_r_x", "load"]
         if anom_var == "both":
@@ -708,13 +747,13 @@ class DFMFill(MLEModel):
         T = np.eye(k, dtype=float)
         T[idx["mu"], idx["beta"]] = 1.0  # local-linear trend
         self["transition"] = T
-        self["selection"]  = np.eye(k, dtype=float)
-        self["state_cov"]  = np.eye(k, dtype=float)
-        self["design"]     = np.zeros((2, k), dtype=float)
-        self["obs_cov"]    = np.eye(2, dtype=float)
+        self["selection"] = np.eye(k, dtype=float)
+        self["state_cov"] = np.eye(k, dtype=float)
+        self["design"] = np.zeros((2, k), dtype=float)
+        self["obs_cov"] = np.eye(2, dtype=float)
 
     @property
-    def param_names(self): 
+    def param_names(self):
         return list(self._param_names)
 
     @property
@@ -722,22 +761,26 @@ class DFMFill(MLEModel):
         st = {}
         # factor starts per spec
         if "log_q_mu" in self._param_names:
-            st["log_q_mu"]   = np.log(1e-8)        # default: nonzero
+            st["log_q_mu"] = np.log(1e-8)  # default: nonzero
         # Trimbur has no q_mu param; it will be set to 0.0 in update()
         if "log_q_beta" in self._param_names:
             st["log_q_beta"] = np.log(1e-8)
 
         # anomaly roughness
-        if "log_q_ay" in self._param_names: st["log_q_ay"] = np.log(1e-7)
-        if "log_q_ax" in self._param_names: st["log_q_ax"] = np.log(1e-7)
+        if "log_q_ay" in self._param_names:
+            st["log_q_ay"] = np.log(1e-7)
+        if "log_q_ax" in self._param_names:
+            st["log_q_ax"] = np.log(1e-7)
         # AR phis (if any)
-        if "logit_phi_y" in self._param_names: st["logit_phi_y"] = _logit(0.98)
-        if "logit_phi_x" in self._param_names: st["logit_phi_x"] = _logit(0.98)
+        if "logit_phi_y" in self._param_names:
+            st["logit_phi_y"] = _logit(0.98)
+        if "logit_phi_x" in self._param_names:
+            st["logit_phi_x"] = _logit(0.98)
 
         # measurement & loading
         st["log_r_y"] = np.log(1e-4)
         st["log_r_x"] = np.log(1e-4)
-        st["load"]    = 1.0
+        st["load"] = 1.0
 
         return np.array([st[n] for n in self._param_names], dtype=float)
 
@@ -751,13 +794,23 @@ class DFMFill(MLEModel):
         out = {}
 
         # exp-map variances safely
-        for k in ("log_q_mu","log_q_beta","log_q_ay","log_q_ax","log_r_y","log_r_x"):
-            if k in raw: out[k.replace("log_","")] = float(np.exp(np.clip(raw[k], -40, 40)))
+        for k in (
+            "log_q_mu",
+            "log_q_beta",
+            "log_q_ay",
+            "log_q_ax",
+            "log_r_y",
+            "log_r_x",
+        ):
+            if k in raw:
+                out[k.replace("log_", "")] = float(np.exp(np.clip(raw[k], -40, 40)))
 
         # phis
-        for k in ("logit_phi_y","logit_phi_x"):
+        for k in ("logit_phi_y", "logit_phi_x"):
             if k in raw:
-                out[k.replace("logit_","")] = float(np.clip(_phi_from_logit(raw[k]), -0.995, 0.995))
+                out[k.replace("logit_", "")] = float(
+                    np.clip(_phi_from_logit(raw[k]), -0.995, 0.995)
+                )
 
         # loading
         out["load"] = float(raw.get("load", 1.0))
@@ -767,23 +820,27 @@ class DFMFill(MLEModel):
         p = self._constrain(params)
 
         idx = self._idx
-        k   = self.k_states
+        k = self.k_states
 
         # --- Transition T ---
         T = self["transition"].copy()
         # anomalies’ AR(1) or RW phi on diagonal only if present
         if self._have_ay:
-            T[idx["ay"], idx["ay"]] = (1.0 if self.anomaly_mode=="rw" else p.get("phi_y", 0.0))
+            T[idx["ay"], idx["ay"]] = (
+                1.0 if self.anomaly_mode == "rw" else p.get("phi_y", 0.0)
+            )
         if self._have_ax:
-            T[idx["ax"], idx["ax"]] = (1.0 if self.anomaly_mode=="rw" else p.get("phi_x", 0.0))
+            T[idx["ax"], idx["ax"]] = (
+                1.0 if self.anomaly_mode == "rw" else p.get("phi_x", 0.0)
+            )
 
         # --- State covariance Q ---
         Q = np.zeros((k, k), dtype=float)
         if self.factor == "default":
-            Q[idx["mu"],   idx["mu"]]   = p.get("q_mu", 1e-8)     # nonzero
-            Q[idx["beta"], idx["beta"]] = p.get("q_beta",  1e-8)
+            Q[idx["mu"], idx["mu"]] = p.get("q_mu", 1e-8)  # nonzero
+            Q[idx["beta"], idx["beta"]] = p.get("q_beta", 1e-8)
         else:  # Trimbur: level has no shock; slope has small roughness
-            Q[idx["mu"],   idx["mu"]]   = 0.0
+            Q[idx["mu"], idx["mu"]] = 0.0
             Q[idx["beta"], idx["beta"]] = p.get("q_beta", 1e-8)
 
         if self._have_ay:
@@ -795,37 +852,56 @@ class DFMFill(MLEModel):
         Z = np.zeros((2, k), dtype=float)
         # target: loads 1*mu + ay(if present)
         Z[0, idx["mu"]] = 1.0
-        if self._have_ay: Z[0, idx["ay"]] = 1.0
+        if self._have_ay:
+            Z[0, idx["ay"]] = 1.0
         # neighbor: loads load*mu + ax(if present)
         Z[1, idx["mu"]] = p.get("load", 1.0)
-        if self._have_ax: Z[1, idx["ax"]] = 1.0
+        if self._have_ax:
+            Z[1, idx["ax"]] = 1.0
 
         # --- Obs covariance H (inflate x by rx_scale) ---
         r_y = max(p.get("r_y", 1e-4), 1e-5)
         r_x = max(p.get("r_x", 1e-4), 1e-5) * float(self.rx_scale)
-        H   = np.diag([r_y, r_x])
+        H = np.diag([r_y, r_x])
 
         # Commit
         self["transition"] = T
-        self["state_cov"]  = Q
-        self["design"]     = Z
-        self["obs_cov"]    = H
+        self["state_cov"] = Q
+        self["design"] = Z
+        self["obs_cov"] = H
+
 
 # --- DFM parameter helpers (no side effects) -------------------
 # --- YAML-first DFM param helpers (public API) -------------------------------
 from typing import Any, Dict
 import os
 
+
 def dfm_pack_params(model_info: dict) -> dict:
     """
     Return a portable blob of fitted DFM params.
 
-    Preferred: model_info['fitted_params'] with:
-        - 'param_names': list[str]
-        - 'transformed': list[float]
-        - 'constrained': dict[str, float]
-        - optional: 'mle', 'reused'
-    Fallback (legacy): build a blob from 'param_names' + 'params' if present.
+    Parameters
+    ----------
+    model_info : dict
+        Model info dictionary, typically from `fill_from_neighbor`.
+
+    Returns
+    -------
+    dict
+        Dictionary containing fitted DFM parameters with the following keys:
+        - 'param_names': list of parameter names.
+        - 'transformed': list of transformed parameter values.
+        - 'constrained': dictionary of constrained parameter values.
+        - 'mle': dictionary with optimizer info (optional).
+        - 'reused': bool indicating if parameters were reused (optional).
+
+    Raises
+    ------
+    TypeError
+        If `model_info` is not a dictionary.
+    ValueError
+        If no fitted parameters are found in `model_info`.
     """
     if not isinstance(model_info, dict):
         raise TypeError("model_info must be a dict (from fill_from_neighbor).")
@@ -839,8 +915,8 @@ def dfm_pack_params(model_info: dict) -> dict:
         return {
             "param_names": list(map(str, model_info["param_names"])),
             "transformed": list(map(float, model_info["params"])),
-            "constrained": {},                # unknown in legacy
-            "mle": {"converged": True},       # best-effort
+            "constrained": {},  # unknown in legacy
+            "mle": {"converged": True},  # best-effort
             "reused": False,
         }
 
@@ -848,6 +924,7 @@ def dfm_pack_params(model_info: dict) -> dict:
         "No fitted params found. You may be importing an older neighbor_fill "
         "that does not populate model_info['fitted_params'] for DFM."
     )
+
 
 def save_dfm_params(params: Dict[str, Any], path: str) -> None:
     """
@@ -864,6 +941,7 @@ def save_dfm_params(params: Dict[str, Any], path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(params, f, sort_keys=False)
 
+
 def load_dfm_params(path: str) -> Dict[str, Any]:
     """
     Load a DFM parameter blob from YAML and validate minimal schema.
@@ -879,15 +957,18 @@ def load_dfm_params(path: str) -> Dict[str, Any]:
         blob = yaml.safe_load(f)
     if not isinstance(blob, dict):
         raise ValueError("Loaded DFM params are not a dict.")
-    if "param_names" not in blob or "transformed" not in blob or "constrained" not in blob:
-        raise ValueError("DFM params missing 'param_names', 'transformed', or 'constrained'.")
+    if (
+        "param_names" not in blob
+        or "transformed" not in blob
+        or "constrained" not in blob
+    ):
+        raise ValueError(
+            "DFM params missing 'param_names', 'transformed', or 'constrained'."
+        )
     return blob
+
+
 # ---------------------------------------------------------------------------
-
-
-
-
-
 
 
 def _dfm_params_to_vector(mod, params):
@@ -904,36 +985,44 @@ def _dfm_params_to_vector(mod, params):
     if isinstance(params, dict) and "transformed" in params:
         vec = np.asarray(params["transformed"], dtype=float)
         if vec.shape[0] != len(names):
-            raise ValueError("Length of transformed vector does not match model param_names.")
+            raise ValueError(
+                "Length of transformed vector does not match model param_names."
+            )
         return vec
 
     # Case B: constrained dict -> transformed in correct order
     c = params
+
     def _logpos(x):
         x = float(x)
-        if x <= 0: raise ValueError("All variances must be > 0 in constrained dict.")
+        if x <= 0:
+            raise ValueError("All variances must be > 0 in constrained dict.")
         return np.log(x)
+
     def _phi_to_logit(phi):
-        p = (float(phi) + 1.0)/2.0
-        p = np.clip(p, 1e-9, 1-1e-9)
-        return np.log(p/(1-p))
+        p = (float(phi) + 1.0) / 2.0
+        p = np.clip(p, 1e-9, 1 - 1e-9)
+        return np.log(p / (1 - p))
 
     out = []
     for n in names:
         if n.startswith("log_q_"):
-            out.append(_logpos(c[n.replace("log_","")]))
+            out.append(_logpos(c[n.replace("log_", "")]))
         elif n.startswith("log_r_"):
-            out.append(_logpos(c[n.replace("log_","")]))
+            out.append(_logpos(c[n.replace("log_", "")]))
         elif n.startswith("logit_phi_"):
-            out.append(_phi_to_logit(c[n.replace("logit_","")]))
+            out.append(_phi_to_logit(c[n.replace("logit_", "")]))
         elif n == "load":
             out.append(float(c.get("load", 1.0)))
         else:
             raise ValueError(f"Unrecognized parameter '{n}' in model param_names.")
     return np.asarray(out, dtype=float)
+
+
 # ---------------------------------------------------------------
 def _fit_dfm(
-    y, X,
+    y,
+    X,
     *,
     factor: str = "default",
     anomaly_mode: str = "ar",
@@ -941,7 +1030,7 @@ def _fit_dfm(
     rx_scale: float = 3.0,
     maxiter: int = 80,
     disp: int = 0,
-    params: dict | None = None,   # <-- ONLY control now
+    params: dict | None = None,  # <-- ONLY control now
 ):
     # 1) align + standardize
     x = X.iloc[:, 0] if isinstance(X, pd.DataFrame) else X
@@ -953,10 +1042,16 @@ def _fit_dfm(
     else:
         y_mu, y_sd = 0.0, float(y.std(ddof=0) or 1.0)
         x_mu, x_sd = 0.0, float(x.std(ddof=0) or 1.0)
-    endog = pd.DataFrame({"y": (y - y_mu)/y_sd, "x": (x - x_mu)/x_sd})
+    endog = pd.DataFrame({"y": (y - y_mu) / y_sd, "x": (x - x_mu) / x_sd})
 
     # 2) build model
-    mod = DFMFill(endog=endog, factor=factor, anomaly_mode=anomaly_mode, anom_var=anom_var, rx_scale=rx_scale)
+    mod = DFMFill(
+        endog=endog,
+        factor=factor,
+        anomaly_mode=anomaly_mode,
+        anom_var=anom_var,
+        rx_scale=rx_scale,
+    )
 
     # 3) reuse OR fit; always produce fitted_params
     reused = False
@@ -964,25 +1059,30 @@ def _fit_dfm(
         params = None  # treat {} as None
 
     if params is not None:
-        vec = _dfm_params_to_vector(mod, params)         # transformed in model order
-        res = mod.smooth(vec)                             # no optimizer
+        vec = _dfm_params_to_vector(mod, params)  # transformed in model order
+        res = mod.smooth(vec)  # no optimizer
         mod.update(vec, transformed=False)
         constrained = mod._constrain(vec)
         transformed = np.asarray(vec, dtype=float)
         mle = {"converged": True, "nit": 0}
         reused = True
     else:
-        res = mod.fit(maxiter=maxiter, disp=disp)         # optimizer runs
+        res = mod.fit(maxiter=maxiter, disp=disp)  # optimizer runs
         vec = np.asarray(res.params, dtype=float)
         mod.update(vec, transformed=False)
         constrained = mod._constrain(vec)
         transformed = vec
         mr = getattr(res, "mle_retvals", {}) or {}
-        mle = {"converged": bool(mr.get("converged", True)), "nit": int(mr.get("nit") or mr.get("niter") or 0)}
+        mle = {
+            "converged": bool(mr.get("converged", True)),
+            "nit": int(mr.get("nit") or mr.get("niter") or 0),
+        }
 
     # 4) back-transform yhat + PI
     S = res.smoothed_state
-    Z = mod["design"]; H = mod["obs_cov"]; P = res.smoothed_state_cov
+    Z = mod["design"]
+    H = mod["obs_cov"]
+    P = res.smoothed_state_cov
     Zy = Z[0, :].reshape(1, -1)
     yhat_s = (Zy @ S).ravel()
     yhat = pd.Series(yhat_s * y_sd + y_mu, index=endog.index, name="yhat")
@@ -992,14 +1092,28 @@ def _fit_dfm(
     for t in range(nobs):
         var_y[t] = float(Zy @ P[:, :, t] @ Zy.T + H[0, 0])
     se = np.sqrt(np.clip(var_y, 0.0, np.inf))
-    pi_lower = pd.Series(yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower")
-    pi_upper = pd.Series(yhat.values + 1.96 * se * y_sd, index=yhat.index, name="pi_upper")
+    pi_lower = pd.Series(
+        yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower"
+    )
+    pi_upper = pd.Series(
+        yhat.values + 1.96 * se * y_sd, index=yhat.index, name="pi_upper"
+    )
 
     # 5) prints (unchanged)
     print("Z(y):", np.round(Z[0, :], 4), " Z(x):", np.round(Z[1, :], 4))
     print("diag(T):", np.round(np.diag(mod["transition"]), 4))
-    print("diag(Q):", np.round(np.diag(mod["state_cov"]), 8), " diag(H):", np.round(np.diag(H), 8))
-    print("modes:", f"factor={factor}", f"anom_mode={anomaly_mode}", f"anom_var={anom_var}")
+    print(
+        "diag(Q):",
+        np.round(np.diag(mod["state_cov"]), 8),
+        " diag(H):",
+        np.round(np.diag(H), 8),
+    )
+    print(
+        "modes:",
+        f"factor={factor}",
+        f"anom_mode={anomaly_mode}",
+        f"anom_var={anom_var}",
+    )
     print("active params:", mod.param_names)
 
     # 6) always-populated param blob
@@ -1013,9 +1127,12 @@ def _fit_dfm(
 
     info = {
         "method": "dfm",
-        "factor": factor, "anomaly_mode": anomaly_mode, "anom_var": anom_var, "rx_scale": float(rx_scale),
+        "factor": factor,
+        "anomaly_mode": anomaly_mode,
+        "anom_var": anom_var,
+        "rx_scale": float(rx_scale),
         "param_names": list(mod.param_names),
-        "fitted_params": fitted_params,      # <- keep this!
+        "fitted_params": fitted_params,  # <- keep this!
         "scaling": {"y_mu": y_mu, "y_sd": y_sd, "x_mu": x_mu, "x_sd": x_sd},
         "llf": float(getattr(res, "llf", np.nan)),
         "aic": float(getattr(res, "aic", np.nan)),
@@ -1023,16 +1140,17 @@ def _fit_dfm(
     }
     return yhat, pi_lower, pi_upper, info
 
-
-
-
     res = mod.fit(maxiter=maxiter, disp=disp)
-    mod.update(res.params, transformed=False)   # ensure matrices reflect constrained params
-    #_opt_debug(mod, res)
+    mod.update(
+        res.params, transformed=False
+    )  # ensure matrices reflect constrained params
+    # _opt_debug(mod, res)
 
     # Smoothed y = Z_y · E[state|all]
     S = res.smoothed_state
-    Z = mod["design"]; H = mod["obs_cov"]; P = res.smoothed_state_cov
+    Z = mod["design"]
+    H = mod["obs_cov"]
+    P = res.smoothed_state_cov
     Zy = Z[0, :].reshape(1, -1)
     yhat_s = (Zy @ S).ravel()
     yhat = pd.Series(yhat_s * y_sd + y_mu, index=endog.index, name="yhat")
@@ -1043,14 +1161,28 @@ def _fit_dfm(
     for t in range(nobs):
         var_y[t] = float(Zy @ P[:, :, t] @ Zy.T + H[0, 0])
     se = np.sqrt(np.clip(var_y, 0.0, np.inf))
-    pi_lower = pd.Series(yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower")
-    pi_upper = pd.Series(yhat.values + 1.96 * se * y_sd, index=yhat.index, name="pi_upper")
+    pi_lower = pd.Series(
+        yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower"
+    )
+    pi_upper = pd.Series(
+        yhat.values + 1.96 * se * y_sd, index=yhat.index, name="pi_upper"
+    )
 
     # Diagnostics similar to your prints
     print("Z(y):", np.round(Z[0, :], 4), " Z(x):", np.round(Z[1, :], 4))
     print("diag(T):", np.round(np.diag(mod["transition"]), 4))
-    print("diag(Q):", np.round(np.diag(mod["state_cov"]), 8), " diag(H):", np.round(np.diag(H), 8))
-    print("modes:", f"factor={factor}", f"anom_mode={anomaly_mode}", f"anom_var={anom_var}")
+    print(
+        "diag(Q):",
+        np.round(np.diag(mod["state_cov"]), 8),
+        " diag(H):",
+        np.round(np.diag(H), 8),
+    )
+    print(
+        "modes:",
+        f"factor={factor}",
+        f"anom_mode={anomaly_mode}",
+        f"anom_var={anom_var}",
+    )
     print("active params:", mod.param_names)
 
     info = {
@@ -1078,8 +1210,8 @@ def _fit_dfm(
     return yhat, pi_lower, pi_upper, info
 
 
-
 # ----------------------------- Orchestrator -------------------------------- #
+
 
 def fill_from_neighbor(
     target: pd.Series,
@@ -1235,7 +1367,6 @@ def fill_from_neighbor(
             ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,
             ``bic``), and per-regime info when ``regime`` is provided.
 
-
     Raises
     ------
     ValueError
@@ -1244,51 +1375,35 @@ def fill_from_neighbor(
         ``method='rolling'``).
     KeyError
         If an unknown method name is provided.
-
-    Returns
-    -------
-    dict
-        Dictionary with the following keys:
-
-        yhat : pandas.Series
-            Filled series on the same index as ``target``.
-        pi_lower : pandas.Series or None
-            Lower uncertainty band (if the method provides one), otherwise None.
-        pi_upper : pandas.Series or None
-            Upper uncertainty band (if the method provides one), otherwise None.
-        model_info : dict
-            Method-specific diagnostics and metadata. Typical fields include:
-            ``method``, ``param_names``, ``fitted_params`` (packed blob for reuse),
-            ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,
-            ``bic``), and per-regime info when ``regime`` is provided.
-
-
     """
-
-
 
     # add these names in the set:
     recognized = {
-        "ols","huber","rolling","lagged_reg","loess",
-        "dfm","dfm_trimbur_ar","dfm_trimbur_rw",
-        "resid_interp_linear","resid_interp_pchip",
-        "substitute",  
+        "ols",
+        "huber",
+        "rolling",
+        "lagged_reg",
+        "loess",
+        "dfm",
+        "dfm_trimbur_ar",
+        "dfm_trimbur_rw",
+        "resid_interp_linear",
+        "resid_interp_pchip",
+        "substitute",
     }
 
     if method not in recognized:
         raise ValueError("Unknown method: %s" % method)
 
-    if (params is not None) and method not in {"dfm_trimbur_rw","dfm_trimbur_ar"}:
+    if (params is not None) and method not in {"dfm_trimbur_rw", "dfm_trimbur_ar"}:
         raise ValueError("'fit'/'params' are only supported for DFM methods.")
-
 
     y0 = target.copy()
     X0 = _as_series_like(neighbor, name="x")
 
     # Pull optional tuning params from **kwargs (keeps backward compat in notebooks)
-    lags   = kwargs.pop("lags",   None)
+    lags = kwargs.pop("lags", None)
     window = kwargs.pop("window", None)
-
 
     # Align to common grid; for rolling with str window we regularize first
     y_al, X_al = _align(y0, X0, how="outer", allow_empty=False)
@@ -1302,12 +1417,11 @@ def fill_from_neighbor(
         piu_list = []
         info_all = {"method": method, "by_regime": {}}
         for cat in cats:
-            mask = (reg == cat)
+            mask = reg == cat
             y_c = y_al.where(mask)
             X_c = X_al.where(mask)
             res_c = fill_from_neighbor(
-                y_c, X_c, method=method, lags=lags, window=window, 
-                bounds=bounds
+                y_c, X_c, method=method, lags=lags, window=window, bounds=bounds
             )
             yhats.append(pd.Series(res_c["yhat"], name=str(cat)))
             pil_list.append(pd.Series(res_c.get("pi_lower"), name=str(cat)))
@@ -1327,18 +1441,26 @@ def fill_from_neighbor(
             yhat, pi_lower, pi_upper, info = _fit_huber(y_al, X_al)
         elif method == "rolling":
             if window is None:
-                raise ValueError("window must be provided for rolling regression (in samples)")
+                raise ValueError(
+                    "window must be provided for rolling regression (in samples)"
+                )
             elif isinstance(window, str):
-                raise TypeError("String window (e.g., '30D') no longer supported. Pass an integer number of samples.")
+                raise TypeError(
+                    "String window (e.g., '30D') no longer supported. Pass an integer number of samples."
+                )
             else:
                 window_n = int(window)
-            yhat, pi_lower, pi_upper, info = _fit_rolling_regression(y_al, X_al, window=window_n)
+            yhat, pi_lower, pi_upper, info = _fit_rolling_regression(
+                y_al, X_al, window=window_n
+            )
         elif method == "lagged_reg":
             if lags is None:
                 first_col = X_al.columns[0]
                 max_lag = 6
                 try:
-                    lag_list = _suggest_lags(*_mask_overlap(y_al, X_al[[first_col]]), max_lag=max_lag)[:3]
+                    lag_list = _suggest_lags(
+                        *_mask_overlap(y_al, X_al[[first_col]]), max_lag=max_lag
+                    )[:3]
                 except Exception:
                     lag_list = [0]
             elif isinstance(lags, int):
@@ -1346,25 +1468,39 @@ def fill_from_neighbor(
             else:
                 lag_list = list(map(int, lags))
 
-            yhat, pi_lower, pi_upper, info = _fit_lagged_elasticnet(y_al, X_al, lags=lag_list)
+            yhat, pi_lower, pi_upper, info = _fit_lagged_elasticnet(
+                y_al, X_al, lags=lag_list
+            )
         elif method == "loess":
             yhat, pi_lower, pi_upper, info = fit_loess_time_value(y_al, X_al)
         elif method == "dfm_trimbur_rw":
             yhat, pi_lower, pi_upper, info = _fit_dfm(
-                y_al, X_al,
-                factor="trimbur", anomaly_mode="rw", anom_var="target",
-                rx_scale=1.0, maxiter=80, disp=0,
-                params=params
+                y_al,
+                X_al,
+                factor="trimbur",
+                anomaly_mode="rw",
+                anom_var="target",
+                rx_scale=1.0,
+                maxiter=80,
+                disp=0,
+                params=params,
             )
         elif method == "dfm_trimbur_ar":
             yhat, pi_lower, pi_upper, info = _fit_dfm(
-                y_al, X_al,
-                factor="trimbur", anomaly_mode="ar", anom_var="neighbor",
-                rx_scale=1.0, maxiter=80, disp=0,
-                params=params
+                y_al,
+                X_al,
+                factor="trimbur",
+                anomaly_mode="ar",
+                anom_var="neighbor",
+                rx_scale=1.0,
+                maxiter=80,
+                disp=0,
+                params=params,
             )
         elif method == "resid_interp_linear":
-            yhat, pi_lower, pi_upper, info = _fit_resid_interp(y_al, X_al, kind="linear")
+            yhat, pi_lower, pi_upper, info = _fit_resid_interp(
+                y_al, X_al, kind="linear"
+            )
         elif method == "resid_interp_pchip":
             yhat, pi_lower, pi_upper, info = _fit_resid_interp(y_al, X_al, kind="pchip")
 
@@ -1398,6 +1534,7 @@ def fill_from_neighbor(
 
 
 # ----------------------- Optional CSV writer with YAML ---------------------- #
+
 
 def write_filled_csv_with_yaml_header(
     filled: pd.Series,
@@ -1444,4 +1581,3 @@ def write_filled_csv_with_yaml_header(
     with open(path, "w", encoding="utf-8") as f:
         f.write(header)
         f.write(csv_body)
-

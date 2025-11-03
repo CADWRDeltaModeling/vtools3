@@ -512,9 +512,12 @@ def is_regular(ts, raise_exception=False):
 
     Parameters:
       ts : DataFrame, Series, or xarray object.
-      raise_exception (bool): If True, raises a ValueError when the index is not regular.
-                              Otherwise, returns False.
-
+         Series to evaluate
+      
+      raise_exception : bool 
+         If True, raises a ValueError when the index is not regular.
+         Otherwise, returns False.
+         
     Returns:
       bool : True if the time index is regular; False otherwise.
     """

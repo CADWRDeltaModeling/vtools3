@@ -55,7 +55,7 @@ extensions = ['nbsphinx', 'sphinx.ext.mathjax',
 autodoc_member_order = 'alphabetical'
 autosummary_generate = True
 autosummary_imported_members = False
-          
+numpydoc_show_inherited_class_members = False
           
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -63,9 +63,17 @@ templates_path = ['_templates']
 # mappings for intersphinx extension
 intersphinx_mapping = {'pandas': ('http://pandas.pydata.org/pandas-docs/stable',None),
  'python': ('http://docs.python.org/', None),
- 'xarray' : ('http://xarray.pydata.org/en/stable',None)
- }
+ 'xarray' : ('http://xarray.pydata.org/en/stable',None),
+ 'sklearn': ("https://scikit-learn.org/stable", None)}
  
+
+# silence cross-ref warnings originating from 3rd-party docstrings
+# doesn't hurt to turn these off from time to time to make sure ours are ok.
+suppress_warnings = [
+    "ref.ref",   # undefined label
+    "ref.term",  # term not in glossary
+    "ref.doc",   # unknown document
+]
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -195,6 +203,7 @@ man_pages = [
 ]
 
 
+
 # -- Options for Texinfo output ----------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
@@ -208,3 +217,5 @@ texinfo_documents = [
      'One line description of project.',
      'Miscellaneous'),
 ]
+
+

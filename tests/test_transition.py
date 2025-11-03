@@ -38,16 +38,16 @@ def test_natural_gap_linear(test_series):
     ts1.index = ts1.index - pd.Timedelta("5d")
 
     with pytest.raises(ValueError, match="at least two steps"):
-        transition_ts(ts0, ts1, method="linear", create_gap=None, return_type="series")
+        transition_ts(ts0, ts1, method="linear", window=None, return_type="series")
 
 
 def test_explicit_gap_linear(test_series):
     ts0, ts1 = test_series
     gap = ["2023-05-15", "2023-06-10"]
     result = transition_ts(
-        ts0, ts1, method="linear", create_gap=gap, return_type="series"
+        ts0, ts1, method="linear", window=gap, return_type="series"
     )
-    glue = transition_ts(ts0, ts1, method="linear", create_gap=gap, return_type="glue")
+    glue = transition_ts(ts0, ts1, method="linear", window=gap, return_type="glue")
     assert glue.index[0] == pd.Timestamp(gap[0])
     assert glue.index[-1] == pd.Timestamp(gap[1])
 
@@ -56,7 +56,7 @@ def test_explicit_gap_pchip_with_overlap(test_series):
     ts0, ts1 = test_series
     gap = ["2023-05-15", "2023-06-10"]
     result = transition_ts(
-        ts0, ts1, method="pchip", create_gap=gap, overlap=(10, 10), return_type="series"
+        ts0, ts1, method="pchip", window=gap, overlap=(10, 10), return_type="series"
     )
     assert result.index.is_monotonic_increasing
     assert not result.index.duplicated().any()
@@ -66,7 +66,7 @@ def test_gap_inside_natural_gap(test_series):
     ts0, ts1 = test_series
     gap = ["2023-05-10", "2023-05-15"]
     transition = transition_ts(
-        ts0, ts1, method="linear", create_gap=gap, return_type="glue"
+        ts0, ts1, method="linear", window=gap, return_type="glue"
     )
     diff = np.diff(transition.values)
     assert np.std(diff) < 0.5
@@ -76,7 +76,7 @@ def test_overlapping_series_with_gap(test_series):
     ts0, ts1 = test_series
     gap = ["2023-05-25", "2023-05-28"]
     result = transition_ts(
-        ts0, ts1, method="pchip", create_gap=gap, overlap=(12, 12), return_type="series"
+        ts0, ts1, method="pchip", window=gap, overlap=(12, 12), return_type="series"
     )
     assert result.index.is_monotonic_increasing
     assert not result.index.duplicated().any()
@@ -85,7 +85,7 @@ def test_overlapping_series_with_gap(test_series):
 def test_glue_return_type(test_series):
     ts0, ts1 = test_series
     gap = ["2023-05-15", "2023-06-10"]
-    glue = transition_ts(ts0, ts1, method="linear", create_gap=gap, return_type="glue")
+    glue = transition_ts(ts0, ts1, method="linear", window=gap, return_type="glue")
     assert glue.index[0] >= pd.Timestamp(gap[0])
     assert glue.index[-1] <= pd.Timestamp(gap[1])
 
@@ -97,7 +97,7 @@ def test_string_overlap_pchip(test_series):
         ts0,
         ts1,
         method="pchip",
-        create_gap=gap,
+        window=gap,
         overlap=("3h", "4h"),
         return_type="series",
     )
@@ -111,7 +111,7 @@ def test_mixed_overlap_types(test_series):
     ts0, ts1 = test_series
     gap = ["2023-05-18", "2023-06-03"]
     result = transition_ts(
-        ts0, ts1, method="pchip", create_gap=gap, overlap=("1h", 8), return_type="glue"
+        ts0, ts1, method="pchip", window=gap, overlap=("1h", 8), return_type="glue"
     )
     assert pd.Timestamp(gap[0]) in result.index
     assert pd.Timestamp(gap[1]) in result.index

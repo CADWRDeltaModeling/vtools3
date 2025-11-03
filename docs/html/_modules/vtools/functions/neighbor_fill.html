@@ -109,40 +109,38 @@
   <h1>Source code for vtools.functions.neighbor_fill</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Neighbor-based time-series gap filling.</span>
 
-<span class="sd">    This module provides a single high-level API, :func:`fill_from_neighbor`,</span>
-<span class="sd">    with pluggable backends for common algorithms used to infer a target series</span>
-<span class="sd">    from one or more nearby stations. It is designed for operational use in</span>
-<span class="sd">    Delta/Bay hydrodynamics workflows, but is intentionally general.</span>
+<span class="sd">This module provides a single high-level API, :func:`fill_from_neighbor`,</span>
+<span class="sd">with pluggable backends for common algorithms used to infer a target series</span>
+<span class="sd">from one or more nearby stations. It is designed for operational use in</span>
+<span class="sd">Delta/Bay hydrodynamics workflows, but is intentionally general.</span>
 
-<span class="sd">    Highlights</span>
-<span class="sd">    ----------</span>
-<span class="sd">    - Robust time alignment and optional resampling.</span>
-<span class="sd">    - Multiple modeling strategies: OLS/robust, rolling regression,</span>
-<span class="sd">    lagged elastic-net, and state-space/Kalman.</span>
-<span class="sd">    - Forward-chaining (temporal) cross-validation utilities.</span>
-<span class="sd">    - Optional regime stratification (e.g., barrier in/out, season).</span>
-<span class="sd">    - Uncertainty estimates where available (analytic or residual-based).</span>
-<span class="sd">    - Clear return structure with diagnostics for auditability.</span>
+<span class="sd">Highlights</span>
+<span class="sd">----------</span>
+<span class="sd">- Robust time alignment and optional resampling.</span>
+<span class="sd">- Multiple modeling strategies: OLS/robust, rolling regression, lagged elastic-net, and state-space/Kalman.</span>
+<span class="sd">- Forward-chaining (temporal) cross-validation utilities.</span>
+<span class="sd">- Optional regime stratification (e.g., barrier in/out, season).</span>
+<span class="sd">- Uncertainty estimates where available (analytic or residual-based).</span>
+<span class="sd">- Clear return structure with diagnostics for auditability.</span>
 
-<span class="sd">    Example</span>
-<span class="sd">    -------</span>
-<span class="sd">    &gt;&gt;&gt; res = fill_from_neighbor(</span>
-<span class="sd">    ...     target=y, neighbor=x, method=&quot;state_space&quot;, lags=range(0, 4),</span>
-<span class="sd">    ...     bounds=(0.0, None), regime=regime_series</span>
-<span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; filled = res[&quot;filled&quot;]</span>
-<span class="sd">    &gt;&gt;&gt; info = res[&quot;model_info&quot;]</span>
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+<span class="sd">&gt;&gt;&gt; res = fill_from_neighbor(</span>
+<span class="sd">...     target=y, neighbor=x, method=&quot;state_space&quot;, lags=range(0, 4),</span>
+<span class="sd">...     bounds=(0.0, None), regime=regime_series</span>
+<span class="sd">... )</span>
+<span class="sd">&gt;&gt;&gt; filled = res[&quot;filled&quot;]</span>
+<span class="sd">&gt;&gt;&gt; info = res[&quot;model_info&quot;]</span>
 
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    - &quot;Neighbor&quot; can be one series or multiple (as a DataFrame); both are supported.</span>
-<span class="sd">    - Missing data in the target are left as-is where the model cannot reasonably</span>
-<span class="sd">    infer a value (e.g., no overlapping neighbor data). Where predictions exist,</span>
-<span class="sd">    they are merged into the target to produce `filled`.</span>
-<span class="sd">    - For state-space and ARIMAX, missing values are handled natively by the</span>
-<span class="sd">    Kalman filter/SARIMAX, but the model must still be trained on an overlap</span>
-<span class="sd">    window that contains data.</span>
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">- &quot;Neighbor&quot; can be one series or multiple (as a DataFrame); both are supported.</span>
+<span class="sd">- Missing data in the target are left as-is where the model cannot reasonably infer a value (e.g.no</span>
+<span class="sd">  overlapping neighbor data). Where predictions exist, they are merged into the target to produce `filled`.</span>
+<span class="sd">  DFM methods can carry through a gap in the neighbor.</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">asdict</span>
@@ -167,6 +165,7 @@
     <span class="kn">import</span> <span class="nn">statsmodels.formula.api</span> <span class="k">as</span> <span class="nn">smf</span>  <span class="c1"># noqa: F401</span>
     <span class="kn">from</span> <span class="nn">statsmodels.robust.robust_linear_model</span> <span class="kn">import</span> <span class="n">RLM</span>
     <span class="kn">from</span> <span class="nn">statsmodels.robust.norms</span> <span class="kn">import</span> <span class="n">HuberT</span>
+
     <span class="n">HAVE_SM</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">HAVE_SM</span> <span class="o">=</span> <span class="kc">False</span>
@@ -175,6 +174,7 @@
     <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">ElasticNetCV</span>
     <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
     <span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+
     <span class="n">HAVE_SK</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">HAVE_SK</span> <span class="o">=</span> <span class="kc">False</span>
@@ -225,13 +225,16 @@
 
 <span class="n">_DEF_FREQ_ERR</span> <span class="o">=</span> <span class="s2">&quot;Target and neighbor must arrive on the same regular time grid (same step and phase). &quot;</span>
 
+
 <div class="viewcode-block" id="_assert_same_regular_grid">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._assert_same_regular_grid">[docs]</a>
 <span class="k">def</span> <span class="nf">_assert_same_regular_grid</span><span class="p">(</span><span class="n">idx_y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">,</span> <span class="n">idx_x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise if the two indices are not on the same regular grid (same step &amp; phase).&quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">idx_y</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;neighbor&quot;</span><span class="p">,</span> <span class="n">idx_x</span><span class="p">)):</span>
         <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">idx_y</span><span class="o">.</span><span class="n">tz</span> <span class="o">!=</span> <span class="n">idx_x</span><span class="o">.</span><span class="n">tz</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mixed timezones between target and neighbor are not allowed.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Mixed timezones between target and neighbor are not allowed.&quot;</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># trivially OK (we&#39;ll fail later if there is no overlap)</span>
         <span class="c1"># check monotone and constant step</span>
@@ -245,13 +248,18 @@
         <span class="n">step_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx_y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
         <span class="n">step_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx_x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">idx_x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">step_y</span> <span class="o">!=</span> <span class="n">step_x</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">_DEF_FREQ_ERR</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; (step mismatch: </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">step_y</span><span class="p">)</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">step_x</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="n">_DEF_FREQ_ERR</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; (step mismatch: </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">step_y</span><span class="p">)</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">step_x</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
         <span class="c1"># compare phase relative to a fixed epoch</span>
         <span class="n">epoch</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s2">&quot;1970-01-01&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">idx_y</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
         <span class="n">rem_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">epoch</span><span class="p">)</span><span class="o">.</span><span class="n">to_timedelta64</span><span class="p">()</span> <span class="o">%</span> <span class="n">step_y</span>
         <span class="n">rem_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">epoch</span><span class="p">)</span><span class="o">.</span><span class="n">to_timedelta64</span><span class="p">()</span> <span class="o">%</span> <span class="n">step_x</span>
         <span class="k">if</span> <span class="n">rem_y</span> <span class="o">!=</span> <span class="n">rem_x</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">_DEF_FREQ_ERR</span> <span class="o">+</span> <span class="s2">&quot; (phase mismatch: grids are offset in time)&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="n">_DEF_FREQ_ERR</span> <span class="o">+</span> <span class="s2">&quot; (phase mismatch: grids are offset in time)&quot;</span>
+            <span class="p">)</span></div>
 
 
 
@@ -277,9 +285,7 @@
     <span class="n">how</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;inner&quot;</span><span class="p">,</span>
     <span class="n">allow_empty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Align target and neighbor(s) on a common DatetimeIndex.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Align target and neighbor(s) on a common DatetimeIndex.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;target index must be a DatetimeIndex&quot;</span><span class="p">)</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">_as_series_like</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
@@ -344,7 +350,9 @@
 
 <div class="viewcode-block" id="_forward_chain_splits">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._forward_chain_splits">[docs]</a>
-<span class="k">def</span> <span class="nf">_forward_chain_splits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_splits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">min_train</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">_forward_chain_splits</span><span class="p">(</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_splits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">min_train</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate forward-chaining train/test index splits for time series.</span>
 
 <span class="sd">    Parameters</span>
@@ -379,9 +387,9 @@
     <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
         <span class="n">resid</span> <span class="o">=</span> <span class="n">y_true</span> <span class="o">-</span> <span class="n">y_pred</span>
         <span class="n">mae</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">resid</span><span class="p">)))</span>
-        <span class="n">rmse</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">resid</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="n">rmse</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
         <span class="c1"># Simple R^2 (may be negative on holdout)</span>
-        <span class="n">ss_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">resid</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">ss_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">ss_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">((</span><span class="n">y_true</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">y_true</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">r2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ss_res</span> <span class="o">/</span> <span class="n">ss_tot</span><span class="p">)</span> <span class="k">if</span> <span class="n">ss_tot</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;MAE&quot;</span><span class="p">:</span> <span class="n">mae</span><span class="p">,</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">:</span> <span class="n">rmse</span><span class="p">,</span> <span class="s2">&quot;R2&quot;</span><span class="p">:</span> <span class="n">r2</span><span class="p">}</span></div>
@@ -389,6 +397,7 @@
 
 
 <span class="c1"># ------------------------- Model Backends ---------------------------------- #</span>
+
 
 <div class="viewcode-block" id="_fit_substitute">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._fit_substitute">[docs]</a>
@@ -415,7 +424,9 @@
 
 <div class="viewcode-block" id="_fit_ols">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._fit_ols">[docs]</a>
-<span class="k">def</span> <span class="nf">_fit_ols</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">_fit_ols</span><span class="p">(</span>
+    <span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAVE_SM</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;statsmodels is required for OLS&quot;</span><span class="p">)</span>
     <span class="n">y_fit</span><span class="p">,</span> <span class="n">X_fit</span> <span class="o">=</span> <span class="n">_mask_overlap</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
@@ -441,7 +452,9 @@
 
 <div class="viewcode-block" id="_fit_huber">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._fit_huber">[docs]</a>
-<span class="k">def</span> <span class="nf">_fit_huber</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">_fit_huber</span><span class="p">(</span>
+    <span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAVE_SM</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;statsmodels is required for robust regression&quot;</span><span class="p">)</span>
     <span class="n">y_fit</span><span class="p">,</span> <span class="n">X_fit</span> <span class="o">=</span> <span class="n">_mask_overlap</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
@@ -490,21 +503,24 @@
             <span class="k">continue</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">yi2</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">Xi2</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
         <span class="c1"># predict at the last row of this window</span>
-        <span class="n">idx</span> <span class="o">=</span> <span class="n">Xc</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>                   <span class="c1"># &lt;- fixed</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">Xc</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># &lt;- fixed</span>
         <span class="n">yhat</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xc</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
         <span class="n">beta_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
     <span class="c1"># PI via rolling residual std (rough)</span>
     <span class="n">pi_lower</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">pi_upper</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;rolling_regression&quot;</span><span class="p">,</span> <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">center</span><span class="p">)}</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;rolling_regression&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">window</span><span class="p">),</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">center</span><span class="p">),</span>
+    <span class="p">}</span>
     <span class="k">if</span> <span class="n">beta_list</span><span class="p">:</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;beta_summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">beta_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
             <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">beta_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
         <span class="p">}</span>
     <span class="k">return</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span></div>
-
 
 
 
@@ -525,10 +541,17 @@
 
     <span class="k">if</span> <span class="n">alphas</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">alphas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([</span>
-        <span class="p">(</span><span class="s2">&quot;scaler&quot;</span><span class="p">,</span> <span class="n">StandardScaler</span><span class="p">(</span><span class="n">with_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
-        <span class="p">(</span><span class="s2">&quot;enet&quot;</span><span class="p">,</span> <span class="n">ElasticNetCV</span><span class="p">(</span><span class="n">l1_ratio</span><span class="o">=</span><span class="n">l1_ratio</span><span class="p">,</span> <span class="n">alphas</span><span class="o">=</span><span class="n">alphas</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">n_splits</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">5000</span><span class="p">)),</span>
-    <span class="p">])</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;scaler&quot;</span><span class="p">,</span> <span class="n">StandardScaler</span><span class="p">(</span><span class="n">with_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+            <span class="p">(</span>
+                <span class="s2">&quot;enet&quot;</span><span class="p">,</span>
+                <span class="n">ElasticNetCV</span><span class="p">(</span>
+                    <span class="n">l1_ratio</span><span class="o">=</span><span class="n">l1_ratio</span><span class="p">,</span> <span class="n">alphas</span><span class="o">=</span><span class="n">alphas</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">n_splits</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">5000</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Z_fit</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y_fit</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
     <span class="c1"># Predict only where all lagged features exist (no NaNs)</span>
@@ -557,15 +580,13 @@
 
 
 
-
-
 <div class="viewcode-block" id="fit_loess_time_value">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.fit_loess_time_value">[docs]</a>
 <span class="k">def</span> <span class="nf">fit_loess_time_value</span><span class="p">(</span>
     <span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
     <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-    <span class="n">frac_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>     <span class="c1"># fraction of available points as neighbors</span>
-    <span class="n">min_neighbors</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span>     <span class="c1"># floor on neighbors</span>
+    <span class="n">frac_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>  <span class="c1"># fraction of available points as neighbors</span>
+    <span class="n">min_neighbors</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># floor on neighbors</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Two-dimensional LOESS-like smoother: y(t) ~ f(x(t), t), implemented as</span>
@@ -586,7 +607,7 @@
     <span class="c1"># Align y and x to the same index BEFORE making masks (avoids huge align ops)</span>
     <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
 
-    <span class="n">good</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">x</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>          <span class="c1"># ← Series &amp; Series (safe)</span>
+    <span class="n">good</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">x</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>  <span class="c1"># ← Series &amp; Series (safe)</span>
     <span class="k">if</span> <span class="n">good</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Insufficient overlap for loess2d fit.&quot;</span><span class="p">)</span>
 
@@ -650,8 +671,9 @@
     <span class="n">yvals</span> <span class="o">=</span> <span class="n">y_fit</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
 
     <span class="n">smoothed</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">yvals</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">frac</span><span class="o">=</span><span class="n">frac</span><span class="p">,</span> <span class="n">return_sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">yhat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">smoothed</span><span class="p">),</span>
-                     <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;yhat&quot;</span><span class="p">)</span>
+    <span class="n">yhat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">smoothed</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;yhat&quot;</span>
+    <span class="p">)</span>
 
     <span class="c1"># No rigorous PI, but you can provide a rough one via residual std</span>
     <span class="n">resid</span> <span class="o">=</span> <span class="n">y_fit</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">X_fit</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">smoothed</span><span class="p">)</span>
@@ -668,25 +690,30 @@
 <span class="c1"># --- helpers (add near your _DFM2) ------------------------------------------</span>
 <div class="viewcode-block" id="_logit">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._logit">[docs]</a>
-<span class="k">def</span> <span class="nf">_logit</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> 
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mf">1e-9</span><span class="p">);</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">))</span></div>
+<span class="k">def</span> <span class="nf">_logit</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="_inv_logit">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._inv_logit">[docs]</a>
 <span class="k">def</span> <span class="nf">_inv_logit</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
     <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
-    <span class="k">return</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="_phi_from_logit">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._phi_from_logit">[docs]</a>
 <span class="k">def</span> <span class="nf">_phi_from_logit</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">_inv_logit</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>            <span class="c1"># in (0,1)</span>
-    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="n">p</span> <span class="o">-</span> <span class="mf">1.0</span>             <span class="c1"># map to (-1,1)</span></div>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">_inv_logit</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>  <span class="c1"># in (0,1)</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">p</span> <span class="o">-</span> <span class="mf">1.0</span>  <span class="c1"># map to (-1,1)</span></div>
+
 
 
 <span class="c1"># --- variable-size DFM ------------------------------------------------------</span>
+
 
 <div class="viewcode-block" id="_opt_debug">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._opt_debug">[docs]</a>
@@ -703,17 +730,17 @@
     <span class="n">cs</span> <span class="o">=</span> <span class="n">_constrained</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
     <span class="n">ce</span> <span class="o">=</span> <span class="n">_constrained</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
 
-    <span class="c1">#print(&quot;\n=== Optimization summary ===&quot;)</span>
-    <span class="c1">#print(&quot;converged:&quot;, getattr(res, &quot;mle_retvals&quot;, {}).get(&quot;converged&quot;))</span>
-    <span class="c1">#print(&quot;niter:&quot;, getattr(res, &quot;mle_retvals&quot;, {}).get(&quot;nit&quot;) or getattr(res, &quot;mle_retvals&quot;, {}).get(&quot;niter&quot;))</span>
-    <span class="c1">#print(f&quot;{&#39;name&#39;:&lt;14} {&#39;start&#39;:&gt;12} {&#39;fitted&#39;:&gt;12}   {&#39;constrained(start)&#39;:&gt;20} {&#39;constrained(fitted)&#39;:&gt;20}&quot;)</span>
+    <span class="c1"># print(&quot;\n=== Optimization summary ===&quot;)</span>
+    <span class="c1"># print(&quot;converged:&quot;, getattr(res, &quot;mle_retvals&quot;, {}).get(&quot;converged&quot;))</span>
+    <span class="c1"># print(&quot;niter:&quot;, getattr(res, &quot;mle_retvals&quot;, {}).get(&quot;nit&quot;) or getattr(res, &quot;mle_retvals&quot;, {}).get(&quot;niter&quot;))</span>
+    <span class="c1"># print(f&quot;{&#39;name&#39;:&lt;14} {&#39;start&#39;:&gt;12} {&#39;fitted&#39;:&gt;12}   {&#39;constrained(start)&#39;:&gt;20} {&#39;constrained(fitted)&#39;:&gt;20}&quot;)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ep</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="c1"># show key constrained entries if present; else blank</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;logit_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">cs_v</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
-        <span class="n">ce_v</span> <span class="o">=</span> <span class="n">ce</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;logit_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">cs_v</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">))</span>
+        <span class="n">ce_v</span> <span class="o">=</span> <span class="n">ce</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">&lt;14</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">s</span><span class="si">:</span><span class="s2">12.4g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">12.4g</span><span class="si">}</span><span class="s2">   </span><span class="si">{</span><span class="n">cs_v</span><span class="si">:</span><span class="s2">20.6g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ce_v</span><span class="si">:</span><span class="s2">20.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;============================</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
@@ -724,7 +751,7 @@
 <span class="k">def</span> <span class="nf">_fit_resid_interp</span><span class="p">(</span>
     <span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
     <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>   <span class="c1"># &quot;linear&quot; | &quot;pchip&quot;</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>  <span class="c1"># &quot;linear&quot; | &quot;pchip&quot;</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fill y using neighbor via interpolated residuals.</span>
@@ -744,17 +771,23 @@
 
     <span class="k">if</span> <span class="n">m_fit</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
         <span class="c1"># fall back: simple scaling</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Insufficient overlap to fit residual-interp baseline (need ≥3 points).&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Insufficient overlap to fit residual-interp baseline (need ≥3 points).&quot;</span>
+        <span class="p">)</span>
 
     <span class="c1"># --- 1) Fit baseline y ≈ a + b x on overlap</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>  <span class="c1"># prefer stable OLS if available</span>
+
         <span class="n">X1</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">add_constant</span><span class="p">(</span><span class="n">x_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">has_constant</span><span class="o">=</span><span class="s2">&quot;add&quot;</span><span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">y_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">X1</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
-        <span class="n">a_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">b_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">a_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">b_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="c1"># Ratio fallback if statsmodels not present</span>
-        <span class="n">b_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">((</span><span class="n">y_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">]</span> <span class="o">/</span> <span class="n">x_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)))</span>
+        <span class="n">b_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">((</span><span class="n">y_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">]</span> <span class="o">/</span> <span class="n">x_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">b_hat</span><span class="p">):</span>
             <span class="n">b_hat</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="n">a_hat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">y_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">]</span> <span class="o">-</span> <span class="n">b_hat</span> <span class="o">*</span> <span class="n">x_al</span><span class="p">[</span><span class="n">m_fit</span><span class="p">]))</span>
@@ -773,6 +806,7 @@
     <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;pchip&quot;</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">PchipInterpolator</span>
+
             <span class="c1"># Numeric time in seconds for monotonic grid</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s2">&quot;i8&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1e9</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
@@ -822,37 +856,38 @@
 
 
 
-
-
 <div class="viewcode-block" id="DFMFill">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.DFMFill">[docs]</a>
 <span class="k">class</span> <span class="nc">DFMFill</span><span class="p">(</span><span class="n">MLEModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Bivariate DFM with level+slope common factor and optional anomalies.</span>
-<span class="sd">    States (ordered):</span>
-<span class="sd">        [ mu, beta, (ay?), (ax?) ]</span>
-<span class="sd">    where ay is included iff anom_var in {&quot;target&quot;,&quot;both&quot;},</span>
-<span class="sd">          ax is included iff anom_var in {&quot;neighbor&quot;,&quot;both&quot;}.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="DFMFill.__init__">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endog</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-                 <span class="n">factor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>        <span class="c1"># {&quot;default&quot;,&quot;trimbur&quot;}</span>
-                 <span class="n">anomaly_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ar&quot;</span><span class="p">,</span>       <span class="c1"># {&quot;ar&quot;,&quot;rw&quot;}</span>
-                 <span class="n">anom_var</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;neighbor&quot;</span><span class="p">,</span>     <span class="c1"># {&quot;target&quot;,&quot;neighbor&quot;,&quot;both&quot;}</span>
-                 <span class="n">rx_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
-        <span class="n">endog</span> <span class="o">=</span> <span class="n">endog</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="s2">&quot;x&quot;</span><span class="p">]]</span>
-        <span class="k">assert</span> <span class="n">factor</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">,</span><span class="s2">&quot;trimbur&quot;</span><span class="p">}</span>
-        <span class="k">assert</span> <span class="n">anomaly_mode</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;ar&quot;</span><span class="p">,</span><span class="s2">&quot;rw&quot;</span><span class="p">}</span>
-        <span class="k">assert</span> <span class="n">anom_var</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;target&quot;</span><span class="p">,</span><span class="s2">&quot;neighbor&quot;</span><span class="p">,</span><span class="s2">&quot;both&quot;</span><span class="p">}</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">endog</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">factor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>  <span class="c1"># {&quot;default&quot;,&quot;trimbur&quot;}</span>
+        <span class="n">anomaly_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ar&quot;</span><span class="p">,</span>  <span class="c1"># {&quot;ar&quot;,&quot;rw&quot;}</span>
+        <span class="n">anom_var</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;neighbor&quot;</span><span class="p">,</span>  <span class="c1"># {&quot;target&quot;,&quot;neighbor&quot;,&quot;both&quot;}</span>
+        <span class="n">rx_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">endog</span> <span class="o">=</span> <span class="n">endog</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">]]</span>
+        <span class="k">assert</span> <span class="n">factor</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;trimbur&quot;</span><span class="p">}</span>
+        <span class="k">assert</span> <span class="n">anomaly_mode</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;ar&quot;</span><span class="p">,</span> <span class="s2">&quot;rw&quot;</span><span class="p">}</span>
+        <span class="k">assert</span> <span class="n">anom_var</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="s2">&quot;neighbor&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}</span>
 
         <span class="c1"># Decide which anomaly slots exist and index layout</span>
-        <span class="n">have_ay</span> <span class="o">=</span> <span class="n">anom_var</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;target&quot;</span><span class="p">,</span><span class="s2">&quot;both&quot;</span><span class="p">}</span>
-        <span class="n">have_ax</span> <span class="o">=</span> <span class="n">anom_var</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;neighbor&quot;</span><span class="p">,</span><span class="s2">&quot;both&quot;</span><span class="p">}</span>
-        <span class="n">idx</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mu&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+        <span class="n">have_ay</span> <span class="o">=</span> <span class="n">anom_var</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}</span>
+        <span class="n">have_ax</span> <span class="o">=</span> <span class="n">anom_var</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;neighbor&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mu&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
         <span class="n">k</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="k">if</span> <span class="n">have_ay</span><span class="p">:</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">],</span> <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span>
-        <span class="k">if</span> <span class="n">have_ax</span><span class="p">:</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">],</span> <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">have_ay</span><span class="p">:</span>
+            <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">],</span> <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">have_ax</span><span class="p">:</span>
+            <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">],</span> <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span> <span class="o">=</span> <span class="n">idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_have_ay</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ax</span> <span class="o">=</span> <span class="n">have_ay</span><span class="p">,</span> <span class="n">have_ax</span>
 
@@ -871,9 +906,13 @@
             <span class="n">names</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;log_q_beta&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">have_ay</span><span class="p">:</span>
-            <span class="n">names</span> <span class="o">+=</span> <span class="p">([</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">,</span> <span class="s2">&quot;logit_phi_y&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">anomaly_mode</span><span class="o">==</span><span class="s2">&quot;ar&quot;</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">])</span>
+            <span class="n">names</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">,</span> <span class="s2">&quot;logit_phi_y&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">anomaly_mode</span> <span class="o">==</span> <span class="s2">&quot;ar&quot;</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">have_ax</span><span class="p">:</span>
-            <span class="n">names</span> <span class="o">+=</span> <span class="p">([</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">,</span> <span class="s2">&quot;logit_phi_x&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">anomaly_mode</span><span class="o">==</span><span class="s2">&quot;ar&quot;</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">])</span>
+            <span class="n">names</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">,</span> <span class="s2">&quot;logit_phi_x&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">anomaly_mode</span> <span class="o">==</span> <span class="s2">&quot;ar&quot;</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
 
         <span class="n">names</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;log_r_y&quot;</span><span class="p">,</span> <span class="s2">&quot;log_r_x&quot;</span><span class="p">,</span> <span class="s2">&quot;load&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">anom_var</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
@@ -887,14 +926,14 @@
         <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">T</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># local-linear trend</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;selection&quot;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;selection&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">param_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="nf">param_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -902,22 +941,26 @@
         <span class="n">st</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># factor starts per spec</span>
         <span class="k">if</span> <span class="s2">&quot;log_q_mu&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span>
-            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_mu&quot;</span><span class="p">]</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-8</span><span class="p">)</span>        <span class="c1"># default: nonzero</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_mu&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-8</span><span class="p">)</span>  <span class="c1"># default: nonzero</span>
         <span class="c1"># Trimbur has no q_mu param; it will be set to 0.0 in update()</span>
         <span class="k">if</span> <span class="s2">&quot;log_q_beta&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span>
             <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_beta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-8</span><span class="p">)</span>
 
         <span class="c1"># anomaly roughness</span>
-        <span class="k">if</span> <span class="s2">&quot;log_q_ay&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span> <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-7</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;log_q_ax&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span> <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-7</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;log_q_ay&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-7</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;log_q_ax&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-7</span><span class="p">)</span>
         <span class="c1"># AR phis (if any)</span>
-        <span class="k">if</span> <span class="s2">&quot;logit_phi_y&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span> <span class="n">st</span><span class="p">[</span><span class="s2">&quot;logit_phi_y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_logit</span><span class="p">(</span><span class="mf">0.98</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;logit_phi_x&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span> <span class="n">st</span><span class="p">[</span><span class="s2">&quot;logit_phi_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_logit</span><span class="p">(</span><span class="mf">0.98</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;logit_phi_y&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;logit_phi_y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_logit</span><span class="p">(</span><span class="mf">0.98</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;logit_phi_x&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;logit_phi_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_logit</span><span class="p">(</span><span class="mf">0.98</span><span class="p">)</span>
 
         <span class="c1"># measurement &amp; loading</span>
         <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_r_y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">)</span>
         <span class="n">st</span><span class="p">[</span><span class="s2">&quot;log_r_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">)</span>
-        <span class="n">st</span><span class="p">[</span><span class="s2">&quot;load&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">st</span><span class="p">[</span><span class="s2">&quot;load&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">st</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_names</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
@@ -933,13 +976,23 @@
         <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># exp-map variances safely</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;log_q_mu&quot;</span><span class="p">,</span><span class="s2">&quot;log_q_beta&quot;</span><span class="p">,</span><span class="s2">&quot;log_q_ay&quot;</span><span class="p">,</span><span class="s2">&quot;log_q_ax&quot;</span><span class="p">,</span><span class="s2">&quot;log_r_y&quot;</span><span class="p">,</span><span class="s2">&quot;log_r_x&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span> <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="o">-</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;log_q_mu&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;log_q_beta&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;log_q_ay&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;log_q_ax&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;log_r_y&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;log_r_x&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="o">-</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">)))</span>
 
         <span class="c1"># phis</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;logit_phi_y&quot;</span><span class="p">,</span><span class="s2">&quot;logit_phi_x&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;logit_phi_y&quot;</span><span class="p">,</span> <span class="s2">&quot;logit_phi_x&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
-                <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;logit_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">_phi_from_logit</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span> <span class="o">-</span><span class="mf">0.995</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">))</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;logit_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">_phi_from_logit</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span> <span class="o">-</span><span class="mf">0.995</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">)</span>
+                <span class="p">)</span>
 
         <span class="c1"># loading</span>
         <span class="n">out</span><span class="p">[</span><span class="s2">&quot;load&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
@@ -952,23 +1005,27 @@
         <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constrain</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span>
-        <span class="n">k</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_states</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_states</span>
 
         <span class="c1"># --- Transition T ---</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;transition&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># anomalies’ AR(1) or RW phi on diagonal only if present</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ay</span><span class="p">:</span>
-            <span class="n">T</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anomaly_mode</span><span class="o">==</span><span class="s2">&quot;rw&quot;</span> <span class="k">else</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phi_y&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">T</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anomaly_mode</span> <span class="o">==</span> <span class="s2">&quot;rw&quot;</span> <span class="k">else</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phi_y&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ax</span><span class="p">:</span>
-            <span class="n">T</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anomaly_mode</span><span class="o">==</span><span class="s2">&quot;rw&quot;</span> <span class="k">else</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phi_x&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">T</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anomaly_mode</span> <span class="o">==</span> <span class="s2">&quot;rw&quot;</span> <span class="k">else</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;phi_x&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># --- State covariance Q ---</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span>
-            <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span>   <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]]</span>   <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q_mu&quot;</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">)</span>     <span class="c1"># nonzero</span>
-            <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q_beta&quot;</span><span class="p">,</span>  <span class="mf">1e-8</span><span class="p">)</span>
+            <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q_mu&quot;</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">)</span>  <span class="c1"># nonzero</span>
+            <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q_beta&quot;</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># Trimbur: level has no shock; slope has small roughness</span>
-            <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span>   <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]]</span>   <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="n">Q</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q_beta&quot;</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ay</span><span class="p">:</span>
@@ -980,22 +1037,25 @@
         <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="c1"># target: loads 1*mu + ay(if present)</span>
         <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ay</span><span class="p">:</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ay</span><span class="p">:</span>
+            <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ay&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="c1"># neighbor: loads load*mu + ax(if present)</span>
         <span class="n">Z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ax</span><span class="p">:</span> <span class="n">Z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_have_ax</span><span class="p">:</span>
+            <span class="n">Z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>
 
         <span class="c1"># --- Obs covariance H (inflate x by rx_scale) ---</span>
         <span class="n">r_y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;r_y&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">),</span> <span class="mf">1e-5</span><span class="p">)</span>
         <span class="n">r_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;r_x&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">),</span> <span class="mf">1e-5</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rx_scale</span><span class="p">)</span>
-        <span class="n">H</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">r_y</span><span class="p">,</span> <span class="n">r_x</span><span class="p">])</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">r_y</span><span class="p">,</span> <span class="n">r_x</span><span class="p">])</span>
 
         <span class="c1"># Commit</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">Q</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="n">Z</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">H</span></div>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Q</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span></div>
 </div>
+
 
 
 <span class="c1"># --- DFM parameter helpers (no side effects) -------------------</span>
@@ -1003,18 +1063,34 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
+
 <div class="viewcode-block" id="dfm_pack_params">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.dfm_pack_params">[docs]</a>
 <span class="k">def</span> <span class="nf">dfm_pack_params</span><span class="p">(</span><span class="n">model_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a portable blob of fitted DFM params.</span>
 
-<span class="sd">    Preferred: model_info[&#39;fitted_params&#39;] with:</span>
-<span class="sd">        - &#39;param_names&#39;: list[str]</span>
-<span class="sd">        - &#39;transformed&#39;: list[float]</span>
-<span class="sd">        - &#39;constrained&#39;: dict[str, float]</span>
-<span class="sd">        - optional: &#39;mle&#39;, &#39;reused&#39;</span>
-<span class="sd">    Fallback (legacy): build a blob from &#39;param_names&#39; + &#39;params&#39; if present.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model_info : dict</span>
+<span class="sd">        Model info dictionary, typically from `fill_from_neighbor`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary containing fitted DFM parameters with the following keys:</span>
+<span class="sd">        - &#39;param_names&#39;: list of parameter names.</span>
+<span class="sd">        - &#39;transformed&#39;: list of transformed parameter values.</span>
+<span class="sd">        - &#39;constrained&#39;: dictionary of constrained parameter values.</span>
+<span class="sd">        - &#39;mle&#39;: dictionary with optimizer info (optional).</span>
+<span class="sd">        - &#39;reused&#39;: bool indicating if parameters were reused (optional).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If `model_info` is not a dictionary.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If no fitted parameters are found in `model_info`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;model_info must be a dict (from fill_from_neighbor).&quot;</span><span class="p">)</span>
@@ -1028,8 +1104,8 @@
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;param_names&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">model_info</span><span class="p">[</span><span class="s2">&quot;param_names&quot;</span><span class="p">])),</span>
             <span class="s2">&quot;transformed&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">model_info</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">])),</span>
-            <span class="s2">&quot;constrained&quot;</span><span class="p">:</span> <span class="p">{},</span>                <span class="c1"># unknown in legacy</span>
-            <span class="s2">&quot;mle&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;converged&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>       <span class="c1"># best-effort</span>
+            <span class="s2">&quot;constrained&quot;</span><span class="p">:</span> <span class="p">{},</span>  <span class="c1"># unknown in legacy</span>
+            <span class="s2">&quot;mle&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;converged&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>  <span class="c1"># best-effort</span>
             <span class="s2">&quot;reused&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
 
@@ -1037,6 +1113,7 @@
         <span class="s2">&quot;No fitted params found. You may be importing an older neighbor_fill &quot;</span>
         <span class="s2">&quot;that does not populate model_info[&#39;fitted_params&#39;] for DFM.&quot;</span>
     <span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="save_dfm_params">
@@ -1057,6 +1134,7 @@
         <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
+
 <div class="viewcode-block" id="load_dfm_params">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.load_dfm_params">[docs]</a>
 <span class="k">def</span> <span class="nf">load_dfm_params</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -1074,16 +1152,19 @@
         <span class="n">blob</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Loaded DFM params are not a dict.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">&quot;param_names&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blob</span> <span class="ow">or</span> <span class="s2">&quot;transformed&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blob</span> <span class="ow">or</span> <span class="s2">&quot;constrained&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blob</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;DFM params missing &#39;param_names&#39;, &#39;transformed&#39;, or &#39;constrained&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;param_names&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blob</span>
+        <span class="ow">or</span> <span class="s2">&quot;transformed&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blob</span>
+        <span class="ow">or</span> <span class="s2">&quot;constrained&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blob</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;DFM params missing &#39;param_names&#39;, &#39;transformed&#39;, or &#39;constrained&#39;.&quot;</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">blob</span></div>
 
+
+
 <span class="c1"># ---------------------------------------------------------------------------</span>
-
-
-
-
-
 
 
 <div class="viewcode-block" id="_dfm_params_to_vector">
@@ -1102,39 +1183,47 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;transformed&quot;</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
         <span class="n">vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;transformed&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Length of transformed vector does not match model param_names.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Length of transformed vector does not match model param_names.&quot;</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">vec</span>
 
     <span class="c1"># Case B: constrained dict -&gt; transformed in correct order</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">params</span>
+
     <span class="k">def</span> <span class="nf">_logpos</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All variances must be &gt; 0 in constrained dict.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All variances must be &gt; 0 in constrained dict.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_phi_to_logit</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mf">1e-9</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">))</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">))</span>
 
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;log_q_&quot;</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_logpos</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)]))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_logpos</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]))</span>
         <span class="k">elif</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;log_r_&quot;</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_logpos</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)]))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_logpos</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;log_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]))</span>
         <span class="k">elif</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;logit_phi_&quot;</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_phi_to_logit</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;logit_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)]))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_phi_to_logit</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;logit_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]))</span>
         <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="s2">&quot;load&quot;</span><span class="p">:</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unrecognized parameter &#39;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&#39; in model param_names.&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
 
+
+
 <span class="c1"># ---------------------------------------------------------------</span>
 <div class="viewcode-block" id="_fit_dfm">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill._fit_dfm">[docs]</a>
 <span class="k">def</span> <span class="nf">_fit_dfm</span><span class="p">(</span>
-    <span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span>
+    <span class="n">y</span><span class="p">,</span>
+    <span class="n">X</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">factor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
     <span class="n">anomaly_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ar&quot;</span><span class="p">,</span>
@@ -1142,7 +1231,7 @@
     <span class="n">rx_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
     <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span>
     <span class="n">disp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># &lt;-- ONLY control now</span>
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># &lt;-- ONLY control now</span>
 <span class="p">):</span>
     <span class="c1"># 1) align + standardize</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">else</span> <span class="n">X</span>
@@ -1154,10 +1243,16 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">y_mu</span><span class="p">,</span> <span class="n">y_sd</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">x_mu</span><span class="p">,</span> <span class="n">x_sd</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
-    <span class="n">endog</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y_mu</span><span class="p">)</span><span class="o">/</span><span class="n">y_sd</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x_mu</span><span class="p">)</span><span class="o">/</span><span class="n">x_sd</span><span class="p">})</span>
+    <span class="n">endog</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y_mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">y_sd</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x_mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">x_sd</span><span class="p">})</span>
 
     <span class="c1"># 2) build model</span>
-    <span class="n">mod</span> <span class="o">=</span> <span class="n">DFMFill</span><span class="p">(</span><span class="n">endog</span><span class="o">=</span><span class="n">endog</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">factor</span><span class="p">,</span> <span class="n">anomaly_mode</span><span class="o">=</span><span class="n">anomaly_mode</span><span class="p">,</span> <span class="n">anom_var</span><span class="o">=</span><span class="n">anom_var</span><span class="p">,</span> <span class="n">rx_scale</span><span class="o">=</span><span class="n">rx_scale</span><span class="p">)</span>
+    <span class="n">mod</span> <span class="o">=</span> <span class="n">DFMFill</span><span class="p">(</span>
+        <span class="n">endog</span><span class="o">=</span><span class="n">endog</span><span class="p">,</span>
+        <span class="n">factor</span><span class="o">=</span><span class="n">factor</span><span class="p">,</span>
+        <span class="n">anomaly_mode</span><span class="o">=</span><span class="n">anomaly_mode</span><span class="p">,</span>
+        <span class="n">anom_var</span><span class="o">=</span><span class="n">anom_var</span><span class="p">,</span>
+        <span class="n">rx_scale</span><span class="o">=</span><span class="n">rx_scale</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># 3) reuse OR fit; always produce fitted_params</span>
     <span class="n">reused</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1165,25 +1260,30 @@
         <span class="n">params</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># treat {} as None</span>
 
     <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">vec</span> <span class="o">=</span> <span class="n">_dfm_params_to_vector</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>         <span class="c1"># transformed in model order</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>                             <span class="c1"># no optimizer</span>
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">_dfm_params_to_vector</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>  <span class="c1"># transformed in model order</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>  <span class="c1"># no optimizer</span>
         <span class="n">mod</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">constrained</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">_constrain</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
         <span class="n">transformed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">mle</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;converged&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;nit&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
         <span class="n">reused</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="n">disp</span><span class="p">)</span>         <span class="c1"># optimizer runs</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="n">disp</span><span class="p">)</span>  <span class="c1"># optimizer runs</span>
         <span class="n">vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">mod</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">constrained</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">_constrain</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
         <span class="n">transformed</span> <span class="o">=</span> <span class="n">vec</span>
         <span class="n">mr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;mle_retvals&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}</span>
-        <span class="n">mle</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;converged&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">mr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;converged&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span> <span class="s2">&quot;nit&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">mr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nit&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">mr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;niter&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)}</span>
+        <span class="n">mle</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;converged&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">mr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;converged&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+            <span class="s2">&quot;nit&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">mr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nit&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">mr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;niter&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="p">}</span>
 
     <span class="c1"># 4) back-transform yhat + PI</span>
     <span class="n">S</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">smoothed_state</span>
-    <span class="n">Z</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">];</span> <span class="n">H</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">];</span> <span class="n">P</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">smoothed_state_cov</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">]</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">]</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">smoothed_state_cov</span>
     <span class="n">Zy</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">yhat_s</span> <span class="o">=</span> <span class="p">(</span><span class="n">Zy</span> <span class="o">@</span> <span class="n">S</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
     <span class="n">yhat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">yhat_s</span> <span class="o">*</span> <span class="n">y_sd</span> <span class="o">+</span> <span class="n">y_mu</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">endog</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;yhat&quot;</span><span class="p">)</span>
@@ -1193,14 +1293,28 @@
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nobs</span><span class="p">):</span>
         <span class="n">var_y</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Zy</span> <span class="o">@</span> <span class="n">P</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">t</span><span class="p">]</span> <span class="o">@</span> <span class="n">Zy</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
     <span class="n">se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">var_y</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">))</span>
-    <span class="n">pi_lower</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_lower&quot;</span><span class="p">)</span>
-    <span class="n">pi_upper</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_upper&quot;</span><span class="p">)</span>
+    <span class="n">pi_lower</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_lower&quot;</span>
+    <span class="p">)</span>
+    <span class="n">pi_upper</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_upper&quot;</span>
+    <span class="p">)</span>
 
     <span class="c1"># 5) prints (unchanged)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Z(y):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">4</span><span class="p">),</span> <span class="s2">&quot; Z(x):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">4</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;diag(T):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mod</span><span class="p">[</span><span class="s2">&quot;transition&quot;</span><span class="p">]),</span> <span class="mi">4</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;diag(Q):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mod</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]),</span> <span class="mi">8</span><span class="p">),</span> <span class="s2">&quot; diag(H):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">H</span><span class="p">),</span> <span class="mi">8</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;modes:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;factor=</span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;anom_mode=</span><span class="si">{</span><span class="n">anomaly_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;anom_var=</span><span class="si">{</span><span class="n">anom_var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;diag(Q):&quot;</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mod</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]),</span> <span class="mi">8</span><span class="p">),</span>
+        <span class="s2">&quot; diag(H):&quot;</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">H</span><span class="p">),</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;modes:&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;factor=</span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;anom_mode=</span><span class="si">{</span><span class="n">anomaly_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;anom_var=</span><span class="si">{</span><span class="n">anom_var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;active params:&quot;</span><span class="p">,</span> <span class="n">mod</span><span class="o">.</span><span class="n">param_names</span><span class="p">)</span>
 
     <span class="c1"># 6) always-populated param blob</span>
@@ -1214,9 +1328,12 @@
 
     <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;dfm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="n">factor</span><span class="p">,</span> <span class="s2">&quot;anomaly_mode&quot;</span><span class="p">:</span> <span class="n">anomaly_mode</span><span class="p">,</span> <span class="s2">&quot;anom_var&quot;</span><span class="p">:</span> <span class="n">anom_var</span><span class="p">,</span> <span class="s2">&quot;rx_scale&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">rx_scale</span><span class="p">),</span>
+        <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="n">factor</span><span class="p">,</span>
+        <span class="s2">&quot;anomaly_mode&quot;</span><span class="p">:</span> <span class="n">anomaly_mode</span><span class="p">,</span>
+        <span class="s2">&quot;anom_var&quot;</span><span class="p">:</span> <span class="n">anom_var</span><span class="p">,</span>
+        <span class="s2">&quot;rx_scale&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">rx_scale</span><span class="p">),</span>
         <span class="s2">&quot;param_names&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">param_names</span><span class="p">),</span>
-        <span class="s2">&quot;fitted_params&quot;</span><span class="p">:</span> <span class="n">fitted_params</span><span class="p">,</span>      <span class="c1"># &lt;- keep this!</span>
+        <span class="s2">&quot;fitted_params&quot;</span><span class="p">:</span> <span class="n">fitted_params</span><span class="p">,</span>  <span class="c1"># &lt;- keep this!</span>
         <span class="s2">&quot;scaling&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;y_mu&quot;</span><span class="p">:</span> <span class="n">y_mu</span><span class="p">,</span> <span class="s2">&quot;y_sd&quot;</span><span class="p">:</span> <span class="n">y_sd</span><span class="p">,</span> <span class="s2">&quot;x_mu&quot;</span><span class="p">:</span> <span class="n">x_mu</span><span class="p">,</span> <span class="s2">&quot;x_sd&quot;</span><span class="p">:</span> <span class="n">x_sd</span><span class="p">},</span>
         <span class="s2">&quot;llf&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;llf&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)),</span>
         <span class="s2">&quot;aic&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;aic&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)),</span>
@@ -1224,16 +1341,17 @@
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span>
 
-
-
-
     <span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="n">disp</span><span class="p">)</span>
-    <span class="n">mod</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>   <span class="c1"># ensure matrices reflect constrained params</span>
-    <span class="c1">#_opt_debug(mod, res)</span>
+    <span class="n">mod</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>  <span class="c1"># ensure matrices reflect constrained params</span>
+    <span class="c1"># _opt_debug(mod, res)</span>
 
     <span class="c1"># Smoothed y = Z_y · E[state|all]</span>
     <span class="n">S</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">smoothed_state</span>
-    <span class="n">Z</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">];</span> <span class="n">H</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">];</span> <span class="n">P</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">smoothed_state_cov</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;design&quot;</span><span class="p">]</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">mod</span><span class="p">[</span><span class="s2">&quot;obs_cov&quot;</span><span class="p">]</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">smoothed_state_cov</span>
     <span class="n">Zy</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">yhat_s</span> <span class="o">=</span> <span class="p">(</span><span class="n">Zy</span> <span class="o">@</span> <span class="n">S</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
     <span class="n">yhat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">yhat_s</span> <span class="o">*</span> <span class="n">y_sd</span> <span class="o">+</span> <span class="n">y_mu</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">endog</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;yhat&quot;</span><span class="p">)</span>
@@ -1244,14 +1362,28 @@
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nobs</span><span class="p">):</span>
         <span class="n">var_y</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Zy</span> <span class="o">@</span> <span class="n">P</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">t</span><span class="p">]</span> <span class="o">@</span> <span class="n">Zy</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
     <span class="n">se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">var_y</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">))</span>
-    <span class="n">pi_lower</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_lower&quot;</span><span class="p">)</span>
-    <span class="n">pi_upper</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_upper&quot;</span><span class="p">)</span>
+    <span class="n">pi_lower</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_lower&quot;</span>
+    <span class="p">)</span>
+    <span class="n">pi_upper</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">yhat</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">se</span> <span class="o">*</span> <span class="n">y_sd</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pi_upper&quot;</span>
+    <span class="p">)</span>
 
     <span class="c1"># Diagnostics similar to your prints</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Z(y):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">4</span><span class="p">),</span> <span class="s2">&quot; Z(x):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">4</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;diag(T):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mod</span><span class="p">[</span><span class="s2">&quot;transition&quot;</span><span class="p">]),</span> <span class="mi">4</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;diag(Q):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mod</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]),</span> <span class="mi">8</span><span class="p">),</span> <span class="s2">&quot; diag(H):&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">H</span><span class="p">),</span> <span class="mi">8</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;modes:&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;factor=</span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;anom_mode=</span><span class="si">{</span><span class="n">anomaly_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;anom_var=</span><span class="si">{</span><span class="n">anom_var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;diag(Q):&quot;</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mod</span><span class="p">[</span><span class="s2">&quot;state_cov&quot;</span><span class="p">]),</span> <span class="mi">8</span><span class="p">),</span>
+        <span class="s2">&quot; diag(H):&quot;</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">H</span><span class="p">),</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;modes:&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;factor=</span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;anom_mode=</span><span class="si">{</span><span class="n">anomaly_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;anom_var=</span><span class="si">{</span><span class="n">anom_var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;active params:&quot;</span><span class="p">,</span> <span class="n">mod</span><span class="o">.</span><span class="n">param_names</span><span class="p">)</span>
 
     <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
@@ -1280,9 +1412,11 @@
 
 
 
-
 <span class="c1"># ----------------------------- Orchestrator -------------------------------- #</span>
 
+
+<div class="viewcode-block" id="fill_from_neighbor">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.fill_from_neighbor">[docs]</a>
 <span class="k">def</span> <span class="nf">fill_from_neighbor</span><span class="p">(</span>
     <span class="n">target</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
     <span class="n">neighbor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
@@ -1437,7 +1571,6 @@
 <span class="sd">            ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,</span>
 <span class="sd">            ``bic``), and per-regime info when ``regime`` is provided.</span>
 
-
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
@@ -1446,51 +1579,35 @@
 <span class="sd">        ``method=&#39;rolling&#39;``).</span>
 <span class="sd">    KeyError</span>
 <span class="sd">        If an unknown method name is provided.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    dict</span>
-<span class="sd">        Dictionary with the following keys:</span>
-
-<span class="sd">        yhat : pandas.Series</span>
-<span class="sd">            Filled series on the same index as ``target``.</span>
-<span class="sd">        pi_lower : pandas.Series or None</span>
-<span class="sd">            Lower uncertainty band (if the method provides one), otherwise None.</span>
-<span class="sd">        pi_upper : pandas.Series or None</span>
-<span class="sd">            Upper uncertainty band (if the method provides one), otherwise None.</span>
-<span class="sd">        model_info : dict</span>
-<span class="sd">            Method-specific diagnostics and metadata. Typical fields include:</span>
-<span class="sd">            ``method``, ``param_names``, ``fitted_params`` (packed blob for reuse),</span>
-<span class="sd">            ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,</span>
-<span class="sd">            ``bic``), and per-regime info when ``regime`` is provided.</span>
-
-
 <span class="sd">    &quot;&quot;&quot;</span>
-
-
 
     <span class="c1"># add these names in the set:</span>
     <span class="n">recognized</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;ols&quot;</span><span class="p">,</span><span class="s2">&quot;huber&quot;</span><span class="p">,</span><span class="s2">&quot;rolling&quot;</span><span class="p">,</span><span class="s2">&quot;lagged_reg&quot;</span><span class="p">,</span><span class="s2">&quot;loess&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;dfm&quot;</span><span class="p">,</span><span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">,</span><span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;resid_interp_linear&quot;</span><span class="p">,</span><span class="s2">&quot;resid_interp_pchip&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;substitute&quot;</span><span class="p">,</span>  
+        <span class="s2">&quot;ols&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;huber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rolling&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lagged_reg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loess&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dfm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;resid_interp_linear&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;resid_interp_pchip&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;substitute&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">recognized</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown method: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">method</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">,</span><span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">}:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">,</span> <span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">}:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;fit&#39;/&#39;params&#39; are only supported for DFM methods.&quot;</span><span class="p">)</span>
-
 
     <span class="n">y0</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">X0</span> <span class="o">=</span> <span class="n">_as_series_like</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 
     <span class="c1"># Pull optional tuning params from **kwargs (keeps backward compat in notebooks)</span>
-    <span class="n">lags</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lags&quot;</span><span class="p">,</span>   <span class="kc">None</span><span class="p">)</span>
+    <span class="n">lags</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lags&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">window</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;window&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
 
     <span class="c1"># Align to common grid; for rolling with str window we regularize first</span>
     <span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span> <span class="o">=</span> <span class="n">_align</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">X0</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1504,12 +1621,11 @@
         <span class="n">piu_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">info_all</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span> <span class="s2">&quot;by_regime&quot;</span><span class="p">:</span> <span class="p">{}}</span>
         <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">cats</span><span class="p">:</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">reg</span> <span class="o">==</span> <span class="n">cat</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">reg</span> <span class="o">==</span> <span class="n">cat</span>
             <span class="n">y_c</span> <span class="o">=</span> <span class="n">y_al</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
             <span class="n">X_c</span> <span class="o">=</span> <span class="n">X_al</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
             <span class="n">res_c</span> <span class="o">=</span> <span class="n">fill_from_neighbor</span><span class="p">(</span>
-                <span class="n">y_c</span><span class="p">,</span> <span class="n">X_c</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">lags</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> 
-                <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span>
+                <span class="n">y_c</span><span class="p">,</span> <span class="n">X_c</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">lags</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span>
             <span class="p">)</span>
             <span class="n">yhats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">res_c</span><span class="p">[</span><span class="s2">&quot;yhat&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">cat</span><span class="p">)))</span>
             <span class="n">pil_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">res_c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pi_lower&quot;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">cat</span><span class="p">)))</span>
@@ -1529,18 +1645,26 @@
             <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_huber</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;rolling&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;window must be provided for rolling regression (in samples)&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;window must be provided for rolling regression (in samples)&quot;</span>
+                <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;String window (e.g., &#39;30D&#39;) no longer supported. Pass an integer number of samples.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;String window (e.g., &#39;30D&#39;) no longer supported. Pass an integer number of samples.&quot;</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">window_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
-            <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_rolling_regression</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window_n</span><span class="p">)</span>
+            <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_rolling_regression</span><span class="p">(</span>
+                <span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window_n</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;lagged_reg&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">lags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">first_col</span> <span class="o">=</span> <span class="n">X_al</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">max_lag</span> <span class="o">=</span> <span class="mi">6</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">lag_list</span> <span class="o">=</span> <span class="n">_suggest_lags</span><span class="p">(</span><span class="o">*</span><span class="n">_mask_overlap</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">[[</span><span class="n">first_col</span><span class="p">]]),</span> <span class="n">max_lag</span><span class="o">=</span><span class="n">max_lag</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">lag_list</span> <span class="o">=</span> <span class="n">_suggest_lags</span><span class="p">(</span>
+                        <span class="o">*</span><span class="n">_mask_overlap</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">[[</span><span class="n">first_col</span><span class="p">]]),</span> <span class="n">max_lag</span><span class="o">=</span><span class="n">max_lag</span>
+                    <span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="n">lag_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lags</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -1548,25 +1672,39 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">lag_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">lags</span><span class="p">))</span>
 
-            <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_lagged_elasticnet</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">lag_list</span><span class="p">)</span>
+            <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_lagged_elasticnet</span><span class="p">(</span>
+                <span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">lag_list</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;loess&quot;</span><span class="p">:</span>
             <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">fit_loess_time_value</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">:</span>
             <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_dfm</span><span class="p">(</span>
-                <span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span>
-                <span class="n">factor</span><span class="o">=</span><span class="s2">&quot;trimbur&quot;</span><span class="p">,</span> <span class="n">anomaly_mode</span><span class="o">=</span><span class="s2">&quot;rw&quot;</span><span class="p">,</span> <span class="n">anom_var</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span>
-                <span class="n">rx_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="n">params</span><span class="o">=</span><span class="n">params</span>
+                <span class="n">y_al</span><span class="p">,</span>
+                <span class="n">X_al</span><span class="p">,</span>
+                <span class="n">factor</span><span class="o">=</span><span class="s2">&quot;trimbur&quot;</span><span class="p">,</span>
+                <span class="n">anomaly_mode</span><span class="o">=</span><span class="s2">&quot;rw&quot;</span><span class="p">,</span>
+                <span class="n">anom_var</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span>
+                <span class="n">rx_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">maxiter</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+                <span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">:</span>
             <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_dfm</span><span class="p">(</span>
-                <span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span>
-                <span class="n">factor</span><span class="o">=</span><span class="s2">&quot;trimbur&quot;</span><span class="p">,</span> <span class="n">anomaly_mode</span><span class="o">=</span><span class="s2">&quot;ar&quot;</span><span class="p">,</span> <span class="n">anom_var</span><span class="o">=</span><span class="s2">&quot;neighbor&quot;</span><span class="p">,</span>
-                <span class="n">rx_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="n">params</span><span class="o">=</span><span class="n">params</span>
+                <span class="n">y_al</span><span class="p">,</span>
+                <span class="n">X_al</span><span class="p">,</span>
+                <span class="n">factor</span><span class="o">=</span><span class="s2">&quot;trimbur&quot;</span><span class="p">,</span>
+                <span class="n">anomaly_mode</span><span class="o">=</span><span class="s2">&quot;ar&quot;</span><span class="p">,</span>
+                <span class="n">anom_var</span><span class="o">=</span><span class="s2">&quot;neighbor&quot;</span><span class="p">,</span>
+                <span class="n">rx_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">maxiter</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+                <span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;resid_interp_linear&quot;</span><span class="p">:</span>
-            <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_resid_interp</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+            <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_resid_interp</span><span class="p">(</span>
+                <span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;resid_interp_pchip&quot;</span><span class="p">:</span>
             <span class="n">yhat</span><span class="p">,</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">_fit_resid_interp</span><span class="p">(</span><span class="n">y_al</span><span class="p">,</span> <span class="n">X_al</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;pchip&quot;</span><span class="p">)</span>
 
@@ -1596,10 +1734,12 @@
         <span class="n">model_info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
         <span class="n">metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span></div>
+
 
 
 <span class="c1"># ----------------------- Optional CSV writer with YAML ---------------------- #</span>
+
 
 <div class="viewcode-block" id="write_filled_csv_with_yaml_header">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.write_filled_csv_with_yaml_header">[docs]</a>
@@ -1648,7 +1788,6 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv_body</span><span class="p">)</span></div>
-
 
 </pre></div>
 

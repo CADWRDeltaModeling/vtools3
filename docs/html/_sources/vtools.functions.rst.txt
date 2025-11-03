@@ -164,22 +164,6 @@ vtools.functions.unit\_conversions module
    :undoc-members:
    :show-inheritance:
 
-vtools.functions.unit\_conversions\_orig module
------------------------------------------------
-
-.. automodule:: vtools.functions.unit_conversions_orig
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-vtools.functions.viz\_gap module
---------------------------------
-
-.. automodule:: vtools.functions.viz_gap
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
