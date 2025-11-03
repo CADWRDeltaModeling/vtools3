@@ -318,7 +318,7 @@ def fahrenheit_to_celsius(x):
     same type as `x`
         Value(s) in degrees celsius.
     """
-    cfs= np.asarray(x)
+    arr = np.asarray(x.values if isinstance(x, (pd.Series, pd.DataFrame)) else x)
     out = (arr - 32.0) * (5.0 / 9.0)
     return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
@@ -335,7 +335,7 @@ def celsius_to_fahrenheit(x):
     same type as `x`
         Value(s) in farenheit. 
     """
-    arr = np.asarray(x)
+    arr = np.asarray(x.values if isinstance(x, (pd.Series, pd.DataFrame)) else x)
     out = arr * 1.8 + 32.0
     return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
