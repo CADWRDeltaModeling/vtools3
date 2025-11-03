@@ -293,17 +293,6 @@ def cfs_to_cms(x):
     out = arr * CFS2CMS
     return out.item() if np.isscalar(x) else _rewrap_like(x, out)
 
-    if isinstance(x, pd.DataFrame):
-        # Element-wise multiply, preserving index/columns
-        return x * CFS2CMS
-    elif isinstance(x, pd.Series):
-        # Preserve Series index and name
-        return x * CFS2CMS
-    else:
-        arr = np.asarray(x)
-        out = arr * CFS2CMS
-        return out.item() if np.isscalar(x) else out
-
 
 def fahrenheit_to_celsius(x):
     """Convert °F to °C.
