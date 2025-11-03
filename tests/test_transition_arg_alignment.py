@@ -22,7 +22,7 @@ def test_type_mismatch_raises():
     ts1 = pd.DataFrame({"A": [10, 20, 30, 40, 50, 60]}, index=_idx("2023-01-02"))
     with pytest.raises(ValueError, match="same type"):
         transition_ts(
-            ts0, ts1, method="linear", create_gap=_gap(), return_type="series"
+            ts0, ts1, method="linear", window=_gap(), return_type="series"
         )
 
 
@@ -34,7 +34,7 @@ def test_frequency_mismatch_raises():
     )
     with pytest.raises(ValueError, match="same frequency"):
         transition_ts(
-            ts0, ts1, method="linear", create_gap=_gap(), return_type="series"
+            ts0, ts1, method="linear", window=_gap(), return_type="series"
         )
 
 
@@ -50,7 +50,7 @@ def test_df_columns_mismatch_raises_when_names_none():
         ValueError, match=r"All input columns must be identical when `names` is None"
     ):
         transition_ts(
-            df0, df1, method="linear", create_gap=_gap(), return_type="series"
+            df0, df1, method="linear", window=_gap(), return_type="series"
         )
 
 
@@ -65,7 +65,7 @@ def test_df_column_order_mismatch_raises_when_names_none():
         ValueError, match=r"All input columns must be identical when `names` is None"
     ):
         transition_ts(
-            df0, df1, method="linear", create_gap=_gap(), return_type="series"
+            df0, df1, method="linear", window=_gap(), return_type="series"
         )
 
 
@@ -81,7 +81,7 @@ def test_series_univariate_names_str_returns_series_named():
         s0,
         s1,
         method="linear",
-        create_gap=["2023-01-01 12:00", "2023-01-01 18:00"],
+        window=["2023-01-01 12:00", "2023-01-01 18:00"],
         return_type="series",
         names="X",
     )
@@ -98,7 +98,7 @@ def test_series_univariate_names_list_single_equiv_to_str():
         s0,
         s1,
         method="linear",
-        create_gap=["2023-01-01 12:00", "2023-01-01 18:00"],  # <-- inside natural gap
+        window=["2023-01-01 12:00", "2023-01-01 18:00"],  # <-- inside natural gap
         return_type="series",
         names="X",
     )
@@ -107,7 +107,7 @@ def test_series_univariate_names_list_single_equiv_to_str():
         s0,
         s1,
         method="linear",
-        create_gap=["2023-01-01 12:00", "2023-01-01 18:00"],  # <-- same valid gap
+        window=["2023-01-01 12:00", "2023-01-01 18:00"],  # <-- same valid gap
         return_type="series",
         names=["X"],
     )
@@ -124,7 +124,7 @@ def test_series_univariate_names_list_multi_raises():
             s0,
             s1,
             method="linear",
-            create_gap=_gap(),
+            window=_gap(),
             return_type="series",
             names=["X", "Y"],
         )
@@ -149,7 +149,7 @@ def test_df_names_list_selection_subset_and_order_preserved():
         df0,
         df1,
         method="linear",
-        create_gap=[gap_start, gap_end],
+        window=[gap_start, gap_end],
         return_type="series",
         names=["B", "A"],
     )
@@ -167,7 +167,7 @@ def test_df_names_list_missing_column_raises():
             df0,
             df1,
             method="linear",
-            create_gap=_gap(),
+            window=_gap(),
             return_type="series",
             names=["A", "B"],
         )
@@ -176,18 +176,18 @@ def test_df_names_list_missing_column_raises():
 def test_gap_end_after_ts1_last_raises():
     s0 = pd.Series(range(6), index=_idx("2023-01-01", freq="h"), name="A")
     s1 = pd.Series(range(6), index=_idx("2023-01-02", freq="h"), name="A")
-    with pytest.raises(ValueError, match="create_gap end"):
+    with pytest.raises(ValueError, match="window end"):
         transition_ts(
-            s0, s1, method="linear", create_gap=["2023-01-02 12:00", "2023-01-03 00:00"]
+            s0, s1, method="linear", window=["2023-01-02 12:00", "2023-01-03 00:00"]
         )
 
 
 def test_gap_start_not_before_ts0_any_sample_raises():
     s0 = pd.Series(range(6), index=_idx("2023-01-01", freq="h"), name="A")
     s1 = pd.Series(range(6), index=_idx("2023-01-02", freq="h"), name="A")
-    with pytest.raises(ValueError, match="create_gap start"):
+    with pytest.raises(ValueError, match="window start"):
         transition_ts(
-            s0, s1, method="linear", create_gap=["2022-12-31 00:00", "2022-12-31 12:00"]
+            s0, s1, method="linear", window=["2022-12-31 00:00", "2022-12-31 12:00"]
         )
 
 
@@ -201,7 +201,7 @@ def test_empty_names_list_raises():
     )
     with pytest.raises(ValueError, match="selection is empty"):
         transition_ts(
-            s0, s1, method="linear", create_gap=_gap(), return_type="series", names=[]
+            s0, s1, method="linear", window=_gap(), return_type="series", names=[]
         )
 
 
@@ -227,17 +227,17 @@ def _df(names, start, periods=6, freq="h"):
     return pd.DataFrame(data, index=idx)
 
 
-# ---------- CONTRACT: explicit create_gap strict domain checks ----------
+# ---------- CONTRACT: explicit window strict domain checks ----------
 
 
 def test_gap_start_before_ts0_first_errors():
     ts0 = _s("A", "2023-01-02")
     ts1 = _s("A", "2023-01-03")
-    with pytest.raises(ValueError, match=r"create_gap start.*"):
+    with pytest.raises(ValueError, match=r"window start.*"):
         transition_ts(
             ts0,
             ts1,
-            create_gap=["2023-01-01 00:00", "2023-01-02 12:00"],
+            window=["2023-01-01 00:00", "2023-01-02 12:00"],
             method="linear",
         )
 
@@ -245,11 +245,11 @@ def test_gap_start_before_ts0_first_errors():
 def test_gap_end_after_ts1_last_errors():
     ts0 = _s("A", "2023-01-01")
     ts1 = _s("A", "2023-01-02")
-    with pytest.raises(ValueError, match=r"create_gap end.*"):
+    with pytest.raises(ValueError, match=r"window end.*"):
         transition_ts(
             ts0,
             ts1,
-            create_gap=["2023-01-02 00:00", "2023-01-03 12:00"],
+            window=["2023-01-02 00:00", "2023-01-03 12:00"],
             method="linear",
         )
 
@@ -261,7 +261,7 @@ def test_gap_start_ge_end_errors():
         transition_ts(
             ts0,
             ts1,
-            create_gap=["2023-01-01 10:00", "2023-01-01 10:00"],
+            window=["2023-01-01 10:00", "2023-01-01 10:00"],
             method="linear",
         )
 
@@ -278,7 +278,7 @@ def test_max_snap_expands_inside_natural_gap_symmetrically():
         ts0,
         ts1,
         method="linear",
-        create_gap=["2023-01-02 06:00", "2023-01-02 07:00"],
+        window=["2023-01-02 06:00", "2023-01-02 07:00"],
         max_snap="1D",  # allow widening up to 24h
         return_type="series",
     )
@@ -294,7 +294,7 @@ def test_max_snap_ignored_when_overlap():
         ts0,
         ts1,
         method="linear",
-        create_gap=["2023-01-01 08:00", "2023-01-01 10:00"],
+        window=["2023-01-01 08:00", "2023-01-01 10:00"],
         max_snap="12H",
         return_type="series",
     )
@@ -309,7 +309,7 @@ def test_max_snap_does_not_cross_natural_bounds():
         ts0,
         ts1,
         method="linear",
-        create_gap=["2023-01-01 05:30", "2023-01-01 06:00"],
+        window=["2023-01-01 05:30", "2023-01-01 06:00"],
         max_snap="1D",
         return_type="series",
     )
@@ -327,7 +327,7 @@ def test_df_subset_names_with_gap_inside_natural_gap():
         df0,
         df1,
         method="linear",
-        create_gap=["2023-01-02 06:00", "2023-01-02 07:00"],
+        window=["2023-01-02 06:00", "2023-01-02 07:00"],
         names=["B", "A"],
         max_snap="12h",
         return_type="series",
