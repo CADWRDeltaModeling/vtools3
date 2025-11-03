@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sklearn.neighbors._regression &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=0ca39674"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/neighbor_fill.html">Filling Series Based on a Neighbor (like series)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for sklearn.neighbors._regression</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Nearest Neighbor Regression.&quot;&quot;&quot;</span>
+
+<span class="c1"># Authors: Jake Vanderplas &lt;vanderplas@astro.washington.edu&gt;</span>
+<span class="c1">#          Fabian Pedregosa &lt;fabian.pedregosa@inria.fr&gt;</span>
+<span class="c1">#          Alexandre Gramfort &lt;alexandre.gramfort@inria.fr&gt;</span>
+<span class="c1">#          Sparseness support by Lars Buitinck</span>
+<span class="c1">#          Multi-output support by Arnaud Joly &lt;a.joly@ulg.ac.be&gt;</span>
+<span class="c1">#          Empty radius support by Andreas Bjerre-Nielsen</span>
+<span class="c1">#</span>
+<span class="c1"># License: BSD 3 clause (C) INRIA, University of Amsterdam,</span>
+<span class="c1">#                           University of Copenhagen</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..base</span> <span class="kn">import</span> <span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">_fit_context</span>
+<span class="kn">from</span> <span class="nn">..metrics</span> <span class="kn">import</span> <span class="n">DistanceMetric</span>
+<span class="kn">from</span> <span class="nn">..utils._param_validation</span> <span class="kn">import</span> <span class="n">StrOptions</span>
+<span class="kn">from</span> <span class="nn">._base</span> <span class="kn">import</span> <span class="n">KNeighborsMixin</span><span class="p">,</span> <span class="n">NeighborsBase</span><span class="p">,</span> <span class="n">RadiusNeighborsMixin</span><span class="p">,</span> <span class="n">_get_weights</span>
+
+
+<div class="viewcode-block" id="KNeighborsRegressor">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor">[docs]</a>
+<span class="k">class</span> <span class="nc">KNeighborsRegressor</span><span class="p">(</span><span class="n">KNeighborsMixin</span><span class="p">,</span> <span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">NeighborsBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Regression based on k-nearest neighbors.</span>
+
+<span class="sd">    The target is predicted by local interpolation of the targets</span>
+<span class="sd">    associated of the nearest neighbors in the training set.</span>
+
+<span class="sd">    Read more in the :ref:`User Guide &lt;regression&gt;`.</span>
+
+<span class="sd">    .. versionadded:: 0.9</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n_neighbors : int, default=5</span>
+<span class="sd">        Number of neighbors to use by default for :meth:`kneighbors` queries.</span>
+
+<span class="sd">    weights : {&#39;uniform&#39;, &#39;distance&#39;}, callable or None, default=&#39;uniform&#39;</span>
+<span class="sd">        Weight function used in prediction.  Possible values:</span>
+
+<span class="sd">        - &#39;uniform&#39; : uniform weights.  All points in each neighborhood</span>
+<span class="sd">          are weighted equally.</span>
+<span class="sd">        - &#39;distance&#39; : weight points by the inverse of their distance.</span>
+<span class="sd">          in this case, closer neighbors of a query point will have a</span>
+<span class="sd">          greater influence than neighbors which are further away.</span>
+<span class="sd">        - [callable] : a user-defined function which accepts an</span>
+<span class="sd">          array of distances, and returns an array of the same shape</span>
+<span class="sd">          containing the weights.</span>
+
+<span class="sd">        Uniform weights are used by default.</span>
+
+<span class="sd">    algorithm : {&#39;auto&#39;, &#39;ball_tree&#39;, &#39;kd_tree&#39;, &#39;brute&#39;}, default=&#39;auto&#39;</span>
+<span class="sd">        Algorithm used to compute the nearest neighbors:</span>
+
+<span class="sd">        - &#39;ball_tree&#39; will use :class:`BallTree`</span>
+<span class="sd">        - &#39;kd_tree&#39; will use :class:`KDTree`</span>
+<span class="sd">        - &#39;brute&#39; will use a brute-force search.</span>
+<span class="sd">        - &#39;auto&#39; will attempt to decide the most appropriate algorithm</span>
+<span class="sd">          based on the values passed to :meth:`fit` method.</span>
+
+<span class="sd">        Note: fitting on sparse input will override the setting of</span>
+<span class="sd">        this parameter, using brute force.</span>
+
+<span class="sd">    leaf_size : int, default=30</span>
+<span class="sd">        Leaf size passed to BallTree or KDTree.  This can affect the</span>
+<span class="sd">        speed of the construction and query, as well as the memory</span>
+<span class="sd">        required to store the tree.  The optimal value depends on the</span>
+<span class="sd">        nature of the problem.</span>
+
+<span class="sd">    p : float, default=2</span>
+<span class="sd">        Power parameter for the Minkowski metric. When p = 1, this is</span>
+<span class="sd">        equivalent to using manhattan_distance (l1), and euclidean_distance</span>
+<span class="sd">        (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used.</span>
+
+<span class="sd">    metric : str, DistanceMetric object or callable, default=&#39;minkowski&#39;</span>
+<span class="sd">        Metric to use for distance computation. Default is &quot;minkowski&quot;, which</span>
+<span class="sd">        results in the standard Euclidean distance when p = 2. See the</span>
+<span class="sd">        documentation of `scipy.spatial.distance</span>
+<span class="sd">        &lt;https://docs.scipy.org/doc/scipy/reference/spatial.distance.html&gt;`_ and</span>
+<span class="sd">        the metrics listed in</span>
+<span class="sd">        :class:`~sklearn.metrics.pairwise.distance_metrics` for valid metric</span>
+<span class="sd">        values.</span>
+
+<span class="sd">        If metric is &quot;precomputed&quot;, X is assumed to be a distance matrix and</span>
+<span class="sd">        must be square during fit. X may be a :term:`sparse graph`, in which</span>
+<span class="sd">        case only &quot;nonzero&quot; elements may be considered neighbors.</span>
+
+<span class="sd">        If metric is a callable function, it takes two arrays representing 1D</span>
+<span class="sd">        vectors as inputs and must return one value indicating the distance</span>
+<span class="sd">        between those vectors. This works for Scipy&#39;s metrics, but is less</span>
+<span class="sd">        efficient than passing the metric name as a string.</span>
+
+<span class="sd">        If metric is a DistanceMetric object, it will be passed directly to</span>
+<span class="sd">        the underlying computation routines.</span>
+
+<span class="sd">    metric_params : dict, default=None</span>
+<span class="sd">        Additional keyword arguments for the metric function.</span>
+
+<span class="sd">    n_jobs : int, default=None</span>
+<span class="sd">        The number of parallel jobs to run for neighbors search.</span>
+<span class="sd">        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.</span>
+<span class="sd">        ``-1`` means using all processors. See :term:`Glossary &lt;n_jobs&gt;`</span>
+<span class="sd">        for more details.</span>
+<span class="sd">        Doesn&#39;t affect :meth:`fit` method.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    effective_metric_ : str or callable</span>
+<span class="sd">        The distance metric to use. It will be same as the `metric` parameter</span>
+<span class="sd">        or a synonym of it, e.g. &#39;euclidean&#39; if the `metric` parameter set to</span>
+<span class="sd">        &#39;minkowski&#39; and `p` parameter set to 2.</span>
+
+<span class="sd">    effective_metric_params_ : dict</span>
+<span class="sd">        Additional keyword arguments for the metric function. For most metrics</span>
+<span class="sd">        will be same with `metric_params` parameter, but may also contain the</span>
+<span class="sd">        `p` parameter value if the `effective_metric_` attribute is set to</span>
+<span class="sd">        &#39;minkowski&#39;.</span>
+
+<span class="sd">    n_features_in_ : int</span>
+<span class="sd">        Number of features seen during :term:`fit`.</span>
+
+<span class="sd">        .. versionadded:: 0.24</span>
+
+<span class="sd">    feature_names_in_ : ndarray of shape (`n_features_in_`,)</span>
+<span class="sd">        Names of features seen during :term:`fit`. Defined only when `X`</span>
+<span class="sd">        has feature names that are all strings.</span>
+
+<span class="sd">        .. versionadded:: 1.0</span>
+
+<span class="sd">    n_samples_fit_ : int</span>
+<span class="sd">        Number of samples in the fitted data.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    NearestNeighbors : Unsupervised learner for implementing neighbor searches.</span>
+<span class="sd">    RadiusNeighborsRegressor : Regression based on neighbors within a fixed radius.</span>
+<span class="sd">    KNeighborsClassifier : Classifier implementing the k-nearest neighbors vote.</span>
+<span class="sd">    RadiusNeighborsClassifier : Classifier implementing</span>
+<span class="sd">        a vote among neighbors within a given radius.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    See :ref:`Nearest Neighbors &lt;neighbors&gt;` in the online documentation</span>
+<span class="sd">    for a discussion of the choice of ``algorithm`` and ``leaf_size``.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       Regarding the Nearest Neighbors algorithms, if it is found that two</span>
+<span class="sd">       neighbors, neighbor `k+1` and `k`, have identical distances but</span>
+<span class="sd">       different labels, the results will depend on the ordering of the</span>
+<span class="sd">       training data.</span>
+
+<span class="sd">    https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; X = [[0], [1], [2], [3]]</span>
+<span class="sd">    &gt;&gt;&gt; y = [0, 0, 1, 1]</span>
+<span class="sd">    &gt;&gt;&gt; from sklearn.neighbors import KNeighborsRegressor</span>
+<span class="sd">    &gt;&gt;&gt; neigh = KNeighborsRegressor(n_neighbors=2)</span>
+<span class="sd">    &gt;&gt;&gt; neigh.fit(X, y)</span>
+<span class="sd">    KNeighborsRegressor(...)</span>
+<span class="sd">    &gt;&gt;&gt; print(neigh.predict([[1.5]]))</span>
+<span class="sd">    [0.5]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_parameter_constraints</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">NeighborsBase</span><span class="o">.</span><span class="n">_parameter_constraints</span><span class="p">,</span>
+        <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">StrOptions</span><span class="p">({</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">}),</span> <span class="nb">callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">_parameter_constraints</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DistanceMetric</span><span class="p">)</span>
+    <span class="n">_parameter_constraints</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;radius&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="KNeighborsRegressor.__init__">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">n_neighbors</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">weights</span><span class="o">=</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+        <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">leaf_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;minkowski&quot;</span><span class="p">,</span>
+        <span class="n">metric_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">n_neighbors</span><span class="o">=</span><span class="n">n_neighbors</span><span class="p">,</span>
+            <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
+            <span class="n">leaf_size</span><span class="o">=</span><span class="n">leaf_size</span><span class="p">,</span>
+            <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+            <span class="n">metric_params</span><span class="o">=</span><span class="n">metric_params</span><span class="p">,</span>
+            <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span></div>
+
+
+<div class="viewcode-block" id="KNeighborsRegressor._more_tags">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor._more_tags">[docs]</a>
+    <span class="k">def</span> <span class="nf">_more_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># For cross-validation routines to split data correctly</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;pairwise&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">==</span> <span class="s2">&quot;precomputed&quot;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="KNeighborsRegressor.fit">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.fit">[docs]</a>
+    <span class="nd">@_fit_context</span><span class="p">(</span>
+        <span class="c1"># KNeighborsRegressor.metric is not validated yet</span>
+        <span class="n">prefer_skip_nested_validation</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the k-nearest neighbors regressor from the training dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix} of shape (n_samples, n_features) or \</span>
+<span class="sd">                (n_samples, n_samples) if metric=&#39;precomputed&#39;</span>
+<span class="sd">            Training data.</span>
+
+<span class="sd">        y : {array-like, sparse matrix} of shape (n_samples,) or \</span>
+<span class="sd">                (n_samples, n_outputs)</span>
+<span class="sd">            Target values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : KNeighborsRegressor</span>
+<span class="sd">            The fitted k-nearest neighbors regressor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="KNeighborsRegressor.predict">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.predict">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the target for the provided data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix} of shape (n_queries, n_features), \</span>
+<span class="sd">                or (n_queries, n_indexed) if metric == &#39;precomputed&#39;</span>
+<span class="sd">            Test samples.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        y : ndarray of shape (n_queries,) or (n_queries, n_outputs), dtype=int</span>
+<span class="sd">            Target values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">==</span> <span class="s2">&quot;uniform&quot;</span><span class="p">:</span>
+            <span class="c1"># In that case, we do not need the distances to perform</span>
+            <span class="c1"># the weighting so we do not compute them.</span>
+            <span class="n">neigh_ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">return_distance</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">neigh_dist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">neigh_dist</span><span class="p">,</span> <span class="n">neigh_ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">_get_weights</span><span class="p">(</span><span class="n">neigh_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+
+        <span class="n">_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+        <span class="k">if</span> <span class="n">_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">_y</span> <span class="o">=</span> <span class="n">_y</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="n">neigh_ind</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">neigh_dist</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">_y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="n">neigh_ind</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">y_pred</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span> <span class="o">/</span> <span class="n">denom</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">y_pred</span></div>
+</div>
+
+
+
+<span class="k">class</span> <span class="nc">RadiusNeighborsRegressor</span><span class="p">(</span><span class="n">RadiusNeighborsMixin</span><span class="p">,</span> <span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">NeighborsBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Regression based on neighbors within a fixed radius.</span>
+
+<span class="sd">    The target is predicted by local interpolation of the targets</span>
+<span class="sd">    associated of the nearest neighbors in the training set.</span>
+
+<span class="sd">    Read more in the :ref:`User Guide &lt;regression&gt;`.</span>
+
+<span class="sd">    .. versionadded:: 0.9</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    radius : float, default=1.0</span>
+<span class="sd">        Range of parameter space to use by default for :meth:`radius_neighbors`</span>
+<span class="sd">        queries.</span>
+
+<span class="sd">    weights : {&#39;uniform&#39;, &#39;distance&#39;}, callable or None, default=&#39;uniform&#39;</span>
+<span class="sd">        Weight function used in prediction.  Possible values:</span>
+
+<span class="sd">        - &#39;uniform&#39; : uniform weights.  All points in each neighborhood</span>
+<span class="sd">          are weighted equally.</span>
+<span class="sd">        - &#39;distance&#39; : weight points by the inverse of their distance.</span>
+<span class="sd">          in this case, closer neighbors of a query point will have a</span>
+<span class="sd">          greater influence than neighbors which are further away.</span>
+<span class="sd">        - [callable] : a user-defined function which accepts an</span>
+<span class="sd">          array of distances, and returns an array of the same shape</span>
+<span class="sd">          containing the weights.</span>
+
+<span class="sd">        Uniform weights are used by default.</span>
+
+<span class="sd">    algorithm : {&#39;auto&#39;, &#39;ball_tree&#39;, &#39;kd_tree&#39;, &#39;brute&#39;}, default=&#39;auto&#39;</span>
+<span class="sd">        Algorithm used to compute the nearest neighbors:</span>
+
+<span class="sd">        - &#39;ball_tree&#39; will use :class:`BallTree`</span>
+<span class="sd">        - &#39;kd_tree&#39; will use :class:`KDTree`</span>
+<span class="sd">        - &#39;brute&#39; will use a brute-force search.</span>
+<span class="sd">        - &#39;auto&#39; will attempt to decide the most appropriate algorithm</span>
+<span class="sd">          based on the values passed to :meth:`fit` method.</span>
+
+<span class="sd">        Note: fitting on sparse input will override the setting of</span>
+<span class="sd">        this parameter, using brute force.</span>
+
+<span class="sd">    leaf_size : int, default=30</span>
+<span class="sd">        Leaf size passed to BallTree or KDTree.  This can affect the</span>
+<span class="sd">        speed of the construction and query, as well as the memory</span>
+<span class="sd">        required to store the tree.  The optimal value depends on the</span>
+<span class="sd">        nature of the problem.</span>
+
+<span class="sd">    p : float, default=2</span>
+<span class="sd">        Power parameter for the Minkowski metric. When p = 1, this is</span>
+<span class="sd">        equivalent to using manhattan_distance (l1), and euclidean_distance</span>
+<span class="sd">        (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used.</span>
+
+<span class="sd">    metric : str or callable, default=&#39;minkowski&#39;</span>
+<span class="sd">        Metric to use for distance computation. Default is &quot;minkowski&quot;, which</span>
+<span class="sd">        results in the standard Euclidean distance when p = 2. See the</span>
+<span class="sd">        documentation of `scipy.spatial.distance</span>
+<span class="sd">        &lt;https://docs.scipy.org/doc/scipy/reference/spatial.distance.html&gt;`_ and</span>
+<span class="sd">        the metrics listed in</span>
+<span class="sd">        :class:`~sklearn.metrics.pairwise.distance_metrics` for valid metric</span>
+<span class="sd">        values.</span>
+
+<span class="sd">        If metric is &quot;precomputed&quot;, X is assumed to be a distance matrix and</span>
+<span class="sd">        must be square during fit. X may be a :term:`sparse graph`, in which</span>
+<span class="sd">        case only &quot;nonzero&quot; elements may be considered neighbors.</span>
+
+<span class="sd">        If metric is a callable function, it takes two arrays representing 1D</span>
+<span class="sd">        vectors as inputs and must return one value indicating the distance</span>
+<span class="sd">        between those vectors. This works for Scipy&#39;s metrics, but is less</span>
+<span class="sd">        efficient than passing the metric name as a string.</span>
+
+<span class="sd">    metric_params : dict, default=None</span>
+<span class="sd">        Additional keyword arguments for the metric function.</span>
+
+<span class="sd">    n_jobs : int, default=None</span>
+<span class="sd">        The number of parallel jobs to run for neighbors search.</span>
+<span class="sd">        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.</span>
+<span class="sd">        ``-1`` means using all processors. See :term:`Glossary &lt;n_jobs&gt;`</span>
+<span class="sd">        for more details.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    effective_metric_ : str or callable</span>
+<span class="sd">        The distance metric to use. It will be same as the `metric` parameter</span>
+<span class="sd">        or a synonym of it, e.g. &#39;euclidean&#39; if the `metric` parameter set to</span>
+<span class="sd">        &#39;minkowski&#39; and `p` parameter set to 2.</span>
+
+<span class="sd">    effective_metric_params_ : dict</span>
+<span class="sd">        Additional keyword arguments for the metric function. For most metrics</span>
+<span class="sd">        will be same with `metric_params` parameter, but may also contain the</span>
+<span class="sd">        `p` parameter value if the `effective_metric_` attribute is set to</span>
+<span class="sd">        &#39;minkowski&#39;.</span>
+
+<span class="sd">    n_features_in_ : int</span>
+<span class="sd">        Number of features seen during :term:`fit`.</span>
+
+<span class="sd">        .. versionadded:: 0.24</span>
+
+<span class="sd">    feature_names_in_ : ndarray of shape (`n_features_in_`,)</span>
+<span class="sd">        Names of features seen during :term:`fit`. Defined only when `X`</span>
+<span class="sd">        has feature names that are all strings.</span>
+
+<span class="sd">        .. versionadded:: 1.0</span>
+
+<span class="sd">    n_samples_fit_ : int</span>
+<span class="sd">        Number of samples in the fitted data.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    NearestNeighbors : Unsupervised learner for implementing neighbor searches.</span>
+<span class="sd">    KNeighborsRegressor : Regression based on k-nearest neighbors.</span>
+<span class="sd">    KNeighborsClassifier : Classifier based on the k-nearest neighbors.</span>
+<span class="sd">    RadiusNeighborsClassifier : Classifier based on neighbors within a given radius.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    See :ref:`Nearest Neighbors &lt;neighbors&gt;` in the online documentation</span>
+<span class="sd">    for a discussion of the choice of ``algorithm`` and ``leaf_size``.</span>
+
+<span class="sd">    https://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; X = [[0], [1], [2], [3]]</span>
+<span class="sd">    &gt;&gt;&gt; y = [0, 0, 1, 1]</span>
+<span class="sd">    &gt;&gt;&gt; from sklearn.neighbors import RadiusNeighborsRegressor</span>
+<span class="sd">    &gt;&gt;&gt; neigh = RadiusNeighborsRegressor(radius=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; neigh.fit(X, y)</span>
+<span class="sd">    RadiusNeighborsRegressor(...)</span>
+<span class="sd">    &gt;&gt;&gt; print(neigh.predict([[1.5]]))</span>
+<span class="sd">    [0.5]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_parameter_constraints</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">NeighborsBase</span><span class="o">.</span><span class="n">_parameter_constraints</span><span class="p">,</span>
+        <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">StrOptions</span><span class="p">({</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">}),</span> <span class="nb">callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">_parameter_constraints</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;n_neighbors&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">weights</span><span class="o">=</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+        <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">leaf_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;minkowski&quot;</span><span class="p">,</span>
+        <span class="n">metric_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span>
+            <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
+            <span class="n">leaf_size</span><span class="o">=</span><span class="n">leaf_size</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+            <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+            <span class="n">metric_params</span><span class="o">=</span><span class="n">metric_params</span><span class="p">,</span>
+            <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+
+    <span class="nd">@_fit_context</span><span class="p">(</span>
+        <span class="c1"># RadiusNeighborsRegressor.metric is not validated yet</span>
+        <span class="n">prefer_skip_nested_validation</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the radius neighbors regressor from the training dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix} of shape (n_samples, n_features) or \</span>
+<span class="sd">                (n_samples, n_samples) if metric=&#39;precomputed&#39;</span>
+<span class="sd">            Training data.</span>
+
+<span class="sd">        y : {array-like, sparse matrix} of shape (n_samples,) or \</span>
+<span class="sd">                (n_samples, n_outputs)</span>
+<span class="sd">            Target values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : RadiusNeighborsRegressor</span>
+<span class="sd">            The fitted radius neighbors regressor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the target for the provided data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix} of shape (n_queries, n_features), \</span>
+<span class="sd">                or (n_queries, n_indexed) if metric == &#39;precomputed&#39;</span>
+<span class="sd">            Test samples.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        y : ndarray of shape (n_queries,) or (n_queries, n_outputs), \</span>
+<span class="sd">                dtype=double</span>
+<span class="sd">            Target values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">neigh_dist</span><span class="p">,</span> <span class="n">neigh_ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_neighbors</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">_get_weights</span><span class="p">(</span><span class="n">neigh_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+
+        <span class="n">_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+        <span class="k">if</span> <span class="n">_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">_y</span> <span class="o">=</span> <span class="n">_y</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">empty_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="k">else</span> <span class="n">empty_obs</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ind</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">neigh_ind</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="n">empty_obs</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ind</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">neigh_ind</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_pred</span><span class="p">)):</span>
+            <span class="n">empty_warning_msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;One or more samples have no neighbors &quot;</span>
+                <span class="s2">&quot;within specified radius; predicting NaN.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">empty_warning_msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">y_pred</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

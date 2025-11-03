@@ -151,7 +151,7 @@
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x2db5041b040>"
+       "<matplotlib.legend.Legend at 0x157b7953160>"
       ]
      },
      "execution_count": 3,
@@ -294,7 +294,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": 6,
    "metadata": {},
    "outputs": [
     {

@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Filling Non-tidal Quantities Based on a Neighbor &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <script src="../_static/documentation_options.js?v=0ca39674"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing" href="../contributing.html" />
+    <link rel="prev" title="Time Series Transition Examples" href="transition.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transition.html">Transitioning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Filling Series Based on a Neighbor (like series)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#1.-Introduction">1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#2.-Setup">2. Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#3.-Data:-fetching-&amp;-preprocessing">3. Data: fetching &amp; preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#4.-Methods-at-a-glance">4. Methods at a glance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#5.-Simple-substitution">5. Simple substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#6.-Residual-based-vs-direct-interpolation-(visual)">6. Residual-based vs direct interpolation (visual)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#7.-Method-catalog-—-sample-calls">7. Method catalog — sample calls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#8.-Comparisons-on-synthetic-gaps">8. Comparisons on synthetic gaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#9.-Storing-&amp;-reusing-DFM-fits">9. Storing &amp; reusing DFM fits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#10.-Appendix-—-API-summary">10. Appendix — API summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="transition.html" title="previous chapter">Time Series Transition Examples</a></li>
+      <li>Next: <a href="../contributing.html" title="next chapter">Contributing</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="Filling-Non-tidal-Quantities-Based-on-a-Neighbor">
+<h1>Filling Non-tidal Quantities Based on a Neighbor<a class="headerlink" href="#Filling-Non-tidal-Quantities-Based-on-a-Neighbor" title="Link to this heading">¶</a></h1>
+<div class="line-block">
+<div class="line"><strong>neighbor_fill.ipynb — user guide</strong></div>
+<div class="line"><em>Generated 2025-11-02 05:52 UTC</em></div>
+</div>
+<p>This notebook is a practical, self-contained guide for filling gaps in a target time series using a neighboring series (e.g., <strong>San Joaquin at Vernalis</strong> (VNS) flow filled from <strong>Mossdale Bridge</strong> (MSD) subtidal flow), the example we use here.</p>
+<hr class="docutils" />
+<section id="1.-Introduction">
+<h2>1. Introduction<a class="headerlink" href="#1.-Introduction" title="Link to this heading">¶</a></h2>
+<section id="Example-Data-and-Typical-Preprocessing">
+<h3>Example Data and Typical Preprocessing<a class="headerlink" href="#Example-Data-and-Typical-Preprocessing" title="Link to this heading">¶</a></h3>
+<p>When a physically similar or proximate station is available, it can be advantageous to use that neighbor to impute missing values in the target series. Our canonical example is <strong>San Joaquin River flow at Vernalis (VNS)</strong>, filled from the subtidal component of <strong>Mossdale Bridge (MSD)</strong>:</p>
+<ul class="simple">
+<li><p><strong>MSD is tidal</strong> → we prefilter with a subtidal filter (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">cosine_lanczos(...,</span> <span class="pre">'40h')</span></code>).</p></li>
+<li><p><strong>MSD lags VNS</strong> by ~4 hours → we estimate a fixed lag using the <code class="docutils literal notranslate"><span class="pre">calculate_lag</span></code> function and shift the neighbor before modeling.</p></li>
+<li><p><strong>MSD sometimes has its own gaps</strong> → we linearly interpolate <em>neighbor</em> briefly before filtering to avoid edge artifacts.</p></li>
+<li><p><strong>VNS − MSD</strong> reflects seasonal channel depletions and episodic Paradise Cut/Weir overflow.</p></li>
+</ul>
+<p>This notebook shows: (a) how to prepare data, (b) gap-filling methods, (c) how to compare methods on synthetic gaps, and (d) how to store/reuse Dynamic-Factor (DFM) fits.</p>
+</section>
+<section id="Bottom-Line-on-Methods-(Quick-Take)">
+<h3>Bottom Line on Methods (Quick Take)<a class="headerlink" href="#Bottom-Line-on-Methods-(Quick-Take)" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Residual interpolation</strong> (linear or PCHIP) is the most accurate <em>and</em> simple option <strong>when the neighbor is present</strong>. It is fairly easy to explain and it consistently reconstructs Vernalis from Mossdale well. However, it cannot fill when the neighbor is missing. Whether one can live with this limitation depends on the pair of data streams under consideration. In the Vernalis/Mossdale example this would leave about 10% of the data missing.</p></li>
+<li><p><strong>DFM (Trimbur)</strong> is heavier-weight (requires fitting) but, with reasonable joint coverage, <strong>produces complete, robust fills</strong> (handles runs of missing values better than residual methods).</p></li>
+<li><p><strong>Substitution</strong> and <strong>global regression</strong> are useful null baseline models but result in estimates that have high error and have no time connection to the main series. This will cause a lurching between the target series and the substitute at the edges of gaps.</p></li>
+</ul>
+<p>For VNS/MSD, residual-interp and DFM are the practical choices; pick <strong>Residual-interp</strong> for speed/simplicity or when you have complete data at the neighbor, <strong>DFM</strong> for completeness/robustness.</p>
+</section>
+</section>
+<section id="2.-Setup">
+<h2>2. Setup<a class="headerlink" href="#2.-Setup" title="Link to this heading">¶</a></h2>
+<div class="line-block">
+<div class="line">The code assumes your standard environment with <code class="docutils literal notranslate"><span class="pre">vtools</span></code>, <code class="docutils literal notranslate"><span class="pre">dms_datastore</span></code>, and <code class="docutils literal notranslate"><span class="pre">statsmodels</span></code>.</div>
+<div class="line">If you’re browsing the notebook without your environment, you can still read the narrative and formulas.</div>
+</div>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><strong>Modules</strong></div>
+<div class="line">- Data &amp; utilities: <code class="docutils literal notranslate"><span class="pre">vtools</span></code>, <code class="docutils literal notranslate"><span class="pre">vtools.data.gap</span></code></div>
+<div class="line">- Gap filling: <code class="docutils literal notranslate"><span class="pre">vtools.functions.neighbor_fill.fill_from_neighbor</span></code></div>
+<div class="line">- Optional data provider: <code class="docutils literal notranslate"><span class="pre">dms_datastore.read_multi.read_ts_repo</span></code></div>
+</div>
+</div></blockquote>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+
+<span class="c1"># Imports (plotting: matplotlib only; no seaborn)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">vtools.functions.neighbor_fill</span> <span class="kn">import</span> <span class="n">fill_from_neighbor</span>
+
+<span class="kn">from</span> <span class="nn">vtools</span> <span class="kn">import</span> <span class="n">cosine_lanczos</span><span class="p">,</span> <span class="n">calculate_lag</span><span class="p">,</span> <span class="n">minutes</span>
+<span class="kn">from</span> <span class="nn">vtools.data.gap</span> <span class="kn">import</span> <span class="n">GapSpec</span><span class="p">,</span> <span class="n">GapStrategy</span><span class="p">,</span> <span class="n">apply_gaps</span>
+
+<span class="c1"># Matplotlib defaults</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.grid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="3.-Data:-fetching-&amp;-preprocessing">
+<h2>3. Data: fetching &amp; preprocessing<a class="headerlink" href="#3.-Data:-fetching-&-preprocessing" title="Link to this heading">¶</a></h2>
+<p>Below is a <em>template</em> <code class="docutils literal notranslate"><span class="pre">provide_example_data()</span></code> that illustrates a common setup for VNS/MSD:</p>
+<ol class="arabic simple">
+<li><p>Load both series on a common range.</p></li>
+<li><p>Pre-filter <strong>MSD</strong> to subtidal (<code class="docutils literal notranslate"><span class="pre">cosine_lanczos</span></code>, e.g., 40h window).</p></li>
+<li><p>Estimate the lag between the (filtered) neighbor and target (e.g., up to 14h), convert to steps, and shift the neighbor.</p></li>
+<li><p>Return <code class="docutils literal notranslate"><span class="pre">(target,</span> <span class="pre">neighbor,</span> <span class="pre">regime)</span></code> where <code class="docutils literal notranslate"><span class="pre">regime</span></code> can be <code class="docutils literal notranslate"><span class="pre">None</span></code> or a categorical series (barrier in/out, season, etc.).</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># You may replace this with a project-specific provider using dms_datastore.</span>
+<span class="c1"># The function must return (target: Series, neighbor: Series|DataFrame, regime: Series|None),</span>
+<span class="c1"># aligned (or alignable) by time.</span>
+<span class="k">def</span> <span class="nf">provide_example_data</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2017-02-01&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;2022-12-01&#39;</span><span class="p">):</span>
+
+    <span class="n">sjr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data/sjr_flow.csv&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="s1">&#39;15min&#39;</span><span class="p">)</span>
+    <span class="n">msd</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data/msd_flow.csv&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="s1">&#39;15min&#39;</span><span class="p">)</span>
+    <span class="n">sjr</span>  <span class="o">=</span> <span class="n">sjr</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">msd</span>  <span class="o">=</span> <span class="n">msd</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1"># Subtidal (non-tidal) component for MSD</span>
+    <span class="n">msd</span> <span class="o">=</span> <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">msd</span><span class="p">,</span> <span class="s1">&#39;40h&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+    <span class="c1"># Estimate and apply lag (non-calendar resolution recommended, e.g., &#39;15min&#39;)</span>
+    <span class="n">lag_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">calculate_lag</span><span class="p">(</span><span class="n">msd</span><span class="p">,</span> <span class="n">sjr</span><span class="p">,</span> <span class="n">max_lag</span><span class="o">=</span><span class="s1">&#39;14h&#39;</span><span class="p">,</span> <span class="n">res</span><span class="o">=</span><span class="s1">&#39;15min&#39;</span><span class="p">)</span><span class="o">/</span><span class="n">minutes</span><span class="p">(</span><span class="mi">15</span><span class="p">))</span>
+    <span class="n">msd</span> <span class="o">=</span> <span class="n">msd</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">lag_steps</span><span class="p">)</span>
+
+    <span class="c1"># Optional: regime (barrier, season, etc.) — using a placeholder here</span>
+    <span class="n">regime</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Focus window</span>
+    <span class="k">return</span> <span class="n">sjr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">start</span><span class="p">):</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">end</span><span class="p">)],</span> <span class="n">msd</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">start</span><span class="p">):</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">end</span><span class="p">)],</span> <span class="n">regime</span>
+
+<span class="c1"># Prepare example data</span>
+<span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">regime</span> <span class="o">=</span> <span class="n">provide_example_data</span><span class="p">()</span>
+
+
+
+
+
+<span class="c1"># --- Stable, colorblind-safe colors and a label-&gt;color lookup ----------------</span>
+<span class="c1"># Okabe–Ito palette (colorblind friendly)</span>
+<span class="n">OKABE_ITO</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;#E69F00&quot;</span><span class="p">,</span>  <span class="c1"># 0 orange           (reserved for neighbor)</span>
+    <span class="s2">&quot;#56B4E9&quot;</span><span class="p">,</span>  <span class="c1"># 1 sky blue</span>
+    <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span>  <span class="c1"># 2 bluish green</span>
+    <span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span>  <span class="c1"># 4 blue</span>
+    <span class="s2">&quot;#D55E00&quot;</span><span class="p">,</span>  <span class="c1"># 5 vermillion</span>
+    <span class="s2">&quot;#CC79A7&quot;</span><span class="p">,</span>  <span class="c1"># 6 reddish purple</span>
+    <span class="s2">&quot;#999999&quot;</span><span class="p">,</span>  <span class="c1"># 7 grey</span>
+    <span class="s2">&quot;#F0E442&quot;</span><span class="p">,</span>  <span class="c1"># 3 yellow</span>
+<span class="p">]</span>
+
+<span class="c1"># Fixed order for algorithms you commonly plot (extend as needed)</span>
+<span class="n">ALGO_ORDER</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ols&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;huber&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;rolling&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lagged_reg&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;loess&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resid_interp_linear&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resid_interp_pchip&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;substitute&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Build a stable color map for algorithms: skip palette[0] (reserved for neighbor)</span>
+<span class="n">_NEIGHBOR_COLOR</span> <span class="o">=</span> <span class="n">OKABE_ITO</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">_ALGO_COLORS</span> <span class="o">=</span> <span class="p">{</span><span class="n">algo</span><span class="p">:</span> <span class="n">OKABE_ITO</span><span class="p">[(</span><span class="n">i</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">OKABE_ITO</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># 1..end</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">algo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ALGO_ORDER</span><span class="p">)}</span>
+
+<span class="k">def</span> <span class="nf">_normalize_label</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="c1"># normalize method labels like &quot;dfm trimbur rw&quot; / &quot;dfm_trimbur_rw&quot;</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">color_for</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a consistent color for a plotted series, based on its label.</span>
+
+<span class="sd">    Rules:</span>
+<span class="sd">      - &quot;target (gapped)&quot; -&gt; black</span>
+<span class="sd">      - &quot;target (true)&quot;   -&gt; gray</span>
+<span class="sd">      - &quot;neighbor&quot;        -&gt; first palette color (reserved)</span>
+<span class="sd">      - algorithms        -&gt; stable color from palette by name</span>
+<span class="sd">      - unknown labels    -&gt; deterministic fallback into palette (excluding neighbor color)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lab</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="c1"># fixed roles</span>
+    <span class="k">if</span> <span class="n">lab</span> <span class="o">==</span> <span class="s2">&quot;target (gapped)&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;#000000&quot;</span>  <span class="c1"># black</span>
+    <span class="k">if</span> <span class="n">lab</span> <span class="o">==</span> <span class="s2">&quot;target (true)&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;#666666&quot;</span>  <span class="c1"># thin gray recommended</span>
+    <span class="k">if</span> <span class="n">lab</span> <span class="o">==</span> <span class="s2">&quot;neighbor&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_NEIGHBOR_COLOR</span>
+
+    <span class="c1"># algorithms by name</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">_normalize_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_ALGO_COLORS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_ALGO_COLORS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="c1"># deterministic fallback for anything else (exclude index 0)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">OKABE_ITO</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">OKABE_ITO</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+<br/><br/></pre></div>
+</div>
+</div>
+</section>
+<section id="4.-Methods-at-a-glance">
+<h2>4. Methods at a glance<a class="headerlink" href="#4.-Methods-at-a-glance" title="Link to this heading">¶</a></h2>
+<p>We support a family of neighbor-based approaches (choose via <code class="docutils literal notranslate"><span class="pre">method=</span></code>):</p>
+<ul class="simple">
+<li><p><strong>``’substitute’``</strong> — simple substitution: use neighbor only where target is missing.</p></li>
+<li><p><strong>``’ols’`` / ``’huber’``</strong> — linear regression (ordinary / robust-Huber) on overlap.</p></li>
+<li><p><strong>``’loess2d’``</strong> — nonparametric 2-D smoother in <code class="docutils literal notranslate"><span class="pre">(time,</span> <span class="pre">x)</span></code>; captures slow drift vs time.</p></li>
+<li><p><strong>``’resid_interp_linear’`` / ``’resid_interp_pchip’``</strong> — difference the <span class="math notranslate nohighlight">\(\text{target}-\text{neighbor}\)</span> series to form residuals. Interpolate the residuals with linear or higher order shape-preserving splines, then add the now-complete residuals back to the neighbor.</p></li>
+<li><p><strong>``’rolling_regression’``</strong> — short-window OLS with time-varying coefficients [poor performer in speed and accuracy].</p></li>
+<li><p><strong>``’lagged_elasticnet’``</strong> — regularized regression on lagged neighbor(s). [not recommended]</p></li>
+<li><p><strong>Dynamic Factor (DFM)</strong> variants:</p>
+<ul>
+<li><p><strong>``’dfm_trimbur_ar’`` / ``’dfm_trimbur_rw’``</strong> — common-trend factor with Trimbur local linear trend; anomaly AR(1) or RW.</p></li>
+</ul>
+</li>
+</ul>
+<p>Residual-interp is the simplest and often the best choice (requires neighbor present); DFM is best for complete, robust fills (requires fitting).</p>
+<blockquote>
+<div><p>The methods are described in the subsections below. All methods are accessed via the single API <code class="docutils literal notranslate"><span class="pre">fill_from_neighbor(target,</span> <span class="pre">neighbor,</span> <span class="pre">method=...)</span></code>.</p>
+</div></blockquote>
+<section id="4.1-Linear-and-robust-regression">
+<h3>4.1 Linear and robust regression<a class="headerlink" href="#4.1-Linear-and-robust-regression" title="Link to this heading">¶</a></h3>
+<p>We fit a global least squares fit where both <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code> are observed. For Ordinary Least Squares (OLS):</p>
+<div class="math notranslate nohighlight">
+\[y_t = \alpha + \beta x_t + \varepsilon_t, \qquad \hat y_t = \hat\alpha + \hat\beta x_t.\]</div>
+<p>Robust (Huber) replaces least-squares with a Huber loss <span class="math notranslate nohighlight">\(\rho_\delta(\cdot)\)</span> to reduce outlier influence.</p>
+</section>
+<section id="4.2-Two-dimensional-LOESS-like-regression-(time-&amp;-neighbor)">
+<h3>4.2 Two-dimensional LOESS-like regression (time &amp; neighbor)<a class="headerlink" href="#4.2-Two-dimensional-LOESS-like-regression-(time-&-neighbor)" title="Link to this heading">¶</a></h3>
+<p>Model the slow drift with time while retaining dependence on the neighbor:</p>
+<div class="math notranslate nohighlight">
+\[y_t \approx f(t, x_t).\]</div>
+<p>Implemented via distance-weighted KNN in standardized feature space <span class="math notranslate nohighlight">\((t, x)\)</span>.</p>
+</section>
+<section id="4.3-Residual-based-filling-(linear-/-PCHIP)">
+<h3>4.3 Residual-based filling (linear / PCHIP)<a class="headerlink" href="#4.3-Residual-based-filling-(linear-/-PCHIP)" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Fit the baseline on overlap: <span class="math notranslate nohighlight">\(y_t \approx a + b x_t\)</span>.</p></li>
+<li><p>Compute residuals: <span class="math notranslate nohighlight">\(r_t = y_t - (a + b x_t)\)</span>.</p></li>
+<li><p><strong>Interpolate :math:`r_t`</strong> inside <em>bounded</em> gaps only (no extrapolation) using <strong>linear</strong> or <strong>PCHIP</strong> in time.</p></li>
+<li><p>Recompose: <span class="math notranslate nohighlight">\(\hat y_t = (a + b x_t) + \tilde r_t\)</span>.</p></li>
+</ol>
+<p>This preserves local curvature better than interpolating the original series directly.</p>
+</section>
+<section id="4.4-Dynamic-Factor-(DFM)-with-Trimbur-local-trend-and-anomalies">
+<h3>4.4 Dynamic Factor (DFM) with Trimbur local-trend and anomalies<a class="headerlink" href="#4.4-Dynamic-Factor-(DFM)-with-Trimbur-local-trend-and-anomalies" title="Link to this heading">¶</a></h3>
+<p>In this method, the <strong>structural model</strong> describes how both the target and the neighbor share a slowly evolving <strong>common trend</strong> <span class="math notranslate nohighlight">\(\mu_t\)</span> that captures basin-scale behavior such as overall inflow, channel depletion, or other broad hydrologic controls. The companion term <span class="math notranslate nohighlight">\(\beta_t\)</span> acts as a local slope or rate of change, so together <span class="math notranslate nohighlight">\((\mu_t,\beta_t)\)</span> form a <em>local linear trend</em> that can drift gradually over time. Excellent texts on structural time series modeling include Harvey’s
+<em>Forecasting, Structural Time Series Models and the Kalman Filter</em> (1990) and Koopman &amp; Durbin’s <em>Time Series Analysis by State Space Methods</em> (2012).</p>
+<p>Dynamic common factor models tend to be hard to fit if you layer in a lot of additional anomalies or include too many factors without constraints, so the practical choice here is one common trend, which we apply verbatim (with observation noise) to the neighbor (MSD) since it is smoother. An <strong>AR(1) or random walk anomaly</strong> terms <span class="math notranslate nohighlight">\(a^y_t\)</span> and <span class="math notranslate nohighlight">\(a^x_t\)</span> represents short-term departures from that shared trend at Vernalis — mostly due to channel depletions but also encompassing time
+correlated measurement noise or operational perturbations. For the AR(1) case the autoregressive parameter <span class="math notranslate nohighlight">\(\phi\)</span> controls their persistence: - if <span class="math notranslate nohighlight">\(|\phi|\)</span> is small, deviations decay rapidly (almost white noise). Such a model is not sufficient to model the very persistent perturbations caused by seasonal channel depletions. - if <span class="math notranslate nohighlight">\(|\phi|\)</span> is near 1, they behave like random walks, allowing slow reversion. - the choice <span class="math notranslate nohighlight">\(\phi=1\)</span> is the random walk model</p>
+<div class="line-block">
+<div class="line">This decomposition lets the Kalman smoother use the correlation structure between <span class="math notranslate nohighlight">\(y_t\)</span> and <span class="math notranslate nohighlight">\(x_t\)</span> to infer missing values from the shared state rather than direct regression alone.</div>
+<div class="line">The DFM effectively learns how much of the variance is <strong>common</strong> versus <strong>local</strong>, providing reconstructions that are smooth, stable, and physically interpretable.</div>
+<div class="line">For the Vernalis–Mossdale pair, the shared trend corresponds to large-scale San Joaquin flow variability, while the anomaly terms capture residual tidal or measurement effects.</div>
+</div>
+<p>Let a common trend <span class="math notranslate nohighlight">\(\mu_t\)</span> follow a <strong>local linear trend</strong> (Trimbur variant fixes level shock to zero):</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\mu_t &amp;= \mu_{t-1} + \beta_{t-1}, \\
+\beta_t &amp;= \beta_{t-1} + \eta_t, \qquad \eta_t \sim \mathcal{N}(0,q_\beta).
+\end{aligned}\end{split}\]</div>
+<p>Optional <strong>anomaly</strong> components <span class="math notranslate nohighlight">\(a^y_t, a^x_t\)</span> capture idiosyncratic fluctuations in target/neighbor as AR(1) or RW:</p>
+<div class="math notranslate nohighlight">
+\[a_t = \phi a_{t-1} + \zeta_t \quad\text{(AR(1))} \qquad\text{or}\qquad a_t = a_{t-1} + \zeta_t \quad\text{(RW)}.\]</div>
+<p><strong>Observations:</strong></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+y_t &amp;= \mu_t + \mathbf{1}_{\{a^y\}}\, a^y_t + \varepsilon^y_t,\qquad \varepsilon^y_t \sim \mathcal{N}(0,r_y), \\
+x_t &amp;= \lambda\,\mu_t + \mathbf{1}_{\{a^x\}}\, a^x_t + \varepsilon^x_t,\qquad \varepsilon^x_t \sim \mathcal{N}(0,r_x).
+\end{aligned}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{1}_{\{a^y\}}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{1}_{\{a^x\}}\)</span> are indicator variables (0 or 1) that specify whether the anomaly term is included for the target (<span class="math notranslate nohighlight">\(y\)</span>) or neighbor (<span class="math notranslate nohighlight">\(x\)</span>) series, respectively.</p>
+<p>Kalman smoothing provides <span class="math notranslate nohighlight">\(\hat y_t\)</span> and an analytic PI via <span class="math notranslate nohighlight">\(\mathrm{Var}(y_t\mid\text{all}) = Z_t P_t Z_t' + H_t\)</span>. Note that while the “Kalman” name has a lot of name recognition, the Kalman smoother is just a statistical evaluation tool, not a complete description of the assumptions as above. Again Harvey (1990) is an excellent start and includes information on dynamic factor analysis which goes well beyond the simple one-component method described here.</p>
+</section>
+</section>
+<section id="5.-Simple-substitution">
+<h2>5. Simple substitution<a class="headerlink" href="#5.-Simple-substitution" title="Link to this heading">¶</a></h2>
+<div class="line-block">
+<div class="line">This null model replaces <strong>only the missing points</strong> in <code class="docutils literal notranslate"><span class="pre">y</span></code> with the available <code class="docutils literal notranslate"><span class="pre">x</span></code>. It’s cheap but not appreciably more so than other methods. Below we highlight two issues with simple substitution that are shared by a great number of other models that do not consider time series properties.</div>
+<div class="line">- output tends to lurch over to the neighbor and back on entry and exit of the gap.</div>
+<div class="line">- there is no recourse when the neighbor is not available.</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y_gap0</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">x_gap0</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">y_gap0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2020-05-23&#39;</span><span class="p">):</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2020-06-04&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="n">x_gap0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2020-05-27&#39;</span><span class="p">):</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2020-05-29&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+
+<span class="c1"># Run the null &#39;substitute&#39; method</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;starting substitution&quot;</span><span class="p">)</span>
+<span class="n">res_sub</span> <span class="o">=</span> <span class="n">fill_from_neighbor</span><span class="p">(</span><span class="n">y_gap0</span><span class="p">,</span> <span class="n">x_gap0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;substitute&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ending substitution&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot two short windows to show transitions</span>
+<span class="k">def</span> <span class="nf">plot_window</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;target (true)&#39;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;target (true)&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;neighbor (true)&#39;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;neighbor&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_gap0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">y_gap0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;target (with gaps)&#39;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;target (with gaps)&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res_sub</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">res_sub</span><span class="p">[</span><span class="s1">&#39;filled&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;substitute&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;substitute&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Shade times where neighbor is missing</span>
+    <span class="n">nbr</span> <span class="o">=</span> <span class="n">x_gap0</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">]</span>
+    <span class="n">miss</span> <span class="o">=</span> <span class="n">nbr</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">miss</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">miss</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="n">prepend</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ends</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">miss</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="n">prepend</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">==-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="n">nbr</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">nbr</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">e</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Example windows (adjust as needed)</span>
+
+<span class="n">plot_window</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2020-05-01&#39;</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2020-06-29&#39;</span><span class="p">),</span> <span class="s1">&#39;Substitution demo&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+starting substitution
+ending substitution
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_neighbor_fill_12_1.png" src="../_images/notebooks_neighbor_fill_12_1.png" />
+</div>
+</div>
+</section>
+<section id="6.-Residual-based-vs-direct-interpolation-(visual)">
+<h2>6. Residual-based vs direct interpolation (visual)<a class="headerlink" href="#6.-Residual-based-vs-direct-interpolation-(visual)" title="Link to this heading">¶</a></h2>
+<p>In the picture below, we compare interpolating the original <code class="docutils literal notranslate"><span class="pre">y</span></code> versus interpolating <strong>residuals</strong> and then recombining. The direct interpolation doesn’t have enough data to track curvature in the original series so it “cuts the corners”. Residual-based methods work on the smaller difference between the series, which though wiggly can still be linearly interpolated to much lower error. Note the much narrower y-axis range on the bottom plot below, which basically reduces the linear
+interpolation to the neighborhood of 100-200cfs instead of 1000s. As shown in the top plot the method of interpolating on residuals and adding back to the original “neighbor” to get back to original values works better in non-linear segments. One other thing you can see in the residual plots, because it is more of a close up, is the fuzzy measurement noise at the Vernalis sensor. The DFM methods naturally smooth this over.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># Choose a curvy slice with a bounded gap</span>
+<span class="n">spec1</span> <span class="o">=</span> <span class="n">GapSpec</span><span class="p">(</span><span class="n">n_gaps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">GapStrategy</span><span class="o">.</span><span class="n">TARGET_ONLY</span><span class="p">)</span>
+<span class="n">y1_gap</span><span class="p">,</span> <span class="n">x1_gap</span><span class="p">,</span> <span class="n">gaps2</span> <span class="o">=</span> <span class="n">apply_gaps</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">spec1</span><span class="p">)</span>
+
+<span class="c1"># (A) Direct time interpolation of y (inside-only)</span>
+<span class="n">y_direct</span> <span class="o">=</span> <span class="n">y1_gap</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">limit_area</span><span class="o">=</span><span class="s1">&#39;inside&#39;</span><span class="p">)</span>
+
+<span class="c1"># (B) Residual-based interpolation via the API</span>
+<span class="n">res_resid</span> <span class="o">=</span> <span class="n">fill_from_neighbor</span><span class="p">(</span><span class="n">y1_gap</span><span class="p">,</span> <span class="n">x1_gap</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;resid_interp_linear&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gaps2</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&#39;3D&#39;</span><span class="p">)</span>
+<span class="n">t1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gaps2</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&#39;3D&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Top: main series and fills</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;target (true)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;target (true)&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y1_gap</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;target (gapped)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;target (gapped)&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_direct</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;direct interp (time)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;brown&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res_resid</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;residual interp (PCHIP)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;resid_interp_pchip&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x1_gap</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;neighbor&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;neighbor&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Residual vs direct interpolation&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+
+<span class="c1"># Bottom: residuals</span>
+<span class="n">true_resid</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">x</span>
+<span class="n">gappy_resid</span> <span class="o">=</span> <span class="n">y1_gap</span> <span class="o">-</span> <span class="n">x1_gap</span>
+<span class="n">filled_resid</span> <span class="o">=</span> <span class="n">res_resid</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1_gap</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">true_resid</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;true residual&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gappy_resid</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gappy residual&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">filled_resid</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">t0</span><span class="p">:</span><span class="n">t1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;filled residual&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Residuals: true, gappy, and filled&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_neighbor_fill_14_0.png" src="../_images/notebooks_neighbor_fill_14_0.png" />
+</div>
+</div>
+</section>
+<section id="7.-Method-catalog-—-sample-calls">
+<h2>7. Method catalog — sample calls<a class="headerlink" href="#7.-Method-catalog-—-sample-calls" title="Link to this heading">¶</a></h2>
+<p>Below are concise examples for several methods. All return a dict with keys: <code class="docutils literal notranslate"><span class="pre">filled</span></code>, <code class="docutils literal notranslate"><span class="pre">yhat</span></code>, optional <code class="docutils literal notranslate"><span class="pre">pi_lower</span></code>/<code class="docutils literal notranslate"><span class="pre">pi_upper</span></code>, <code class="docutils literal notranslate"><span class="pre">model_info</span></code>, and <code class="docutils literal notranslate"><span class="pre">metrics</span></code>. <code class="docutils literal notranslate"><span class="pre">filled</span></code> uses the original values where available, but imputes missing values as the algorithm is capable. <code class="docutils literal notranslate"><span class="pre">yhat</span></code> is estimates for the target time series which may include predictions at non-missing times. In the case of regression, the estimates may not be great and there may be a ‘lurching’ effect between original series and
+fill values. In the case of <code class="docutils literal notranslate"><span class="pre">dfm</span></code>, the <code class="docutils literal notranslate"><span class="pre">yhat</span></code> estimate may low-pass a lot of jitter in the instrument and conceivably is preferable to the origin data. PI stands for prediction interval, a measure of confidence in the estimate that is available with dfm and characterizes the growth of uncertainty with gap size.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spec2</span> <span class="o">=</span> <span class="n">GapSpec</span><span class="p">(</span><span class="n">n_gaps</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">GapStrategy</span><span class="o">.</span><span class="n">TARGET_ONLY</span><span class="p">)</span>
+<span class="n">y2_gap</span><span class="p">,</span> <span class="n">x2_gap</span><span class="p">,</span> <span class="n">gaps2</span> <span class="o">=</span> <span class="n">apply_gaps</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">spec2</span><span class="p">)</span>
+
+<span class="c1"># Common inputs</span>
+<span class="n">lags_0_4</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="n">examples</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;substitute&quot;</span><span class="p">:</span>       <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;substitute&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;ols&quot;</span><span class="p">:</span>              <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;ols&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;huber&quot;</span><span class="p">:</span>            <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;huber&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;loess2d&quot;</span><span class="p">:</span>          <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;loess2d&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;resid_linear&quot;</span><span class="p">:</span>     <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;resid_interp_linear&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;resid_pchip&quot;</span><span class="p">:</span>      <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;resid_interp_pchip&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;rolling_reg&quot;</span><span class="p">:</span>      <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;rolling_regression&quot;</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">72</span><span class="p">),</span>
+    <span class="s2">&quot;lagged_enet&quot;</span><span class="p">:</span>      <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;lagged_elasticnet&quot;</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">lags_0_4</span><span class="p">),</span>
+    <span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">:</span>   <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;dfm_trimbur_ar&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">:</span>   <span class="nb">dict</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1"># Run a quick fit for selected methods</span>
+<span class="n">to_run</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ols&quot;</span><span class="p">,</span> <span class="s2">&quot;resid_pchip&quot;</span><span class="p">,</span> <span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">]</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">fill_from_neighbor</span><span class="p">(</span><span class="n">y2_gap</span><span class="p">,</span> <span class="n">x2_gap</span><span class="p">,</span> <span class="o">**</span><span class="n">examples</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">to_run</span><span class="p">}</span>
+
+<span class="c1"># Simple overlay plot</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;target (true)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;target (true)&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y2_gap</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;target (gapped)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;target (gapped)&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x2_gap</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;neighbor&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_for</span><span class="p">(</span><span class="s1">&#39;neighbor&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="c1"># draw the method line and keep the handle to fetch its color</span>
+    <span class="c1"># draw the method line and keep the handle to fetch its color</span>
+    <span class="n">line</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+    <span class="c1"># add CI only for DFM-style methods, if available</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;dfm&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pi_lower&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pi_upper&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># ensure we have aligned Series for fill_between</span>
+        <span class="n">yhat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">])</span>
+        <span class="n">pil</span>  <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;pi_lower&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">piu</span>  <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;pi_upper&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">yhat</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">get_color</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">pil</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pil</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">piu</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> 95% CI&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">7500.0</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Overlay of selected methods&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Z(y): [1. 0. 1.]  Z(x): [1.0403 0.     0.    ]
+diag(T): [1. 1. 1.]
+diag(Q): [0.00e+00 0.00e+00 1.09e-06]  diag(H): [1.e-05 1.e-05]
+modes: factor=trimbur anom_mode=rw anom_var=target
+active params: [&#39;log_q_beta&#39;, &#39;log_q_ay&#39;, &#39;log_r_y&#39;, &#39;log_r_x&#39;, &#39;load&#39;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_neighbor_fill_16_1.png" src="../_images/notebooks_neighbor_fill_16_1.png" />
+</div>
+</div>
+</section>
+<section id="8.-Comparisons-on-synthetic-gaps">
+<h2>8. Comparisons on synthetic gaps<a class="headerlink" href="#8.-Comparisons-on-synthetic-gaps" title="Link to this heading">¶</a></h2>
+<p>We evaluate each method on <em>known</em> artificial gaps. Following the analysis harness, we tabulate <strong>coverage</strong> and <strong>RMSE</strong> segmented by neighbor availability:</p>
+<ul class="simple">
+<li><p><strong>RMSE_all</strong> — over all overlapping timestamps.</p></li>
+<li><p><strong>RMSE_all_with_neighbor</strong> — where the neighbor is non-NaN.</p></li>
+<li><p><strong>RMSE_in_gaps</strong> — only where the target was synthetically gapped.</p></li>
+<li><p><strong>RMSE_gaps_with_neighbor</strong> — gap points <em>and</em> neighbor present.</p></li>
+</ul>
+<p>These are often the most decision-relevant numbers when choosing a method. “All” in the RMSE table refers to all missing values in the target series. No RMSE is reported for “all” for methods such as OLS and residual interpolation which require the neighbor also be non-missing. A separate column for that case provides apples-to-apples comparison for times with supporting neighbor data. DFM is nearly as good as resdidual interpolation for cases where the neighbor is present and can survive
+periods when both sources of data are missing which is 10% of the data!! Timing data is output, which shows the main downside of DFM and that is the fitting time. Reapplication of DFM on a larger/later time set with pre-fit parameters on a few years is much faster and that workflow is the focus of the next section.</p>
+<p>In this particular comparison DFM comes out on top not only on coverage but on accuracy. This is NOT a generalizable result – as the period and length of gap are varied the RMSE estimates between methods will change by an amount that is greater than the difference between DFM and residual interpolation and. The latter are often a smidge more accurate. The main point is that they are about the same, so it is really about time versus coverage.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">def</span> <span class="nf">_avail_mask</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">else</span> <span class="n">obj</span><span class="o">.</span><span class="n">notna</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">rmse_by_mask</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+    <span class="n">common</span> <span class="o">=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">y_pred</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">common</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">common</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">resid</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_true</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">common</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">common</span><span class="p">))</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">((</span><span class="n">resid</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()])</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+
+<span class="k">def</span> <span class="nf">_is_neighbor_required</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+    <span class="c1"># Add here any method that requires neighbor to be present for prediction</span>
+    <span class="k">return</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ols&#39;</span><span class="p">,</span> <span class="s1">&#39;huber&#39;</span><span class="p">,</span> <span class="s1">&#39;loess2d&#39;</span><span class="p">,</span> <span class="s1">&#39;resid_interp_linear&#39;</span><span class="p">,</span> <span class="s1">&#39;resid_interp_pchip&#39;</span><span class="p">,</span> <span class="s1">&#39;rolling_regression&#39;</span><span class="p">,</span> <span class="s1">&#39;lagged_elasticnet&#39;</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">_mask_exclude_leading_trailing</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+    <span class="c1"># Only keep True inside the first and last True in the mask (i.e., exclude leading/trailing gaps)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">mask</span>
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">mask</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">mask2</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">idx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">idx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">mask2</span>
+
+<span class="n">methods_for_table</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;substitute&quot;</span><span class="p">,</span> <span class="s2">&quot;ols&quot;</span><span class="p">,</span> <span class="s2">&quot;resid_interp_linear&quot;</span><span class="p">,</span> <span class="s2">&quot;resid_interp_pchip&quot;</span><span class="p">,</span> <span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">]</span>
+<span class="n">fits</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">methods_for_table</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fitting method: </span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2"> ...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">fits</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill_from_neighbor</span><span class="p">(</span><span class="n">y2_gap</span><span class="p">,</span> <span class="n">x2_gap</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;done in </span><span class="si">{</span><span class="n">t1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+
+<span class="n">gap_mask</span> <span class="o">=</span> <span class="n">y2_gap</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+<span class="n">nbr_mask</span> <span class="o">=</span> <span class="n">_avail_mask</span><span class="p">(</span><span class="n">x2_gap</span><span class="p">)</span>
+
+<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">yhat</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;yhat&#39;</span><span class="p">]</span>
+    <span class="c1"># For methods that require neighbor, mask out where neighbor is missing (except leading/trailing)</span>
+    <span class="k">if</span> <span class="n">_is_neighbor_required</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">nbr_mask</span>
+        <span class="n">gap_mask_valid</span> <span class="o">=</span> <span class="n">gap_mask</span> <span class="o">&amp;</span> <span class="n">nbr_mask</span>
+        <span class="c1"># Exclude leading/trailing gaps from this restriction</span>
+        <span class="n">gap_mask_valid</span> <span class="o">=</span> <span class="n">_mask_exclude_leading_trailing</span><span class="p">(</span><span class="n">gap_mask_valid</span><span class="p">)</span>
+        <span class="n">all_mask_valid</span> <span class="o">=</span> <span class="n">valid_mask</span>
+        <span class="n">all_mask_valid</span> <span class="o">=</span> <span class="n">_mask_exclude_leading_trailing</span><span class="p">(</span><span class="n">all_mask_valid</span><span class="p">)</span>
+        <span class="c1"># If there are any False in all_mask_valid (i.e., neighbor missing inside), set RMSE to nan</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">all_mask_valid</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">RMSE_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RMSE_all</span> <span class="o">=</span> <span class="n">rmse_by_mask</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+        <span class="c1"># For &quot;in gaps&quot;, do not output for neighbor-required methods</span>
+        <span class="n">RMSE_in_gaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">RMSE_gaps_with_neighbor</span> <span class="o">=</span> <span class="n">rmse_by_mask</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="p">(</span><span class="n">gap_mask</span> <span class="o">&amp;</span> <span class="n">nbr_mask</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">RMSE_all</span> <span class="o">=</span> <span class="n">rmse_by_mask</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">RMSE_in_gaps</span> <span class="o">=</span> <span class="n">rmse_by_mask</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">gap_mask</span><span class="p">)</span>
+        <span class="n">RMSE_gaps_with_neighbor</span> <span class="o">=</span> <span class="n">rmse_by_mask</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="p">(</span><span class="n">gap_mask</span> <span class="o">&amp;</span> <span class="n">nbr_mask</span><span class="p">))</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">m</span><span class="p">,</span>
+        <span class="s2">&quot;RMSE_all&quot;</span><span class="p">:</span> <span class="n">RMSE_all</span><span class="p">,</span>
+        <span class="s2">&quot;RMSE_all_with_neighbor&quot;</span><span class="p">:</span> <span class="n">rmse_by_mask</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">nbr_mask</span><span class="p">),</span>
+        <span class="s2">&quot;RMSE_in_gaps&quot;</span><span class="p">:</span> <span class="n">RMSE_in_gaps</span><span class="p">,</span>
+        <span class="s2">&quot;RMSE_gaps_with_neighbor&quot;</span><span class="p">:</span> <span class="n">RMSE_gaps_with_neighbor</span><span class="p">,</span>
+    <span class="p">})</span>
+
+<span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+<span class="n">table</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Fitting method: substitute ... done in 0.02 s
+Fitting method: ols ... done in 0.08 s
+Fitting method: resid_interp_linear ... done in 0.11 s
+Fitting method: resid_interp_pchip ... done in 0.15 s
+Fitting method: dfm_trimbur_rw ... Z(y): [1. 0. 1.]  Z(x): [1.0403 0.     0.    ]
+diag(T): [1. 1. 1.]
+diag(Q): [0.00e+00 0.00e+00 1.09e-06]  diag(H): [1.e-05 1.e-05]
+modes: factor=trimbur anom_mode=rw anom_var=target
+active params: [&#39;log_q_beta&#39;, &#39;log_q_ay&#39;, &#39;log_r_y&#39;, &#39;log_r_x&#39;, &#39;load&#39;]
+done in 74.68 s
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>RMSE_all</th>
+      <th>RMSE_all_with_neighbor</th>
+      <th>RMSE_in_gaps</th>
+      <th>RMSE_gaps_with_neighbor</th>
+    </tr>
+    <tr>
+      <th>method</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>dfm_trimbur_rw</th>
+      <td>57.127105</td>
+      <td>55.100072</td>
+      <td>96.504941</td>
+      <td>93.092671</td>
+    </tr>
+    <tr>
+      <th>ols</th>
+      <td>NaN</td>
+      <td>549.685366</td>
+      <td>NaN</td>
+      <td>507.951475</td>
+    </tr>
+    <tr>
+      <th>resid_interp_linear</th>
+      <td>NaN</td>
+      <td>55.535812</td>
+      <td>NaN</td>
+      <td>94.703307</td>
+    </tr>
+    <tr>
+      <th>resid_interp_pchip</th>
+      <td>NaN</td>
+      <td>65.007505</td>
+      <td>NaN</td>
+      <td>110.855058</td>
+    </tr>
+    <tr>
+      <th>substitute</th>
+      <td>320.128587</td>
+      <td>325.340769</td>
+      <td>554.792402</td>
+      <td>554.792402</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="9.-Storing-&amp;-reusing-DFM-fits">
+<h2>9. Storing &amp; reusing DFM fits<a class="headerlink" href="#9.-Storing-&-reusing-DFM-fits" title="Link to this heading">¶</a></h2>
+<p>You can save fitted DFM parameters and reload them to avoid re-estimation (useful for reproducible operations). The exact helper names may vary by version; the example below shows a common pattern.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">vtools.functions.neighbor_fill</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">fill_from_neighbor</span><span class="p">,</span>
+    <span class="n">dfm_pack_params</span><span class="p">,</span> <span class="n">save_dfm_params</span><span class="p">,</span> <span class="n">load_dfm_params</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># --- 1. Fit once (expensive) -----------------------------------------------</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+<span class="n">res_fit</span> <span class="o">=</span> <span class="n">fill_from_neighbor</span><span class="p">(</span>
+    <span class="n">y2_gap</span><span class="p">,</span> <span class="n">x2_gap</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dfm_trimbur_rw&quot;</span>
+<span class="p">)</span>
+
+
+<span class="n">mi</span> <span class="o">=</span> <span class="n">res_fit</span><span class="p">[</span><span class="s2">&quot;model_info&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;has fitted_params?&quot;</span><span class="p">,</span> <span class="s2">&quot;fitted_params&quot;</span> <span class="ow">in</span> <span class="n">mi</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">mi</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fitted_params&quot;</span><span class="p">)))</span>
+
+<span class="n">blob</span> <span class="o">=</span> <span class="n">mi</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fitted_params&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;param_names&quot;</span> <span class="ow">in</span> <span class="n">blob</span> <span class="ow">and</span> <span class="s2">&quot;transformed&quot;</span> <span class="ow">in</span> <span class="n">blob</span><span class="p">,</span> <span class="s2">&quot;No fitted params!&quot;</span>
+
+<span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+<span class="n">fit_time</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DFM fit completed in </span><span class="si">{</span><span class="n">fit_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+<span class="n">blob</span> <span class="o">=</span> <span class="n">dfm_pack_params</span><span class="p">(</span><span class="n">res_fit</span><span class="p">[</span><span class="s2">&quot;model_info&quot;</span><span class="p">])</span>
+
+<span class="c1"># --- 2. Save parameters (YAML) --------------------------------------------</span>
+<span class="n">save_dfm_params</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="s2">&quot;dfm_trimbur_rw_vns_msd.yaml&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parameters saved to dfm_trimbur_rw_vns_msd.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- 3. Load and reuse (cheap) --------------------------------------------</span>
+<span class="n">t2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+<span class="n">blob2</span> <span class="o">=</span> <span class="n">load_dfm_params</span><span class="p">(</span><span class="s2">&quot;dfm_trimbur_rw_vns_msd.yaml&quot;</span><span class="p">)</span>
+<span class="n">res_reuse</span> <span class="o">=</span> <span class="n">fill_from_neighbor</span><span class="p">(</span>
+    <span class="n">y2_gap</span><span class="p">,</span> <span class="n">x2_gap</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dfm_trimbur_rw&quot;</span><span class="p">,</span>
+    <span class="n">params</span><span class="o">=</span><span class="n">blob2</span>      <span class="c1"># skip fitting, just run the smoother</span>
+<span class="p">)</span>
+
+<span class="n">t3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+<span class="n">reuse_time</span> <span class="o">=</span> <span class="n">t3</span> <span class="o">-</span> <span class="n">t2</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DFM reuse completed in </span><span class="si">{</span><span class="n">reuse_time</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- 4. Compare timings ----------------------------------------------------</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Speed-up from parameter reuse: </span><span class="si">{</span><span class="n">fit_time</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">reuse_time</span><span class="si">:</span><span class="s2">,.1f</span><span class="si">}</span><span class="s2">× faster&quot;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Z(y): [1. 0. 1.]  Z(x): [1.0403 0.     0.    ]
+diag(T): [1. 1. 1.]
+diag(Q): [0.00e+00 0.00e+00 1.09e-06]  diag(H): [1.e-05 1.e-05]
+modes: factor=trimbur anom_mode=rw anom_var=target
+active params: [&#39;log_q_beta&#39;, &#39;log_q_ay&#39;, &#39;log_r_y&#39;, &#39;log_r_x&#39;, &#39;load&#39;]
+has fitted_params? True &lt;class &#39;dict&#39;&gt;
+DFM fit completed in 76.14 seconds
+Parameters saved to dfm_trimbur_rw_vns_msd.yaml
+Z(y): [1. 0. 1.]  Z(x): [1.0403 0.     0.    ]
+diag(T): [1. 1. 1.]
+diag(Q): [0.00e+00 0.00e+00 1.09e-06]  diag(H): [1.e-05 1.e-05]
+modes: factor=trimbur anom_mode=rw anom_var=target
+active params: [&#39;log_q_beta&#39;, &#39;log_q_ay&#39;, &#39;log_r_y&#39;, &#39;log_r_x&#39;, &#39;load&#39;]
+DFM reuse completed in 8.838 seconds
+
+Speed-up from parameter reuse: 8.6× faster
+</pre></div></div>
+</div>
+</section>
+<section id="10.-Appendix-—-API-summary">
+<h2>10. Appendix — API summary<a class="headerlink" href="#10.-Appendix-—-API-summary" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fill_from_neighbor</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">,</span>                 <span class="c1"># pd.Series</span>
+    <span class="n">neighbor</span><span class="p">,</span>               <span class="c1"># pd.Series | pd.DataFrame</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>            <span class="c1"># &#39;substitute&#39; | &#39;ols&#39; | &#39;huber&#39; | &#39;loess2d&#39; | &#39;resid_interp_linear&#39; | &#39;resid_interp_pchip&#39; |</span>
+                            <span class="c1"># &#39;rolling_regression&#39; | &#39;lagged_elasticnet&#39; | &#39;state_space&#39; | &#39;dfm_trimbur_ar&#39; | &#39;dfm_trimbur_rw&#39;</span>
+    <span class="n">lags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>              <span class="c1"># Iterable[int] for lagged methods (e.g., range(0,5))</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>    <span class="c1"># optional min/max clipping after prediction</span>
+    <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>            <span class="c1"># for rolling regression</span>
+    <span class="o">**</span><span class="n">kwargs</span>                <span class="c1"># method-specific args (e.g., params=... for DFM reuse)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>  <span class="c1"># with keys: filled, yhat, (pi_lower, pi_upper), model_info, metrics</span>
+
+<span class="n">API</span> <span class="n">CONTRACT</span> <span class="p">(</span><span class="n">neighbor_fill</span><span class="o">.</span><span class="n">fill_from_neighbor</span><span class="p">)</span>
+
+<span class="n">Signature</span>
+<span class="o">---------</span>
+<span class="n">fill_from_neighbor</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+    <span class="n">neighbor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;substitute&quot;</span><span class="p">,</span>
+    <span class="n">regime</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+
+<span class="n">Inputs</span>
+<span class="o">------</span>
+<span class="o">-</span> <span class="n">target</span><span class="p">:</span> <span class="n">Regular</span><span class="o">-</span><span class="n">grid</span> <span class="n">pandas</span> <span class="n">Series</span> <span class="p">(</span><span class="n">DatetimeIndex</span><span class="p">),</span> <span class="n">may</span> <span class="n">contain</span> <span class="n">NaNs</span> <span class="p">(</span><span class="n">gaps</span><span class="p">)</span><span class="o">.</span>
+<span class="o">-</span> <span class="n">neighbor</span><span class="p">:</span> <span class="n">Series</span> <span class="ow">or</span> <span class="n">DataFrame</span> <span class="n">on</span> <span class="n">the</span> <span class="o">*</span><span class="n">same</span><span class="o">*</span> <span class="n">grid</span> <span class="p">(</span><span class="n">same</span> <span class="n">step</span> <span class="o">&amp;</span> <span class="n">phase</span><span class="p">)</span> <span class="k">as</span> <span class="n">target</span><span class="o">.</span>
+<span class="o">-</span> <span class="n">method</span><span class="p">:</span> <span class="n">One</span> <span class="n">of</span>
+    <span class="p">{</span><span class="s1">&#39;substitute&#39;</span><span class="p">,</span><span class="s1">&#39;ols&#39;</span><span class="p">,</span><span class="s1">&#39;huber&#39;</span><span class="p">,</span><span class="s1">&#39;rolling&#39;</span><span class="p">,</span><span class="s1">&#39;lagged_reg&#39;</span><span class="p">,</span><span class="s1">&#39;loess&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;dfm_trimbur_rw&#39;</span><span class="p">,</span><span class="s1">&#39;dfm_trimbur_ar&#39;</span><span class="p">,</span><span class="s1">&#39;resid_interp_linear&#39;</span><span class="p">,</span><span class="s1">&#39;resid_interp_pchip&#39;</span><span class="p">}</span>
+<span class="o">-</span> <span class="n">regime</span> <span class="p">(</span><span class="n">optional</span><span class="p">):</span> <span class="n">Categorical</span> <span class="n">Series</span> <span class="n">aligned</span> <span class="n">to</span> <span class="n">target</span> <span class="k">for</span> <span class="n">per</span><span class="o">-</span><span class="n">regime</span> <span class="n">fitting</span><span class="o">.</span>
+<span class="o">-</span> <span class="n">bounds</span><span class="p">:</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="n">applied</span> <span class="k">as</span> <span class="n">a</span> <span class="n">final</span> <span class="n">clip</span> <span class="n">to</span> <span class="n">yhat</span><span class="o">.</span>
+<span class="o">-</span> <span class="n">params</span><span class="p">:</span> <span class="n">Packed</span> <span class="n">fitted</span> <span class="n">params</span> <span class="k">for</span> <span class="n">reuse</span> <span class="p">(</span><span class="n">currently</span> <span class="n">used</span> <span class="n">by</span> <span class="n">DFM</span> <span class="n">backends</span><span class="p">)</span><span class="o">.</span>
+<span class="o">-</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Method</span><span class="o">-</span><span class="n">specific</span> <span class="n">options</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span><span class="o">.</span>
+
+<span class="n">Grid</span> <span class="n">requirement</span>
+<span class="o">----------------</span>
+<span class="n">No</span> <span class="n">internal</span> <span class="n">resampling</span> <span class="ow">is</span> <span class="n">performed</span><span class="o">.</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">neighbor</span> <span class="o">**</span><span class="n">must</span><span class="o">**</span> <span class="n">be</span> <span class="n">equally</span> <span class="n">spaced</span>
+<span class="k">with</span> <span class="n">identical</span> <span class="n">step</span> <span class="ow">and</span> <span class="n">phase</span><span class="o">.</span> <span class="n">Regularize</span> <span class="n">upstream</span> <span class="k">as</span> <span class="n">needed</span><span class="o">.</span>
+
+<span class="n">Method</span><span class="o">-</span><span class="n">specific</span> <span class="o">**</span><span class="n">kwargs</span><span class="o">**</span>
+<span class="o">--------------------------</span>
+<span class="n">Common</span>
+  <span class="o">-</span> <span class="n">lags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">optional</span>
+  <span class="o">-</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">optional</span>
+
+<span class="s1">&#39;ols&#39;</span>
+  <span class="o">-</span> <span class="n">lags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">optional</span>
+  <span class="o">-</span> <span class="n">add_const</span> <span class="o">/</span> <span class="n">fit_intercept</span><span class="p">:</span> <span class="nb">bool</span> <span class="p">(</span><span class="n">default</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="s1">&#39;huber&#39;</span>
+  <span class="o">-</span> <span class="n">lags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">optional</span>
+  <span class="o">-</span> <span class="n">huber_t</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="n">default</span> <span class="mf">1.35</span><span class="p">),</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="mi">200</span><span class="p">),</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="mf">1e-6</span><span class="p">)</span>
+
+<span class="s1">&#39;rolling&#39;</span>
+  <span class="o">-</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">REQUIRED</span><span class="p">;</span> <span class="n">samples</span><span class="p">,</span> <span class="ow">not</span> <span class="n">time</span> <span class="n">offset</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">min_periods</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">center</span><span class="p">:</span> <span class="nb">bool</span> <span class="p">(</span><span class="n">default</span> <span class="kc">False</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">lags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">optional</span>
+
+<span class="s1">&#39;lagged_reg&#39;</span>
+  <span class="o">-</span> <span class="n">lags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="p">(</span><span class="n">recommended</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="n">L2</span><span class="p">),</span> <span class="n">l1_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="n">ENet</span><span class="p">),</span> <span class="n">standardize</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span>
+
+<span class="s1">&#39;loess&#39;</span>
+  <span class="o">-</span> <span class="n">frac</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="n">default</span> <span class="mf">0.25</span><span class="p">),</span> <span class="n">it</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">default</span> <span class="mi">0</span><span class="p">),</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">default</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="s1">&#39;dfm_trimbur_rw&#39;</span> <span class="o">/</span> <span class="s1">&#39;dfm_trimbur_ar&#39;</span>
+  <span class="o">-</span> <span class="n">rx_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="n">default</span> <span class="mf">1.0</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">default</span> <span class="mi">80</span><span class="p">),</span> <span class="n">disp</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">default</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">anom_var</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;target&#39;</span><span class="p">,</span><span class="s1">&#39;neighbor&#39;</span><span class="p">}</span> <span class="p">(</span><span class="n">variant</span> <span class="n">default</span><span class="p">;</span> <span class="n">may</span> <span class="n">override</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">ar_order</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">AR</span> <span class="n">anomaly</span> <span class="n">order</span><span class="p">;</span> <span class="n">usually</span> <span class="mi">1</span> <span class="k">for</span> <span class="o">*</span><span class="n">_ar</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">param_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">optional</span>
+  <span class="o">-</span> <span class="n">params</span><span class="p">:</span> <span class="p">(</span><span class="n">top</span><span class="o">-</span><span class="n">level</span><span class="p">)</span> <span class="n">packed</span> <span class="n">params</span> <span class="n">blob</span> <span class="n">to</span> <span class="n">skip</span> <span class="n">refitting</span>
+
+<span class="s1">&#39;resid_interp_linear&#39;</span> <span class="o">/</span> <span class="s1">&#39;resid_interp_pchip&#39;</span>
+  <span class="o">-</span> <span class="n">min_overlap</span><span class="p">:</span> <span class="nb">int</span> <span class="p">(</span><span class="n">default</span> <span class="mi">3</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">clip_residuals_sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">optional</span>
+  <span class="o">-</span> <span class="n">enforce_monotone</span><span class="p">:</span> <span class="nb">bool</span> <span class="p">(</span><span class="n">PCHIP</span> <span class="n">only</span><span class="p">;</span> <span class="n">default</span> <span class="kc">False</span><span class="p">)</span>
+
+<span class="n">Returns</span>
+<span class="o">-------</span>
+<span class="nb">dict</span> <span class="k">with</span> <span class="n">keys</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span>           <span class="c1"># filled target on target.index</span>
+  <span class="o">-</span> <span class="n">pi_lower</span><span class="p">,</span> <span class="n">pi_upper</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="kc">None</span>  <span class="c1"># uncertainty bands if available</span>
+  <span class="o">-</span> <span class="n">model_info</span><span class="p">:</span> <span class="nb">dict</span>          <span class="c1"># diagnostics, see below</span>
+
+<span class="n">model_info</span> <span class="p">(</span><span class="n">typical</span> <span class="n">fields</span><span class="p">)</span>
+<span class="o">---------------------------</span>
+  <span class="o">-</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span>
+  <span class="o">-</span> <span class="n">scaling</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;y_mu&#39;</span><span class="p">,</span><span class="s1">&#39;y_sd&#39;</span><span class="p">,</span><span class="s1">&#39;x_mu&#39;</span><span class="p">,</span><span class="s1">&#39;x_sd&#39;</span><span class="p">}</span>
+  <span class="o">-</span> <span class="n">param_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="p">(</span><span class="k">if</span> <span class="n">applicable</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">fitted_params</span><span class="p">:</span> <span class="nb">dict</span>      <span class="c1"># portable blob for reuse (DFM)</span>
+  <span class="o">-</span> <span class="n">llf</span><span class="p">,</span> <span class="n">aic</span><span class="p">,</span> <span class="n">bic</span><span class="p">:</span> <span class="nb">float</span> <span class="p">(</span><span class="k">if</span> <span class="n">applicable</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">regime_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>   <span class="c1"># present when regime is provided</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/notebooks/neighbor_fill.ipynb.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

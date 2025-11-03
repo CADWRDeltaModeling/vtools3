@@ -22,25 +22,103 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "id": "e52fb077",
    "metadata": {},
    "outputs": [
     {
-     "ename": "NameError",
-     "evalue": "name 'pd' is not defined",
-     "output_type": "error",
-     "traceback": [
-      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
-      "\u001b[1;31mNameError\u001b[0m                                 Traceback (most recent call last)",
-      "Cell \u001b[1;32mIn[1], line 4\u001b[0m\n\u001b[0;32m      1\u001b[0m \u001b[38;5;66;03m# ========================================\u001b[39;00m\n\u001b[0;32m      2\u001b[0m \u001b[38;5;66;03m# 1️⃣ Creating Regular Time Series (1D Frequency with Missing Data)\u001b[39;00m\n\u001b[0;32m      3\u001b[0m \u001b[38;5;66;03m# ========================================\u001b[39;00m\n\u001b[1;32m----> 4\u001b[0m idx1 \u001b[38;5;241m=\u001b[39m \u001b[43mpd\u001b[49m\u001b[38;5;241m.\u001b[39mdate_range(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m2023-01-01\u001b[39m\u001b[38;5;124m\"\u001b[39m, periods\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m10\u001b[39m, freq\u001b[38;5;241m=\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m1D\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[0;32m      5\u001b[0m idx2 \u001b[38;5;241m=\u001b[39m pd\u001b[38;5;241m.\u001b[39mdate_range(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m2023-01-01\u001b[39m\u001b[38;5;124m\"\u001b[39m, periods\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m12\u001b[39m, freq\u001b[38;5;241m=\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m1D\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[0;32m      6\u001b[0m idx3 \u001b[38;5;241m=\u001b[39m pd\u001b[38;5;241m.\u001b[39mdate_range(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m2022-12-31\u001b[39m\u001b[38;5;124m\"\u001b[39m, periods\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m14\u001b[39m, freq\u001b[38;5;241m=\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m1D\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n",
-      "\u001b[1;31mNameError\u001b[0m: name 'pd' is not defined"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Series 1 (Primary):\n"
      ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "2023-01-01     1.0\n",
+       "2023-01-02     NaN\n",
+       "2023-01-03     3.0\n",
+       "2023-01-04     NaN\n",
+       "2023-01-05     5.0\n",
+       "2023-01-06     6.0\n",
+       "2023-01-07     NaN\n",
+       "2023-01-08     8.0\n",
+       "2023-01-09     9.0\n",
+       "2023-01-10    10.0\n",
+       "Freq: D, Name: A, dtype: float64"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Series 2 (Secondary - Fills Gaps):\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "2023-01-01    NaN\n",
+       "2023-01-02    2.0\n",
+       "2023-01-03    NaN\n",
+       "2023-01-04    4.0\n",
+       "2023-01-05    NaN\n",
+       "2023-01-06    NaN\n",
+       "2023-01-07    7.0\n",
+       "2023-01-08    NaN\n",
+       "2023-01-09    NaN\n",
+       "2023-01-10    NaN\n",
+       "2023-01-11    3.0\n",
+       "2023-01-12    4.0\n",
+       "Freq: D, Name: A, dtype: float64"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Series 3 (Tertiary - Fills Gaps):\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "2022-12-31    1000.0\n",
+       "2023-01-01    1001.0\n",
+       "2023-01-02    1002.0\n",
+       "2023-01-03       NaN\n",
+       "2023-01-04    1004.0\n",
+       "2023-01-05       NaN\n",
+       "2023-01-06       NaN\n",
+       "2023-01-07    1007.0\n",
+       "2023-01-08       NaN\n",
+       "2023-01-09       NaN\n",
+       "2023-01-10       NaN\n",
+       "2023-01-11    1005.0\n",
+       "2023-01-12    1006.0\n",
+       "2023-01-13    1007.0\n",
+       "Freq: D, Name: A, dtype: float64"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
     }
    ],
    "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "from vtools import ts_merge, ts_splice\n",
     "# ========================================\n",
-    "# 1️⃣ Creating Regular Time Series (1D Frequency with Missing Data)\n",
+    "# Creating Regular Time Series (1D Frequency with Missing Data)\n",
     "# ========================================\n",
     "idx1 = pd.date_range(\"2023-01-01\", periods=10, freq=\"1D\")\n",
     "idx2 = pd.date_range(\"2023-01-01\", periods=12, freq=\"1D\")\n",
@@ -73,7 +151,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 2,
    "id": "5dd08914",
    "metadata": {},
    "outputs": [
@@ -129,7 +207,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 3,
    "id": "ae88f210",
    "metadata": {},
    "outputs": [
@@ -138,7 +216,7 @@
      "output_type": "stream",
      "text": [
       "\n",
-      "Spliced Series with Prioritization:\n"
+      "Spliced Series with Prioritization and default `prefer last`:\n"
      ]
     },
     {
@@ -216,7 +294,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 4,
    "id": "9a1d0dae",
    "metadata": {},
    "outputs": [
@@ -354,7 +432,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 5,
    "id": "35cfc422",
    "metadata": {},
    "outputs": [
@@ -683,6 +761,18 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
+      "2023-01-01    1.0\n",
+      "2023-01-03    NaN\n",
+      "2023-01-05    3.0\n",
+      "2023-01-07    4.0\n",
+      "2023-01-09    5.0\n",
+      "Freq: 2D, Name: A, dtype: float64\n",
+      "2023-01-02    10.0\n",
+      "2023-01-04    20.0\n",
+      "2023-01-06    30.0\n",
+      "2023-01-08     NaN\n",
+      "2023-01-10    50.0\n",
+      "Freq: 2D, Name: B, dtype: float64\n",
       "Merged Series not renamed:\n"
      ]
     },
@@ -690,46 +780,16 @@
      "data": {
       "text/plain": [
        "2023-01-01     1.0\n",
-       "2023-01-02     2.0\n",
-       "2023-01-03     3.0\n",
-       "2023-01-04     4.0\n",
-       "2023-01-05     5.0\n",
-       "2023-01-06     6.0\n",
-       "2023-01-07     7.0\n",
-       "2023-01-08     8.0\n",
-       "2023-01-09     9.0\n",
-       "2023-01-10    10.0\n",
-       "2023-01-11     3.0\n",
-       "2023-01-12     4.0\n",
-       "Freq: D, Name: A, dtype: float64"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Merged Series renamed:\n"
-     ]
-    },
-    {
-     "data": {
-      "text/plain": [
-       "2023-01-01     1.0\n",
-       "2023-01-02     2.0\n",
-       "2023-01-03     3.0\n",
-       "2023-01-04     4.0\n",
-       "2023-01-05     5.0\n",
-       "2023-01-06     6.0\n",
-       "2023-01-07     7.0\n",
-       "2023-01-08     8.0\n",
-       "2023-01-09     9.0\n",
-       "2023-01-10    10.0\n",
-       "2023-01-11     3.0\n",
-       "2023-01-12     4.0\n",
-       "Freq: D, Name: Renamed_A, dtype: float64"
+       "2023-01-02    10.0\n",
+       "2023-01-03     NaN\n",
+       "2023-01-04    20.0\n",
+       "2023-01-05     3.0\n",
+       "2023-01-06    30.0\n",
+       "2023-01-07     4.0\n",
+       "2023-01-08     NaN\n",
+       "2023-01-09     5.0\n",
+       "2023-01-10    50.0\n",
+       "Name: C, dtype: float64"
       ]
      },
      "metadata": {},
@@ -943,19 +1003,13 @@
     {
      "data": {
       "text/plain": [
-       "2023-01-01    1.0\n",
-       "2023-01-02    2.0\n",
-       "2023-01-03    NaN\n",
-       "2023-01-04    4.0\n",
-       "2023-01-05    NaN\n",
-       "2023-01-06    NaN\n",
-       "2023-01-07    7.0\n",
-       "2023-01-08    NaN\n",
-       "2023-01-09    NaN\n",
-       "2023-01-10    NaN\n",
-       "2023-01-11    3.0\n",
-       "2023-01-12    4.0\n",
-       "Freq: D, Name: Renamed_A, dtype: float64"
+       "2023-01-01     1.0\n",
+       "2023-01-02    10.0\n",
+       "2023-01-04    20.0\n",
+       "2023-01-06    30.0\n",
+       "2023-01-08     NaN\n",
+       "2023-01-10    50.0\n",
+       "Name: Renamed_A, dtype: float64"
       ]
      },
      "metadata": {},
@@ -964,16 +1018,15 @@
    ],
    "source": [
     "# Example: Using `names` to rename output columns\n",
+    "print(\"Original univariate series\")\n",
+    "print(series1)\n",
+    "print(series2)\n",
     "\n",
-    "# Merging without a rename\n",
-    "merged_series_named = ts_merge((series1, series2))\n",
-    "print(\"Merged Series not renamed:\")\n",
+    "# Merging univariate with different names and using names to rename\n",
+    "merged_series_named = ts_merge((series1, series2), names=[\"C\"])\n",
+    "print(\"Merged univariate series renamed:\")\n",
     "display(merged_series_named)\n",
     "\n",
-    "# Rename a single column\n",
-    "merged_series_named = ts_merge((series1, series2), names=\"Renamed_A\")\n",
-    "print(\"Merged Series renamed:\")\n",
-    "display(merged_series_named)\n",
     "\n",
     "# Select specific columns in DataFrame\n",
     "try:\n",
@@ -1015,6 +1068,7 @@
   },
   {
    "cell_type": "markdown",
+   "id": "d615df22",
    "metadata": {},
    "source": [
     "# `ts_merge`: strict priority option\n",
@@ -1068,9 +1122,53 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 7,
+   "id": "d31654ba",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Example 1 strict=False:\n",
+      "2023-01-01     1.0\n",
+      "2023-01-02     2.0\n",
+      "2023-01-03    10.0\n",
+      "2023-01-04     4.0\n",
+      "2023-01-05     5.0\n",
+      "2023-01-06     NaN\n",
+      "2023-01-07    50.0\n",
+      "Freq: D, Name: A, dtype: float64\n",
+      "Example 1 strict=True:\n",
+      "2023-01-01     1.0\n",
+      "2023-01-02     2.0\n",
+      "2023-01-03     NaN\n",
+      "2023-01-04     4.0\n",
+      "2023-01-05     5.0\n",
+      "2023-01-06     NaN\n",
+      "2023-01-07    50.0\n",
+      "Freq: D, Name: A, dtype: float64\n",
+      "\n",
+      "Example 2 strict=True:\n",
+      "               A     B\n",
+      "2023-01-01   1.0   1.0\n",
+      "2023-01-02   NaN   NaN\n",
+      "2023-01-03   3.0   NaN\n",
+      "2023-01-04   4.0   4.0\n",
+      "2023-01-05   5.0   5.0\n",
+      "2023-01-06  40.0  40.0\n",
+      "2023-01-07  50.0  50.0\n",
+      "\n",
+      "Example 3 strict=True:\n",
+      "2023-01-01     1.0\n",
+      "2023-01-03     2.0\n",
+      "2023-01-07     3.0\n",
+      "2023-01-10     4.0\n",
+      "2023-01-11    40.0\n",
+      "Name: A, dtype: float64\n"
+     ]
+    }
+   ],
    "source": [
     "import numpy as np, pandas as pd\n",
     "from vtools.functions.merge import ts_merge\n",

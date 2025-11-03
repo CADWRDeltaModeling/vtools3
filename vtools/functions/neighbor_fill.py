@@ -1,38 +1,38 @@
 """Neighbor-based time-series gap filling.
 
-This module provides a single high-level API, :func:`fill_from_neighbor`,
-with pluggable backends for common algorithms used to infer a target series
-from one or more nearby stations. It is designed for operational use in
-Delta/Bay hydrodynamics workflows, but is intentionally general.
+    This module provides a single high-level API, :func:`fill_from_neighbor`,
+    with pluggable backends for common algorithms used to infer a target series
+    from one or more nearby stations. It is designed for operational use in
+    Delta/Bay hydrodynamics workflows, but is intentionally general.
 
-Highlights
-----------
-- Robust time alignment and optional resampling.
-- Multiple modeling strategies: OLS/robust, rolling regression,
-  lagged elastic-net, and state-space/Kalman.
-- Forward-chaining (temporal) cross-validation utilities.
-- Optional regime stratification (e.g., barrier in/out, season).
-- Uncertainty estimates where available (analytic or residual-based).
-- Clear return structure with diagnostics for auditability.
+    Highlights
+    ----------
+    - Robust time alignment and optional resampling.
+    - Multiple modeling strategies: OLS/robust, rolling regression,
+    lagged elastic-net, and state-space/Kalman.
+    - Forward-chaining (temporal) cross-validation utilities.
+    - Optional regime stratification (e.g., barrier in/out, season).
+    - Uncertainty estimates where available (analytic or residual-based).
+    - Clear return structure with diagnostics for auditability.
 
-Example
--------
->>> res = fill_from_neighbor(
-...     target=y, neighbor=x, method="state_space", lags=range(0, 4),
-...     bounds=(0.0, None), regime=regime_series
-... )
->>> filled = res["filled"]
->>> info = res["model_info"]
+    Example
+    -------
+    >>> res = fill_from_neighbor(
+    ...     target=y, neighbor=x, method="state_space", lags=range(0, 4),
+    ...     bounds=(0.0, None), regime=regime_series
+    ... )
+    >>> filled = res["filled"]
+    >>> info = res["model_info"]
 
-Notes
------
-- "Neighbor" can be one series or multiple (as a DataFrame); both are supported.
-- Missing data in the target are left as-is where the model cannot reasonably
-  infer a value (e.g., no overlapping neighbor data). Where predictions exist,
-  they are merged into the target to produce `filled`.
-- For state-space and ARIMAX, missing values are handled natively by the
-  Kalman filter/SARIMAX, but the model must still be trained on an overlap
-  window that contains data.
+    Notes
+    -----
+    - "Neighbor" can be one series or multiple (as a DataFrame); both are supported.
+    - Missing data in the target are left as-is where the model cannot reasonably
+    infer a value (e.g., no overlapping neighbor data). Where predictions exist,
+    they are merged into the target to produce `filled`.
+    - For state-space and ARIMAX, missing values are handled natively by the
+    Kalman filter/SARIMAX, but the model must still be trained on an overlap
+    window that contains data.
 """
 from __future__ import annotations
 
@@ -79,12 +79,16 @@ class FillResult:
     ----------
     filled : pd.Series
         Target series with gaps filled where possible.
+
     yhat : pd.Series
         Model predictions aligned to the union index used for fitting/prediction.
+
     pi_lower, pi_upper : Optional[pd.Series]
         Prediction interval bounds where available; otherwise ``None``.
+
     model_info : dict
         Method, parameters, chosen lags, training window, etc.
+
     metrics : dict
         Holdout scores (MAE/RMSE/R^2) using forward-chaining CV where configured.
     """
@@ -1100,9 +1104,11 @@ def fill_from_neighbor(
     ----------
     target : pandas.Series
         Target time series with a ``DatetimeIndex`` on a regular grid. Values may be NaN.
+
     neighbor : pandas.Series or pandas.DataFrame
         One or more neighbor series with a ``DatetimeIndex`` on the **same grid**
         as ``target`` (same step and phase). Values may be NaN.
+
     method : {'substitute', 'ols', 'huber', 'rolling', 'lagged_reg',
             'loess', 'dfm_trimbur_rw', 'dfm_trimbur_ar',
             'resid_interp_linear', 'resid_interp_pchip'}
@@ -1125,8 +1131,10 @@ def fill_from_neighbor(
         Optional categorical series indexed like ``target`` to stratify fits
         (e.g., barrier in/out). If provided, models are fit per category and
         stitched back together.
+
     bounds : (float or None, float or None)
         Lower/upper bounds to clip the final filled values (applied at the end).
+
     params : dict, optional
         Pre-fitted/packed parameter blob for methods that support parameter reuse
         (e.g., the DFM backends). If provided, fitting is skipped and the supplied
@@ -1254,14 +1262,7 @@ def fill_from_neighbor(
             ``scaling`` (means/stds used), goodness-of-fit (e.g., ``llf``, ``aic``,
             ``bic``), and per-regime info when ``regime`` is provided.
 
-    Raises
-    ------
-    ValueError
-        If indices are not equally spaced, or grids mismatch in step or phase,
-        or if required method-specific kwargs are missing (e.g., ``window`` for
-        ``method='rolling'``).
-    KeyError
-        If an unknown method name is provided.
+
     """
 
 

@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vtools.functions.unit_conversions &#8212; vtools 0.0.0 documentation</title>
+    <title>vtools.functions.unit_conversions &#8212; vtools 3.9.5.post5+dirty documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
-    <script src="../../../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../../../_static/documentation_options.js?v=0ca39674"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/neighbor_fill.html">Filling Series Based on a Neighbor (like series)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
@@ -106,10 +107,46 @@
           <div class="body" role="main">
             
   <h1>Source code for vtools.functions.unit_conversions</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Unit conversion helpers.</span>
+
+<span class="sd">This module provides:</span>
+<span class="sd">- linear/affine converters for common engineering units:</span>
+<span class="sd">  metres↔feet, cms↔cfs, °F↔°C (all *functional*, no in-place mutation).</span>
+<span class="sd">- Domain-specific conversions between electrical conductivity (EC, μS/cm)</span>
+<span class="sd">  and practical salinity (PSU) at 25 °C, with optional Hill low-salinity</span>
+<span class="sd">  correction and an accuracy-improving root-finding “refinement” step.</span>
+<span class="sd">- a general-purpose unit conversion function `convert_units()` that uses Pint</span>
+<span class="sd">  by default (with an optional cf_units backend via an environment variable),</span>
+<span class="sd">  and that has fast paths for the above common conversions.</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">- PSU is treated here as a practical “unit” for salinity in workflows,</span>
+<span class="sd">  even though in a strict metrological sense it is unitless.</span>
+<span class="sd">- The EC↔PSU conversions assume **25 °C** and no explicit temperature</span>
+<span class="sd">  dependence beyond the optional Hill correction.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">Schemel, L.E. (2001) Empirical relationships between salinity and</span>
+<span class="sd">specific conductance in San Francisco Bay, California.</span>
+
+<span class="sd">Hill, K. (low-salinity correction widely used in estuarine practice).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brentq</span>
 
-<span class="c1"># Constants for conversions</span>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Constants for conversions (kept from legacy implementation)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="n">J1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">16.072</span>
 <span class="n">J2</span> <span class="o">=</span> <span class="mf">4.1495</span>
 <span class="n">J3</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5345</span>
@@ -122,94 +159,326 @@
 <span class="n">K5</span> <span class="o">=</span> <span class="o">-</span><span class="mf">6.4788</span>
 <span class="n">K6</span> <span class="o">=</span> <span class="mf">2.5842</span>
 <span class="n">k</span> <span class="o">=</span> <span class="mf">0.0162</span>
-<span class="n">s_sea</span> <span class="o">=</span> <span class="mf">35.0</span>
-<span class="n">ec_sea</span> <span class="o">=</span> <span class="mf">53087.0</span>
 
-<span class="n">M2FT</span> <span class="o">=</span> <span class="mf">3.28084</span>
-<span class="n">FT2M</span> <span class="o">=</span> <span class="mf">0.3048</span>
-<span class="n">CFS2CMS</span> <span class="o">=</span> <span class="mf">0.028316847</span>
-<span class="n">CMS2CFS</span> <span class="o">=</span> <span class="mf">35.31466621</span>
+<span class="n">s_sea</span> <span class="o">=</span> <span class="mf">35.0</span>  <span class="c1"># representative ocean salinity, PSU</span>
+<span class="n">ec_sea</span> <span class="o">=</span> <span class="mf">53087.0</span>  <span class="c1"># EC (μS/cm) associated with s_sea at 25 °C</span>
+
+<span class="c1"># exact base</span>
+<span class="n">FT2M</span> <span class="o">=</span> <span class="mf">0.3048</span>  <span class="c1"># exact by definition</span>
+
+<span class="c1"># derive reciprocals/products to avoid mismatch and rounding drift</span>
+<span class="n">M2FT</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">FT2M</span>
+<span class="n">CFS2CMS</span> <span class="o">=</span> <span class="n">FT2M</span><span class="o">**</span><span class="mi">3</span>  <span class="c1"># (ft^3/s) → (m^3/s)</span>
+<span class="n">CMS2CFS</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">CFS2CMS</span>
 
 
+<span class="c1"># vtools/functions/unit_conversions.py</span>
+
+
+<span class="c1"># ---- Aliases &amp; normalization -------------------------------------------------</span>
+<span class="n">_ALIASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># flows (canonical CF style)</span>
+    <span class="s2">&quot;cfs&quot;</span><span class="p">:</span> <span class="s2">&quot;ft^3 s-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ft3/s&quot;</span><span class="p">:</span> <span class="s2">&quot;ft^3 s-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ft^3/s&quot;</span><span class="p">:</span> <span class="s2">&quot;ft^3 s-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cms&quot;</span><span class="p">:</span> <span class="s2">&quot;m^3 s-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;m3/s&quot;</span><span class="p">:</span> <span class="s2">&quot;m^3 s-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;m^3/s&quot;</span><span class="p">:</span> <span class="s2">&quot;m^3 s-1&quot;</span><span class="p">,</span>
+    <span class="c1"># temperature (return case-sensitive names Pint expects)</span>
+    <span class="s2">&quot;deg f&quot;</span><span class="p">:</span> <span class="s2">&quot;degF&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;degree_fahrenheit&quot;</span><span class="p">:</span> <span class="s2">&quot;degF&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;deg c&quot;</span><span class="p">:</span> <span class="s2">&quot;degC&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;degree_celsius&quot;</span><span class="p">:</span> <span class="s2">&quot;degC&quot;</span><span class="p">,</span>
+    <span class="c1"># conductivity spellings</span>
+    <span class="s2">&quot;us/cm&quot;</span><span class="p">:</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;μs/cm&quot;</span><span class="p">:</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;microsiemens/cm&quot;</span><span class="p">:</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;micromhos/cm&quot;</span><span class="p">:</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;us/cm@25c&quot;</span><span class="p">:</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;micromhos/cm@25c&quot;</span><span class="p">:</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="_norm">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions._norm">[docs]</a>
+<span class="k">def</span> <span class="nf">_norm</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize common shorthands to canonical spellings without</span>
+<span class="sd">    destroying case needed by Pint (e.g., degC/degF).&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_ALIASES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_rewrap_like">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions._rewrap_like">[docs]</a>
+<span class="k">def</span> <span class="nf">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">values</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">values</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">values</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">values</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arr</span></div>
+
+
+
+<span class="c1"># ---- Optional backend flip via env var (no public API) -----------------------</span>
+<div class="viewcode-block" id="_want_cf_units">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions._want_cf_units">[docs]</a>
+<span class="k">def</span> <span class="nf">_want_cf_units</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;VTOOLS_UNITS_BACKEND&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;cf_units&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="_get_converter">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions._get_converter">[docs]</a>
+<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_get_converter</span><span class="p">(</span><span class="n">iu</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ou</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a callable(arr)-&gt;arr using Pint by default; cf_units if env-forced.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_want_cf_units</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">cf_units</span> <span class="kn">import</span> <span class="n">Unit</span>
+
+            <span class="n">u_in</span><span class="p">,</span> <span class="n">u_out</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">iu</span><span class="p">),</span> <span class="n">Unit</span><span class="p">(</span><span class="n">ou</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">conv</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">u_in</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">),</span> <span class="n">u_out</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">conv</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># fall through to Pint if cf_units not available</span>
+            <span class="k">pass</span>
+
+    <span class="kn">import</span> <span class="nn">pint</span>
+
+    <span class="n">ureg</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">UnitRegistry</span><span class="p">(</span><span class="n">autoconvert_offset_to_baseunit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">q_in</span><span class="p">,</span> <span class="n">q_out</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">ureg</span><span class="p">(</span><span class="n">iu</span><span class="p">),</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">ureg</span><span class="p">(</span><span class="n">ou</span><span class="p">)</span>
+    <span class="c1"># --- Skip fast scaling for temperature units (affine with offsets) ---</span>
+    <span class="n">OFFSET_UNITS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;degC&quot;</span><span class="p">,</span> <span class="s2">&quot;degF&quot;</span><span class="p">,</span> <span class="s2">&quot;degree_Celsius&quot;</span><span class="p">,</span> <span class="s2">&quot;degree_Fahrenheit&quot;</span><span class="p">,</span> <span class="s2">&quot;degR&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="ow">in</span> <span class="n">OFFSET_UNITS</span> <span class="ow">or</span> <span class="n">ou</span> <span class="ow">in</span> <span class="n">OFFSET_UNITS</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">conv</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">ureg</span><span class="p">(</span><span class="n">iu</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">ureg</span><span class="p">(</span><span class="n">ou</span><span class="p">))</span><span class="o">.</span><span class="n">m</span>
+
+        <span class="k">return</span> <span class="n">conv</span>
+
+    <span class="c1"># --- Otherwise use fast pure-scale path ---</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">q_in</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">q_out</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+
+        <span class="k">def</span> <span class="nf">conv</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">*</span> <span class="n">factor</span>
+
+        <span class="k">return</span> <span class="n">conv</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">conv</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">ureg</span><span class="p">(</span><span class="n">iu</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">ureg</span><span class="p">(</span><span class="n">ou</span><span class="p">))</span><span class="o">.</span><span class="n">m</span>
+
+        <span class="k">return</span> <span class="n">conv</span></div>
+
+
+
+<span class="c1"># ---- Public API --------------------------------------------------------------</span>
+<div class="viewcode-block" id="convert_units">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.convert_units">[docs]</a>
+<span class="k">def</span> <span class="nf">convert_units</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">in_unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert array-like / pandas objects between units.</span>
+<span class="sd">    Fast custom paths for EC↔PSU@25C, temperature, cfs↔cms, ft↔m; else Pint-backed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    values : array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">    in_unit, out_unit : str</span>
+<span class="sd">        Unit strings. Shorthands like &#39;cfs&#39;,&#39;cms&#39;,&#39;ft3/s&#39;,&#39;μS/cm&#39;,&#39;deg F&#39; accepted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Same type as `values`, converted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">in_unit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">out_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both in_unit and out_unit must be specified&quot;</span><span class="p">)</span>
+
+    <span class="n">iu</span><span class="p">,</span> <span class="n">ou</span> <span class="o">=</span> <span class="n">_norm</span><span class="p">(</span><span class="n">in_unit</span><span class="p">),</span> <span class="n">_norm</span><span class="p">(</span><span class="n">out_unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="n">ou</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="c1"># --- Custom domain-first paths -------------------------------------------</span>
+    <span class="c1"># Temperature</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;degf&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;degc&quot;</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mf">32.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">5.0</span> <span class="o">/</span> <span class="mf">9.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;degc&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;degf&quot;</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.8</span> <span class="o">+</span> <span class="mf">32.0</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+
+    <span class="c1"># Length / Flow shorthands (scale only)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;ft&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">*</span> <span class="n">FT2M</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;ft&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">*</span> <span class="n">M2FT</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;ft^3 s-1&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;m^3 s-1&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">*</span> <span class="n">CFS2CMS</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;m^3 s-1&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;ft^3 s-1&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">*</span> <span class="n">CMS2CFS</span><span class="p">)</span>
+
+    <span class="c1"># EC ↔ PSU at 25C (never hand &#39;psu&#39; to a generic backend)</span>
+    <span class="k">if</span> <span class="n">iu</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ec&quot;</span><span class="p">,</span> <span class="s2">&quot;us/cm&quot;</span><span class="p">,</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span> <span class="s2">&quot;micromhos/cm&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ou</span> <span class="o">==</span> <span class="s2">&quot;psu&quot;</span><span class="p">:</span>
+        <span class="c1"># preserve Series/DataFrame structure if present</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">ec_psu_25c</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">hill_correction</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">iu</span> <span class="o">==</span> <span class="s2">&quot;psu&quot;</span> <span class="ow">and</span> <span class="n">ou</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ec&quot;</span><span class="p">,</span> <span class="s2">&quot;us/cm&quot;</span><span class="p">,</span> <span class="s2">&quot;uS cm-1&quot;</span><span class="p">,</span> <span class="s2">&quot;micromhos/cm&quot;</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">psu_ec_25c</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">refine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hill_correction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># preserve Series/DataFrame structure if present</span>
+        <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+
+    <span class="c1"># --- Backend fallback (Pint by default; cf_units if env forces it) -------</span>
+    <span class="n">conv</span> <span class="o">=</span> <span class="n">_get_converter</span><span class="p">(</span><span class="n">iu</span><span class="p">,</span> <span class="n">ou</span><span class="p">)</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">))</span> <span class="k">else</span> <span class="n">values</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">conv</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Linear / affine engineering conversions (functional)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="m_to_ft">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.m_to_ft">[docs]</a>
 <span class="k">def</span> <span class="nf">m_to_ft</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert meter to foot</span>
-<span class="sd">    WARNING: The function modifies the input argument if it is TimeSeries</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ft&quot;</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">M2FT</span>
-        <span class="k">return</span> <span class="n">x</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">M2FT</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert metres to feet.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : scalar | array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">        Value(s) in metres.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    same type as `x`</span>
+<span class="sd">        Value(s) in feet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">*</span> <span class="n">M2FT</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ft_to_m">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.ft_to_m">[docs]</a>
 <span class="k">def</span> <span class="nf">ft_to_m</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert foot to meter&quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;m&quot;</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">FT2M</span>
-        <span class="k">return</span> <span class="n">x</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">FT2M</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert feet to metres.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : scalar | array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">        Value(s) in feet.</span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    same type as `x`</span>
+<span class="sd">        Value(s) in meters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">*</span> <span class="n">FT2M</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="cms_to_cfs">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.cms_to_cfs">[docs]</a>
 <span class="k">def</span> <span class="nf">cms_to_cfs</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert cms to cfs&quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cfs&quot;</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">CMS2CFS</span>
-        <span class="k">return</span> <span class="n">x</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">CMS2CFS</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert m³/s to ft³/s.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : scalar | array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">        Value(s) in cms.</span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    same type as `x`</span>
+<span class="sd">        Value(s) in cfs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">*</span> <span class="n">CMS2CFS</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="cfs_to_cms">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.cfs_to_cms">[docs]</a>
 <span class="k">def</span> <span class="nf">cfs_to_cms</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert cfs to cms&quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cms&quot;</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">CFS2CMS</span>
-        <span class="k">return</span> <span class="n">x</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">CFS2CMS</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert ft³/s to m³/s.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : scalar | array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">        Value(s) in cfs.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    same type as `x`</span>
+<span class="sd">        Value(s) in cubic meters per second.    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">*</span> <span class="n">CFS2CMS</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="c1"># Element-wise multiply, preserving index/columns</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">CFS2CMS</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="c1"># Preserve Series index and name</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">CFS2CMS</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">*</span> <span class="n">CFS2CMS</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">out</span></div>
 
 
 
 <div class="viewcode-block" id="fahrenheit_to_celsius">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.fahrenheit_to_celsius">[docs]</a>
 <span class="k">def</span> <span class="nf">fahrenheit_to_celsius</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert cfs to cms&quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;deg C&quot;</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mf">32.0</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="mf">9.0</span>
-        <span class="k">return</span> <span class="n">x</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mf">32.0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="mf">9.0</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert °F to °C.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : scalar | array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">        Value(s) in degrees F.</span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    same type as `x`</span>
+<span class="sd">        Value(s) in degrees celsius.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">))</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span> <span class="o">-</span> <span class="mf">32.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">5.0</span> <span class="o">/</span> <span class="mf">9.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="celsius_to_fahrenheit">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.celsius_to_fahrenheit">[docs]</a>
 <span class="k">def</span> <span class="nf">celsius_to_fahrenheit</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert cfs to cms&quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;deg F&quot;</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="mf">1.8</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="mf">32.0</span>
-        <span class="k">return</span> <span class="n">x</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">1.8</span> <span class="o">+</span> <span class="mf">32.0</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert °C to °F.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : scalar | array-like | pd.Series | pd.DataFrame</span>
+<span class="sd">        Value(s) in celsius.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    same type as `x`</span>
+<span class="sd">        Value(s) in farenheit. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">))</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">*</span> <span class="mf">1.8</span> <span class="o">+</span> <span class="mf">32.0</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
 
 
 
@@ -222,68 +491,122 @@
 
 <div class="viewcode-block" id="ec_psu_25c">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.ec_psu_25c">[docs]</a>
-<span class="k">def</span> <span class="nf">ec_psu_25c</span><span class="p">(</span><span class="n">ts_ec</span><span class="p">,</span> <span class="n">hill_correction</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert scalar or vector ec to psu assuming 25C temperature</span>
-<span class="sd">    and no low salinity correction</span>
-<span class="sd">    Note: The input argument, ts_ec, will be altered.</span>
+<span class="k">def</span> <span class="nf">ec_psu_25c</span><span class="p">(</span><span class="n">ec</span><span class="p">,</span> <span class="n">hill_correction</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert electrical conductivity (EC, μS/cm) to practical salinity (PSU) at 25 °C.</span>
+
+<span class="sd">    This implements the empirical relationship used for estuarine work, with an</span>
+<span class="sd">    optional Hill correction that improves behavior at low salinities.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ec : array-like or scalar</span>
+<span class="sd">        Electrical conductivity in μS/cm.</span>
+<span class="sd">    hill_correction : bool, default True</span>
+<span class="sd">        Apply Hill low-salinity correction.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray or scalar</span>
+<span class="sd">        Practical salinity (PSU). For negative EC inputs:</span>
+<span class="sd">        - scalar input → returns NaN</span>
+<span class="sd">        - array input → returns NaN at those positions</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    * Assumes temperature is 25 °C.</span>
+<span class="sd">    * Negative EC values are internally floored to a small positive ratio</span>
+<span class="sd">      for computation (`R=1e-4`); those outputs are then set to NaN on</span>
+<span class="sd">      array paths (or NaN returned for scalar paths).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">ts_ec</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PSU&quot;</span>
-        <span class="n">ec</span> <span class="o">=</span> <span class="n">ts_ec</span><span class="o">.</span><span class="n">data</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="n">ec</span> <span class="o">=</span> <span class="n">ts_ec</span>
-    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ec</span><span class="p">,</span> <span class="n">ec_sea</span><span class="p">)</span>
-    <span class="n">R_is_neg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">R</span><span class="p">[</span><span class="n">R_is_neg</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0001</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">R_is_neg</span><span class="p">:</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ec</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">/</span> <span class="n">ec_sea</span>
+    <span class="n">neg_mask</span> <span class="o">=</span> <span class="n">R</span> <span class="o">&lt;</span> <span class="mf">0.0</span>
+
+    <span class="c1"># Handle negative inputs consistently with legacy behavior</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">ec</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">neg_mask</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">R_is_neg</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">R</span><span class="p">[</span><span class="n">neg_mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0e-4</span>  <span class="c1"># small positive floor for computation</span>
+
     <span class="n">sqrtR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
     <span class="n">Rsq</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">R</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">K1</span> <span class="o">+</span> <span class="n">K2</span> <span class="o">*</span> <span class="n">sqrtR</span> <span class="o">+</span> <span class="n">K3</span> <span class="o">*</span> <span class="n">R</span> <span class="o">+</span> <span class="n">K4</span> <span class="o">*</span> <span class="n">R</span> <span class="o">*</span> <span class="n">sqrtR</span> <span class="o">+</span> <span class="n">K5</span> <span class="o">*</span> <span class="n">Rsq</span> <span class="o">+</span> <span class="n">K6</span> <span class="o">*</span> <span class="n">Rsq</span> <span class="o">*</span> <span class="n">sqrtR</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="mf">0.0162</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="mf">25.0</span> <span class="o">-</span> <span class="mf">15.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="mf">25.0</span> <span class="o">-</span> <span class="mf">15.0</span><span class="p">))</span>
+
     <span class="k">if</span> <span class="n">hill_correction</span><span class="p">:</span>
         <span class="n">y</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">R</span>
         <span class="n">x</span> <span class="o">=</span> <span class="mf">400.0</span> <span class="o">*</span> <span class="n">R</span>
         <span class="n">a_0</span> <span class="o">=</span> <span class="mf">0.008</span>
-        <span class="n">b_0_f</span> <span class="o">=</span> <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">f</span>  <span class="c1"># = f(T=25)*0.0005</span>
-        <span class="n">sqrty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">-</span> <span class="n">a_0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">b_0_f</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">sqrty</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">sqrty</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">ts_ec</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PSU&quot;</span>
-        <span class="n">ts_ec</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">s</span>
-        <span class="k">return</span> <span class="n">ts_ec</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">R_is_neg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">s</span><span class="p">[</span><span class="n">R_is_neg</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="k">return</span> <span class="n">s</span></div>
+        <span class="n">f_</span> <span class="o">=</span> <span class="p">(</span><span class="mf">25.0</span> <span class="o">-</span> <span class="mf">15.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="mf">25.0</span> <span class="o">-</span> <span class="mf">15.0</span><span class="p">))</span>  <span class="c1"># f(T=25)</span>
+        <span class="n">b_0_f</span> <span class="o">=</span> <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">f_</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span>
+            <span class="o">-</span> <span class="n">a_0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+            <span class="o">-</span> <span class="n">b_0_f</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Single scalar branch: `s` already encodes NaN for invalid scalar inputs</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">ec</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+    <span class="c1"># Array-like branch: apply the invalid mask (if any) and rewrap</span>
+    <span class="k">if</span> <span class="s1">&#39;neg_mask&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">neg_mask</span><span class="p">):</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">neg_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">ec</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="psu_ec_25c_scalar">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.psu_ec_25c_scalar">[docs]</a>
 <span class="k">def</span> <span class="nf">psu_ec_25c_scalar</span><span class="p">(</span><span class="n">psu</span><span class="p">,</span> <span class="n">refine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hill_correction</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Conversion from psu to ec for a scalar. If used without refinement,</span>
-<span class="sd">    this is the Schemel conversion, otherwise uses root-finding</span>
-<span class="sd">    Note that the round trip ec-psu-ec tends to wander a lot without refine = True.</span>
-<span class="sd">    The refinement usually takes 4-6 iterations</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert practical salinity (PSU) to EC (μS/cm) at 25 °C for a **scalar** value.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    psu : float</span>
+<span class="sd">        Practical salinity. Must be non-negative and ≤ ~35 for oceanic cases</span>
+<span class="sd">        (a hard check is enforced near sea salinity when `refine` is True).</span>
+<span class="sd">    refine : bool, default True</span>
+<span class="sd">        If True, use a scalar root finder (Brent) to invert the EC→PSU mapping</span>
+<span class="sd">        accurately. If False, use a closed-form Schemel-style polynomial approximation.</span>
+<span class="sd">    hill_correction : bool, default True</span>
+<span class="sd">        Only meaningful with `refine=True`; raises if `refine=False` and</span>
+<span class="sd">        `hill_correction=True`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Electrical conductivity (μS/cm).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `psu` &lt; 0, if `psu` exceeds the sea-salinity cap in `refine` mode,</span>
+<span class="sd">        or if an invalid combination of `refine`/`hill_correction` is requested.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    * The refinement typically converges in ~4–6 iterations.</span>
+<span class="sd">    * The non-refined polynomial is faster but can drift on round trips (EC→PSU→EC).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">psu</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Negative psu not allowed: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">psu</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">psu</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Negative psu not allowed: </span><span class="si">{</span><span class="n">psu</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">psu</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="k">if</span> <span class="n">hill_correction</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">refine</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">&quot;Unrefined (refine=False) psu-to-ec correction cannot have hill_correction&quot;</span>
         <span class="p">)</span>
+
     <span class="k">if</span> <span class="n">refine</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">psu</span> <span class="o">&gt;</span> <span class="mf">34.99969</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;psu is over sea salinity: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">psu</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;psu is over sea salinity: </span><span class="si">{</span><span class="n">psu</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">ec</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">psu_ec_resid</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">ec_sea</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">psu</span><span class="p">,</span> <span class="n">hill_correction</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">sqrtpsu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">psu</span><span class="p">)</span>
@@ -302,20 +625,32 @@
 <div class="viewcode-block" id="psu_ec_25c">
 <a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.unit_conversions.psu_ec_25c">[docs]</a>
 <span class="k">def</span> <span class="nf">psu_ec_25c</span><span class="p">(</span><span class="n">psu</span><span class="p">,</span> <span class="n">refine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hill_correction</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Conversion from psu to ec. If used without refinement,</span>
-<span class="sd">    this is the Schemel conversion, otherwise uses root-finding</span>
-<span class="sd">    Note that the round trip ec-psu-ec tends to wander a lot without refine = True.</span>
-<span class="sd">    The refinement usually takes 4-6 iterations</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert practical salinity (PSU) to EC (μS/cm) at 25 °C (vectorized).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    psu : array-like or scalar</span>
+<span class="sd">        Practical salinity value(s).</span>
+<span class="sd">    refine : bool, default True</span>
+<span class="sd">        Use root finding via :func:`psu_ec_25c_scalar` for accuracy.</span>
+<span class="sd">    hill_correction : bool, default True</span>
+<span class="sd">        See :func:`psu_ec_25c_scalar`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray or scalar</span>
+<span class="sd">        EC in μS/cm. Scalar input returns a scalar; array-like input returns</span>
+<span class="sd">        a NumPy array of the same shape.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">psu</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">psu</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">psu_ec_25c_scalar</span><span class="p">(</span><span class="n">psu</span><span class="p">,</span> <span class="n">refine</span><span class="p">,</span> <span class="n">hill_correction</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">psu</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">psu_ec_25c_vec</span><span class="p">(</span><span class="n">psu</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">refine</span><span class="p">,</span> <span class="n">hill_correction</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">out</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">psu_ec_25c_vec</span><span class="p">(</span><span class="n">psu</span><span class="p">,</span> <span class="n">refine</span><span class="p">,</span> <span class="n">hill_correction</span><span class="p">)</span></div>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">psu</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">psu_ec_25c_vec</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">refine</span><span class="p">,</span> <span class="n">hill_correction</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_rewrap_like</span><span class="p">(</span><span class="n">psu</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></div>
+
+
 
 </pre></div>
 

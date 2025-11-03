@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.separate_species &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=0ca39674"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/neighbor_fill.html">Filling Series Based on a Neighbor (like series)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.functions.separate_species</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Separation of tidal data into species</span>
+<span class="sd">The key function in this module is separate_species, which decomposes</span>
+<span class="sd">tides into subtidal, diurnal, semidiurnal and noise components.</span>
+
+<span class="sd">The fileters are long, so the time resolution of the amplitude may be limited.</span>
+<span class="sd">A demo function is also provided that reads tide series (6min intervl)</span>
+<span class="sd">from input files, seperates  the species, writes results and optionally plots</span>
+<span class="sd">an example</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">vtools.datastore.read_ts</span> <span class="kn">import</span> <span class="n">read_ts</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dtm</span>
+<span class="kn">from</span> <span class="nn">vtools.functions.filter</span> <span class="kn">import</span> <span class="n">cosine_lanczos</span>
+<span class="kn">from</span> <span class="nn">vtools.data.vtime</span> <span class="kn">import</span> <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span>
+
+
+<div class="viewcode-block" id="separate_species">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.separate_species.separate_species">[docs]</a>
+<span class="k">def</span> <span class="nf">separate_species</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">noise_thresh_min</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Separate species into subtidal, diurnal, semidiurnal and noise components</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">         ts: timeseries to be decomposed into species, assumed to be</span>
+<span class="sd">         at six minute intervals. The filters used</span>
+<span class="sd">         have long lenghts, so avoid missing data and allow for four extra</span>
+<span class="sd">         days worth of data on each end.</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">          four regular time series, representing subtidal, diurnal, semi-diurnal and noise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># the first filter eliminates noise</span>
+    <span class="n">ts_denoise</span> <span class="o">=</span> <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="n">minutes</span><span class="p">(</span><span class="n">noise_thresh_min</span><span class="p">))</span>
+    <span class="n">ts_noise</span> <span class="o">=</span> <span class="n">ts</span> <span class="o">-</span> <span class="n">ts_denoise</span>  <span class="c1"># this is the residual, the part that IS noise</span>
+
+    <span class="c1"># the filter length assumes 6 minute data. The resulting filter is 90 hours</span>
+    <span class="c1"># long which is MUCH longer than the default because this filter has to be</span>
+    <span class="c1"># really sharp</span>
+    <span class="k">assert</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">freq</span> <span class="o">==</span> <span class="n">minutes</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+    <span class="c1"># 14.5 hours = 870min</span>
+    <span class="n">ts_diurnal_and_low</span> <span class="o">=</span> <span class="n">cosine_lanczos</span><span class="p">(</span>
+        <span class="n">ts_denoise</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="n">minutes</span><span class="p">(</span><span class="mi">870</span><span class="p">),</span> <span class="n">filter_len</span><span class="o">=</span><span class="mi">900</span>
+    <span class="p">)</span>
+    <span class="n">ts_semidiurnal_and_high</span> <span class="o">=</span> <span class="n">ts_denoise</span> <span class="o">-</span> <span class="n">ts_diurnal_and_low</span>
+
+    <span class="c1"># The resulting filter is again 90 hours</span>
+    <span class="c1"># long which is still a bit longer than the default. Again,</span>
+    <span class="c1"># we want this filter to be pretty sharp.</span>
+    <span class="c1"># ts_sub_tide=cosine_lanczos(ts_diurnal_and_low,cutoff_period=hours(40),</span>
+    <span class="c1">#                           filter_len=900)</span>
+    <span class="n">ts_sub_tide</span> <span class="o">=</span> <span class="n">cosine_lanczos</span><span class="p">(</span><span class="n">ts_denoise</span><span class="p">,</span> <span class="n">cutoff_period</span><span class="o">=</span><span class="n">hours</span><span class="p">(</span><span class="mi">40</span><span class="p">),</span> <span class="n">filter_len</span><span class="o">=</span><span class="mi">900</span><span class="p">)</span>
+    <span class="n">ts_diurnal</span> <span class="o">=</span> <span class="n">ts_diurnal_and_low</span> <span class="o">-</span> <span class="n">ts_sub_tide</span>
+    <span class="k">return</span> <span class="n">ts_sub_tide</span><span class="p">,</span> <span class="n">ts_diurnal</span><span class="p">,</span> <span class="n">ts_semidiurnal_and_high</span><span class="p">,</span> <span class="n">ts_noise</span></div>
+
+
+
+<div class="viewcode-block" id="write_th">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.separate_species.write_th">[docs]</a>
+<span class="k">def</span> <span class="nf">write_th</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">ts_output</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This works fine for fairly big series&quot;&quot;&quot;</span>
+    <span class="n">fout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">ts_output</span><span class="o">.</span><span class="n">ticks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ts_output</span><span class="p">:</span>
+        <span class="n">tck</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">ticks</span> <span class="o">-</span> <span class="n">st</span><span class="p">)</span>
+        <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%-12.1f</span><span class="s2"> </span><span class="si">%6.4f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tck</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="plot_result">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.separate_species.plot_result">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_result</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ts_semi</span><span class="p">,</span> <span class="n">ts_diurnal</span><span class="p">,</span> <span class="n">ts_sub_tide</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="p">((</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">),</span> <span class="p">(</span><span class="n">ax3</span><span class="p">,</span> <span class="n">ax4</span><span class="p">))</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Original data&quot;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower right&quot;</span><span class="p">)</span>  <span class="c1"># ,prop=legend_font)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Elev (m)&quot;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.9&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">ts_semi</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">ts_semi</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Semidiurnal&quot;</span>
+    <span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower right&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Elev (m)&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.9&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">ts_diurnal</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">ts_diurnal</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Diurnal&quot;</span>
+    <span class="p">)</span>
+    <span class="n">ax3</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower right&quot;</span><span class="p">)</span>
+    <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Elev (m)&quot;</span><span class="p">)</span>
+    <span class="n">ax3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.9&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="n">ax4</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">ts_sub_tide</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+        <span class="n">ts_sub_tide</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+        <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Subtidal&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ax4</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower right&quot;</span><span class="p">)</span>
+    <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Elev (m)&quot;</span><span class="p">)</span>
+    <span class="n">ax4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.9&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">autofmt_xdate</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="c1"># plt.savefig(&#39;tidal_species_%s.png&#39;%station,bbox_inches=0)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+
+
+<span class="c1">################# command line application #####################</span>
+<div class="viewcode-block" id="create_arg_parser">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.separate_species.create_arg_parser">[docs]</a>
+<span class="k">def</span> <span class="nf">create_arg_parser</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">textwrap</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">         ============== Example ==================</span>
+<span class="sd">      &gt; separate_species.py --stime=2009-03-12 --etime=2010-01-01 --label=&quot;San Francisco&quot; --outprefix=sf --plot 9414290_gageheight.csv</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+        <span class="p">),</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Script to filter a tide into its subtidal, diurnal and semidiurnal components (and residual noise&quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--stime&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Start time in ISO-like format 2009-03-12T00:00:00. Time part and &#39;T&#39; are optional.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--etime&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;End time.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--plot&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Plot time series in matplotlib&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--label&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Tide&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Label for station in plots&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--outprefix&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output file prefix (species name will be added). If omitted, the label will be used&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;infile&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input file.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.separate_species.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">create_arg_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">stime</span><span class="p">:</span>
+        <span class="n">sdate</span> <span class="o">=</span> <span class="n">dtm</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span>
+            <span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[^\d]&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">stime</span><span class="p">)))</span>
+        <span class="p">)</span>  <span class="c1"># convert start time string input to datetime</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sdate</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">etime</span><span class="p">:</span>
+        <span class="n">edate</span> <span class="o">=</span> <span class="n">dtm</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span>
+            <span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[^\d]&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">etime</span><span class="p">)))</span>
+        <span class="p">)</span>  <span class="c1"># convert start time string input to datetime</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">edate</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">data_file</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">infile</span>
+    <span class="n">station_name</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">label</span>
+    <span class="n">outprefix</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outprefix</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">outprefix</span><span class="p">:</span>
+        <span class="n">outprefix</span> <span class="o">=</span> <span class="n">station_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+    <span class="n">do_plot</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">plot</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">read_ts</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">astart</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sdate</span> <span class="o">-</span> <span class="n">days</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span> <span class="k">if</span> <span class="n">sdate</span> <span class="k">else</span> <span class="n">ts</span><span class="o">.</span><span class="n">start</span>
+    <span class="n">aend</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">edate</span> <span class="o">+</span> <span class="n">days</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span> <span class="k">if</span> <span class="n">edate</span> <span class="k">else</span> <span class="n">ts</span><span class="o">.</span><span class="n">end</span>
+    <span class="n">ts_sub</span><span class="p">,</span> <span class="n">ts_diurnal</span><span class="p">,</span> <span class="n">ts_semi</span><span class="p">,</span> <span class="n">ts_noise</span> <span class="o">=</span> <span class="n">separate_species</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">astart</span><span class="p">,</span> <span class="n">aend</span><span class="p">))</span>
+
+    <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">ts_noise</span><span class="p">,</span> <span class="s2">&quot;noise&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">ts_semi</span><span class="p">,</span> <span class="s2">&quot;semi_over&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">ts_diurnal</span><span class="p">,</span> <span class="s2">&quot;diurnal&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">ts_sub</span><span class="p">,</span> <span class="s2">&quot;subtidal&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">:</span>
+        <span class="n">ts_output</span> <span class="o">=</span> <span class="n">comp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">sdate</span><span class="p">,</span> <span class="n">edate</span><span class="p">)</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="n">outprefix</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">comp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.th&quot;</span>
+        <span class="n">write_th</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">ts_output</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_plot</span><span class="p">:</span>
+        <span class="n">plot_result</span><span class="p">(</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">sdate</span><span class="p">,</span> <span class="n">edate</span><span class="p">),</span>
+            <span class="n">ts_semi</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">sdate</span><span class="p">,</span> <span class="n">edate</span><span class="p">),</span>
+            <span class="n">ts_diurnal</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">sdate</span><span class="p">,</span> <span class="n">edate</span><span class="p">),</span>
+            <span class="n">ts_sub</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">sdate</span><span class="p">,</span> <span class="n">edate</span><span class="p">),</span>
+            <span class="n">station_name</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_example">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.separate_species.run_example">[docs]</a>
+<span class="k">def</span> <span class="nf">run_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This is the data for the example.</span>
+<span class="sd">    Note that you want the data to</span>
+<span class="sd">    be at least 4 days longer than the desired output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">dtm</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">18</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">dtm</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2010</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+
+    <span class="n">out_st</span> <span class="o">=</span> <span class="n">dtm</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">out_end</span> <span class="o">=</span> <span class="n">dtm</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2010</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">sf_path</span> <span class="o">=</span> <span class="s2">&quot;../9415020_gageheight.csv&quot;</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">read_ts</span><span class="p">(</span><span class="n">sf_path</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;separating reys...&quot;</span><span class="p">)</span>
+    <span class="n">separate_species</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="s2">&quot;rey&quot;</span><span class="p">,</span> <span class="n">out_st</span><span class="p">,</span> <span class="n">out_end</span><span class="p">,</span> <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;all done&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+    <span class="c1"># run_example()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

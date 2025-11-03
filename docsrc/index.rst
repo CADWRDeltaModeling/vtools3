@@ -17,6 +17,7 @@ VTools represents a toolset for time series processing that the Delta Modeling S
    Merging and Splicing (ts_merge and ts_splice) <notebooks/merge_splice.ipynb>
    Extrapolation <notebooks/extrapolation.ipynb>
    Transitioning <notebooks/transition.ipynb> 
+   Filling Series Based on a Neighbor (like series) <notebooks/neighbor_fill.ipynb>
    Contributing <contributing>
    Authors <authors>
    API Reference <modules>

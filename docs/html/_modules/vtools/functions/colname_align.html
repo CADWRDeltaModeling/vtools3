@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vtools.functions.colname_align &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <script src="../../../_static/documentation_options.js?v=0ca39674"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+
+
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo"/>
+            </a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/dwrsmall.jpg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Introduction and concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../daylight_savings.html">Daylight Savings conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html">Averging, Filtering and Low Passing Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/neighbor_fill.html">Filling Series Based on a Neighbor (like series)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for vtools.functions.colname_align</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Column naming alignment utilities for time series composition functions.</span>
+
+<span class="sd">This module provides decorators that standardize how functions like</span>
+<span class="sd">``ts_merge``, ``ts_splice``, and ``transition_ts`` handle their ``names``</span>
+<span class="sd">argument and enforce column consistency across multiple time series inputs.</span>
+
+<span class="sd">Main features</span>
+<span class="sd">-------------</span>
+<span class="sd">- **Column consistency enforcement**:</span>
+<span class="sd">  Ensures that when ``names=None`` (default), all input DataFrames share</span>
+<span class="sd">  identical columns. This prevents accidental creation of staggered or</span>
+<span class="sd">  mismatched columns.</span>
+
+<span class="sd">- **Centralized naming behavior**:</span>
+<span class="sd">  Applies uniform handling of ``names`` values:</span>
+
+<span class="sd">  * ``None`` — require identical columns across all inputs and keep them.</span>
+<span class="sd">  * ``str`` — require univariate inputs (single column each); output is</span>
+<span class="sd">    a single-column DataFrame (or Series if all inputs were Series) with</span>
+<span class="sd">    this name.</span>
+<span class="sd">  * ``Iterable[str]`` — treated as a column selector: these columns are</span>
+<span class="sd">    selected (and ordered) from the final output and must exist in every</span>
+<span class="sd">    input.</span>
+
+<span class="sd">- **Support for both list-style and pairwise APIs**:</span>
+<span class="sd">  Works for functions that accept a sequence of time series (like</span>
+<span class="sd">  ``ts_merge``/``ts_splice``) or two explicit series arguments</span>
+<span class="sd">  (like ``transition_ts``).</span>
+
+<span class="sd">Usage pattern</span>
+<span class="sd">-------------</span>
+<span class="sd">Decorate your functions as follows::</span>
+
+<span class="sd">    @columns_aligned(mode=&quot;same_set&quot;)</span>
+<span class="sd">    @names_aligned(seq_arg=0, pre_rename=True)</span>
+<span class="sd">    def ts_splice(series, names=None, ...):</span>
+<span class="sd">        ...</span>
+
+<span class="sd">    @columns_aligned(mode=&quot;same_set&quot;)</span>
+<span class="sd">    @names_aligned_pair(ts0_kw=&quot;ts0&quot;, ts1_kw=&quot;ts1&quot;)</span>
+<span class="sd">    def transition_ts(ts0, ts1, names=None, ...):</span>
+<span class="sd">        ...</span>
+
+<span class="sd">This ensures consistent semantics for all multi-series combination tools.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># colname_align.py</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
+
+<span class="c1"># module level error so test can access it</span>
+<span class="n">ERR_MULTI_NAMES_SERIES</span> <span class="o">=</span> <span class="s2">&quot;Cannot assign multiple names to a Series; pass a single name.&quot;</span>
+
+
+<div class="viewcode-block" id="align_names">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align.align_names">[docs]</a>
+<span class="k">def</span> <span class="nf">align_names</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c1"># Series case</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">names</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+            <span class="n">lst</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">ERR_MULTI_NAMES_SERIES</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">return</span> <span class="n">result</span>  <span class="c1"># any other type: no-op</span>
+
+    <span class="c1"># DataFrame case</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">names</span><span class="p">})</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="_coerce_inputs_strict">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align._coerce_inputs_strict">[docs]</a>
+<span class="k">def</span> <span class="nf">_coerce_inputs_strict</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Strict input alignment policy:</span>
+<span class="sd">    - names is None  -&gt; all inputs must have identical column lists (no unions/intersections).</span>
+<span class="sd">    - names is str   -&gt; leave inputs as-is; final renaming happens via align_names(...).</span>
+<span class="sd">    - names is list  -&gt; for each DF, select exactly those columns; for a Series, only len==1 allowed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Promote Series-&gt;DataFrame for apples-to-apples checks</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="k">else</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">]</span>
+
+        <span class="c1"># 1) Same number of columns across all inputs</span>
+        <span class="n">ncols0</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="n">ncols0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;All inputs must have the same number of columns when `names` is None.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># 2) Exact column-name equality (order matters) if DataFrames</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="n">cols0</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">!=</span> <span class="n">cols0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;All input columns must be identical when `names` is None&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">seq</span>  <span class="c1"># keep original types; they already match strictly</span>
+
+    <span class="c1"># colname_align.py  (_coerce_inputs_strict)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># If ALL inputs are univariate, pre-rename their single column to `names`</span>
+        <span class="k">def</span> <span class="nf">is_uni</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_uni</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">):</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">names</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># 1-col DataFrame</span>
+                    <span class="n">only</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">only</span><span class="p">:</span> <span class="n">names</span><span class="p">}))</span>
+            <span class="k">return</span> <span class="n">out</span>
+        <span class="c1"># Otherwise leave inputs as-is; final rename happens on the output</span>
+        <span class="k">return</span> <span class="n">seq</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Iterable of names: enforce and select exactly these columns</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">req</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`names` selection is empty.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="n">missing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;DataFrame missing requested columns: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">req</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Series</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">ERR_MULTI_NAMES_SERIES</span><span class="p">)</span>  <span class="c1"># &lt;-- updated</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="align_inputs_strict">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align.align_inputs_strict">[docs]</a>
+<span class="k">def</span> <span class="nf">align_inputs_strict</span><span class="p">(</span><span class="n">seq_arg</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">names_kw</span><span class="o">=</span><span class="s2">&quot;names&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">deco</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">param_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">)[</span><span class="n">seq_arg</span><span class="p">]</span>  <span class="c1"># e.g., &quot;series&quot;</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">names_kw</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># read sequence regardless of positional/keyword</span>
+            <span class="n">seq</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="n">args</span><span class="p">[</span><span class="n">seq_arg</span><span class="p">]</span>
+
+            <span class="c1"># &gt;&gt;&gt; Early passthrough on bad/empty input so the wrapped fn raises its own error &lt;&lt;&lt;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># ts_merge/ts_splice keep their original messages:</span>
+                <span class="c1"># - ts_merge: &quot;`series` must be a non-empty tuple or list&quot;  (test expects this)</span>
+                <span class="c1"># - ts_splice: &quot;`series` must be a non-empty tuple or list of pandas.Series or pandas.DataFrame.&quot;</span>
+                <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="c1"># strict coercion only for non-empty sequences</span>
+            <span class="n">seq2</span> <span class="o">=</span> <span class="n">_coerce_inputs_strict</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+
+            <span class="c1"># write back</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">seq_arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq2</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">out</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">align_names</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span>
+
+    <span class="k">return</span> <span class="n">deco</span></div>
+
+
+
+<div class="viewcode-block" id="align_inputs_pair_strict">
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align.align_inputs_pair_strict">[docs]</a>
+<span class="k">def</span> <span class="nf">align_inputs_pair_strict</span><span class="p">(</span><span class="n">ts0_kw</span><span class="o">=</span><span class="s2">&quot;ts0&quot;</span><span class="p">,</span> <span class="n">ts1_kw</span><span class="o">=</span><span class="s2">&quot;ts1&quot;</span><span class="p">,</span> <span class="n">names_kw</span><span class="o">=</span><span class="s2">&quot;names&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">deco</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">names_kw</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># accept positional or keyword</span>
+            <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
+
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">param_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+            <span class="c1"># defaults: try kwargs first, else positional fallback</span>
+            <span class="n">ts0</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">ts0_kw</span><span class="p">,</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">param_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ts0_kw</span><span class="p">)]</span> <span class="k">if</span> <span class="n">ts0_kw</span> <span class="ow">in</span> <span class="n">param_names</span> <span class="k">else</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">ts1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">ts1_kw</span><span class="p">,</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">param_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ts1_kw</span><span class="p">)]</span> <span class="k">if</span> <span class="n">ts1_kw</span> <span class="ow">in</span> <span class="n">param_names</span> <span class="k">else</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">)</span>
+
+            <span class="n">ts0_new</span><span class="p">,</span> <span class="n">ts1_new</span> <span class="o">=</span> <span class="n">_coerce_inputs_strict</span><span class="p">([</span><span class="n">ts0</span><span class="p">,</span> <span class="n">ts1</span><span class="p">],</span> <span class="n">names</span><span class="p">)</span>
+
+            <span class="c1"># write back</span>
+            <span class="k">if</span> <span class="n">ts0_kw</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">ts0_kw</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts0_new</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">idx0</span> <span class="o">=</span> <span class="n">param_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ts0_kw</span><span class="p">)</span> <span class="k">if</span> <span class="n">ts0_kw</span> <span class="ow">in</span> <span class="n">param_names</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">idx0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts0_new</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">ts1_kw</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">ts1_kw</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts1_new</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">idx1</span> <span class="o">=</span> <span class="n">param_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ts1_kw</span><span class="p">)</span> <span class="k">if</span> <span class="n">ts1_kw</span> <span class="ow">in</span> <span class="n">param_names</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts1_new</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">out</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">align_names</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span>
+
+    <span class="k">return</span> <span class="n">deco</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, California Department of Water Resources.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

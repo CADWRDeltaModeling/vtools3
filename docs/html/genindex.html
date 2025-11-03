@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; vtools 0.0.0 documentation</title>
+    <title>Index &#8212; vtools 3.9.5.post5+dirty documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <script src="_static/documentation_options.js?v=7026087e"></script>
+    <script src="_static/documentation_options.js?v=0ca39674"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/extrapolation.html">Extrapolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/transition.html">Transitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/neighbor_fill.html">Filling Series Based on a Neighbor (like series)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a></li>
@@ -118,9 +119,11 @@
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -136,31 +139,211 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__annotations__">__annotations__ (PchipInterpolator attribute)</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__annotations__">[1]</a>
-</li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__dict__">__dict__ (interp1d attribute)</a>
-</li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__doc__">__doc__ (interp1d attribute)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.__abstractmethods__">__abstractmethods__ (ElasticNetCV attribute)</a>
 
       <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.__abstractmethods__">(KNeighborsRegressor attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__abstractmethods__">(Pipeline attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.__annotations__">__annotations__ (ElasticNetCV attribute)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__annotations__">(FillResult attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__annotations__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__annotations__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.__annotations__">(KNeighborsRegressor attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.__annotations__">(MLEModel attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__annotations__">(PchipInterpolator attribute)</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__annotations__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__annotations__">(Pipeline attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.__annotations__">(RLM attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.__annotations__">(StandardScaler attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__dataclass_fields__">__dataclass_fields__ (FillResult attribute)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__dataclass_fields__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__dataclass_fields__">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__dataclass_params__">__dataclass_params__ (FillResult attribute)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__dataclass_params__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__dataclass_params__">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.data.html#vtools.data.gap.auto.__dict__">__dict__ (auto attribute)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.Enum.__dict__">(Enum attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__dict__">(FillResult attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__dict__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__dict__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__dict__">(interp1d attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.data.html#vtools.data.gap.auto.__doc__">__doc__ (auto attribute)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.__doc__">(DFMFill attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.__doc__">(ElasticNetCV attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.Enum.__doc__">(Enum attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__doc__">(FillResult attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__doc__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__doc__">[1]</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapStrategy.__doc__">(GapStrategy attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapStrategy.__doc__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.__doc__">(HuberT attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__doc__">(interp1d attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.__doc__">(KNeighborsRegressor attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.__doc__">(MLEModel attribute)</a>
+</li>
         <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__doc__">(PchipInterpolator attribute)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__doc__">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__doc__">[2]</a>
 </li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__doc__">(Pipeline attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.__doc__">(RLM attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.__doc__">(StandardScaler attribute)</a>
+</li>
       </ul></li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__init__">__init__() (interp1d method)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__eq__">__eq__() (FillResult method)</a>
 
       <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__eq__">(GapSpec method)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__eq__">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.__getitem__">__getitem__() (MLEModel method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__getitem__">(Pipeline method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__hash__">__hash__ (FillResult attribute)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__hash__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__hash__">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.__init__">__init__() (DFMFill method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.__init__">(ElasticNetCV method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__init__">(FillResult method)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__init__">(GapSpec method)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__init__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.__init__">(HuberT method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__init__">(interp1d method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.__init__">(KNeighborsRegressor method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.__init__">(MLEModel method)</a>
+</li>
         <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__init__">(PchipInterpolator method)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__init__">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__init__">[2]</a>
 </li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__init__">(Pipeline method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.__init__">(RLM method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.__init__">(StandardScaler method)</a>
+</li>
       </ul></li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__module__">__module__ (interp1d attribute)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__len__">__len__() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__match_args__">__match_args__ (FillResult attribute)</a>
 
       <ul>
-        <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__module__">(PchipInterpolator attribute)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__module__">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__module__">[2]</a>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__match_args__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__match_args__">[1]</a>
 </li>
       </ul></li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__weakref__">__weakref__ (interp1d attribute)</a>
+      <li><a href="vtools.data.html#vtools.data.gap.auto.__module__">__module__ (auto attribute)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.__module__">(DFMFill attribute)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.merge._apply_names">_apply_names() (in module vtools.functions.merge)</a>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.__module__">(ElasticNetCV attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.Enum.__module__">(Enum attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__module__">(FillResult attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__module__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__module__">[1]</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapStrategy.__module__">(GapStrategy attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapStrategy.__module__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.__module__">(HuberT attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__module__">(interp1d attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.__module__">(KNeighborsRegressor attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.__module__">(MLEModel attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__module__">(PchipInterpolator attribute)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__module__">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.__module__">[2]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__module__">(Pipeline attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.__module__">(RLM attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.__module__">(StandardScaler attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__repr__">__repr__() (FillResult method)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__repr__">(GapSpec method)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__repr__">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.__setitem__">__setitem__() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.__sklearn_is_fitted__">__sklearn_is_fitted__() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.auto.__weakref__">__weakref__ (auto attribute)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.Enum.__weakref__">(Enum attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.__weakref__">(FillResult attribute)</a>
+</li>
+        <li><a href="vtools.data.html#vtools.data.gap.GapSpec.__weakref__">(GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.__weakref__">[1]</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.__weakref__">(interp1d attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV._abc_impl">_abc_impl (ElasticNetCV attribute)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor._abc_impl">(KNeighborsRegressor attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._abc_impl">(Pipeline attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._add_lagged_X">_add_lagged_X() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._align">_align() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._as_series_like">_as_series_like() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._assert_same_regular_grid">_assert_same_regular_grid() (in module vtools.functions.neighbor_fill)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay._build_vander">_build_vander() (in module vtools.functions.savitzky_golay)</a>
 </li>
@@ -174,37 +357,217 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_previousnext">_call_previousnext() (interp1d method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_spline">_call_spline() (interp1d method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._can_fit_transform">_can_fit_transform() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._can_inverse_transform">_can_inverse_transform() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._can_transform">_can_transform() (Pipeline method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._check_and_update_bounds_error_for_extrapolation">_check_and_update_bounds_error_for_extrapolation() (interp1d method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._check_bounds">_check_bounds() (interp1d method)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._check_method_params">_check_method_params() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap._choose_gap_windows">_choose_gap_windows() (in module vtools.data.gap)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.viz_gap._choose_gap_windows">(in module vtools.functions.viz_gap)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._clone_from_init_kwds">_clone_from_init_kwds() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation._coerce_fixed_duration">_coerce_fixed_duration() (in module vtools.functions.lag_cross_correlation)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.colname_align._coerce_inputs_strict">_coerce_inputs_strict() (in module vtools.functions.colname_align)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._compute_metrics">_compute_metrics() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill._constrain">_constrain() (DFMFill method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._dfm_params_to_vector">_dfm_params_to_vector() (in module vtools.functions.neighbor_fill)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator._edge_case">_edge_case() (PchipInterpolator static method)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator._edge_case">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator._edge_case">[2]</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM._estimate_scale">_estimate_scale() (RLM method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._estimator_type">_estimator_type (Pipeline property)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._evaluate">_evaluate() (interp1d method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay._evaluate_poly">_evaluate_poly() (in module vtools.functions.savitzky_golay)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._final_estimator">_final_estimator (Pipeline property)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator._find_derivatives">_find_derivatives() (PchipInterpolator static method)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator._find_derivatives">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator._find_derivatives">[2]</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._fit">_fit() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_dfm">_fit_dfm() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_huber">_fit_huber() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_lagged_elasticnet">_fit_lagged_elasticnet() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_loess">_fit_loess() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_ols">_fit_ols() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_resid_interp">_fit_resid_interp() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_rolling_regression">_fit_rolling_regression() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._fit_substitute">_fit_substitute() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._forecasts_error_partial_derivatives">_forecasts_error_partial_derivatives() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._forward_chain_splits">_forward_chain_splits() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum._generate_next_value_">_generate_next_value_() (Enum method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.unit_conversions._get_converter">_get_converter() (in module vtools.functions.unit_conversions)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV._get_estimator">_get_estimator() (ElasticNetCV method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._get_extension_time_varying_matrices">_get_extension_time_varying_matrices() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._get_index_with_final_state">_get_index_with_final_state() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._get_init_kwds">_get_init_kwds() (MLEModel method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter._gf1d">_gf1d() (in module vtools.functions.filter)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._hessian_complex_step">_hessian_complex_step() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._hessian_finite_difference">_hessian_finite_difference() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._hessian_oim">_hessian_oim() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._hessian_opg">_hessian_opg() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._hessian_param_defaults">_hessian_param_defaults (MLEModel attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._hessian_param_names">_hessian_param_names (MLEModel attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM._initialize">_initialize() (RLM method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._inv_logit">_inv_logit() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV._is_multitask">_is_multitask() (ElasticNetCV method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._iter">_iter() (Pipeline method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.filter._lanczos_impl">_lanczos_impl() (in module vtools.functions.filter)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._log_message">_log_message() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._logit">_logit() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._loglike_param_defaults">_loglike_param_defaults (MLEModel attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._loglike_param_names">_loglike_param_names (MLEModel attribute)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics._main">_main() (in module vtools.functions.skill_metrics)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._mask_overlap">_mask_overlap() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.viz_gap._maybe_run_demo">_maybe_run_demo() (in module vtools.functions.viz_gap)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum._member_map_">_member_map_ (Enum attribute)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum._member_names_">_member_names_ (Enum attribute)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum._member_type_">_member_type_ (Enum attribute)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum._missing_">_missing_() (Enum class method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate._monotonic_spline">_monotonic_spline() (in module vtools.functions.interpolate)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV._more_tags">_more_tags() (ElasticNetCV method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor._more_tags">(KNeighborsRegressor method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._more_tags">(Pipeline method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler._more_tags">(StandardScaler method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.unit_conversions._norm">_norm() (in module vtools.functions.unit_conversions)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect._nrepeat">_nrepeat() (in module vtools.functions.error_detect)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._opt_debug">_opt_debug() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV._parameter_constraints">_parameter_constraints (ElasticNetCV attribute)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor._parameter_constraints">(KNeighborsRegressor attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._parameter_constraints">(Pipeline attribute)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler._parameter_constraints">(StandardScaler attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.transition._parse_max_snap">_parse_max_snap() (in module vtools.functions.transition)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._phi_from_logit">_phi_from_logit() (in module vtools.functions.neighbor_fill)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay._polyfit_window">_polyfit_window() (in module vtools.functions.savitzky_golay)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate._ratsp1">_ratsp1() (in module vtools.functions.interpolate)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.merge._reindex_to_continuous">_reindex_to_continuous() (in module vtools.functions.merge)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._required_parameters">_required_parameters (Pipeline attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._res_classes">_res_classes (MLEModel property)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler._reset">_reset() (StandardScaler method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.transition._resolve_gap_endpoints_subset_snap">_resolve_gap_endpoints_subset_snap() (in module vtools.functions.transition)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.unit_conversions._rewrap_like">_rewrap_like() (in module vtools.functions.unit_conversions)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._score_complex_step">_score_complex_step() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._score_finite_difference">_score_finite_difference() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._score_harvey">_score_harvey() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._score_obs_harvey">_score_obs_harvey() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._score_param_defaults">_score_param_defaults (MLEModel attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._score_param_names">_score_param_names (MLEModel attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._sk_visual_block_">_sk_visual_block_() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler._sklearn_auto_wrap_output_keys">_sklearn_auto_wrap_output_keys (StandardScaler attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT._subset">_subset() (HuberT method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._suggest_lags">_suggest_lags() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.viz_gap._synthetic_provider">_synthetic_provider() (in module vtools.functions.viz_gap)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM._update_history">_update_history() (RLM method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._validate_can_fix_params">_validate_can_fix_params() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._validate_out_of_sample_exog">_validate_out_of_sample_exog() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._validate_steps">_validate_steps() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum._value2member_map_">_value2member_map_ (Enum attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.unit_conversions._want_cf_units">_want_cf_units() (in module vtools.functions.unit_conversions)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._wrap_results">_wrap_results() (MLEModel method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._y_axis">_y_axis (interp1d attribute)</a>
 </li>
@@ -216,10 +579,34 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.functions.html#vtools.functions.climatology.apply_climatology">apply_climatology() (in module vtools.functions.climatology)</a>
+      <li><a href="vtools.functions.html#vtools.functions.colname_align.align_inputs_pair_strict">align_inputs_pair_strict() (in module vtools.functions.colname_align)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.transition.align_inputs_pair_strict">(in module vtools.functions.transition)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.colname_align.align_inputs_strict">align_inputs_strict() (in module vtools.functions.colname_align)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.merge.align_inputs_strict">(in module vtools.functions.merge)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.colname_align.align_names">align_names() (in module vtools.functions.colname_align)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.climatology.apply_climatology">apply_climatology() (in module vtools.functions.climatology)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.apply_gaps">apply_gaps() (in module vtools.data.gap)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.viz_gap.apply_gaps">(in module vtools.functions.viz_gap)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.asdict">asdict() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.auto">auto (class in vtools.data.gap)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.axis">axis (PchipInterpolator attribute)</a>, <a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.axis">[1]</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator.axis">[2]</a>
 </li>
   </ul></td>
@@ -229,6 +616,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.sample_series.bessel_df">bessel_df() (in module vtools.data.sample_series)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapStrategy.BOTH">BOTH (GapStrategy attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapStrategy.BOTH">[1]</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.bounds_test">bounds_test() (in module vtools.functions.error_detect)</a>
 </li>
@@ -255,24 +644,40 @@
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.cdiff">cdiff() (in module vtools.functions.tidalhours)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.celsius_to_fahrenheit">celsius_to_fahrenheit() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.celsius_to_fahrenheit">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.cfs_to_cms">cfs_to_cms() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.cfs_to_cms">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.read_dss.check_exclude">check_exclude() (in module vtools.functions.read_dss)</a>
-</li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.chunked_loess_smoothing">chunked_loess_smoothing() (in module vtools.functions.envelope)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.classes_">classes_ (Pipeline property)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.climatology.climatology">climatology() (in module vtools.functions.climatology)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.climatology.climatology_quantiles">climatology_quantiles() (in module vtools.functions.climatology)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.clone">clone() (MLEModel method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.cms_to_cfs">cms_to_cfs() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.cms_to_cfs">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.frequency_response.compare_response">compare_response() (in module vtools.functions.frequency_response)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.convert_span_to_nstep">convert_span_to_nstep() (in module vtools.functions.filter)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.unit_conversions.convert_units">convert_units() (in module vtools.functions.unit_conversions)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.corr_coefficient">corr_coefficient() (in module vtools.functions.skill_metrics)</a>
 </li>
@@ -292,12 +697,20 @@
         <li><a href="vtools.functions.html#vtools.functions.tidalhours.cosine_lanczos5">(in module vtools.functions.tidalhours)</a>
 </li>
       </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.separate_species.create_arg_parser">create_arg_parser() (in module vtools.functions.separate_species)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.data.html#vtools.data.gap.dataclass">dataclass() (in module vtools.data.gap)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.dataclass">(in module vtools.functions.neighbor_fill)</a>
+</li>
+      </ul></li>
       <li><a href="vtools.data.html#vtools.data.timeseries.datetime_elapsed">datetime_elapsed() (in module vtools.data.timeseries)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.timeseries.days">days() (in module vtools.data.timeseries)</a>
@@ -306,6 +719,8 @@
         <li><a href="vtools.data.html#vtools.data.vtime.days">(in module vtools.data.vtime)</a>
 </li>
       </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.decision_function">decision_function() (Pipeline method)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.gap.describe_null">describe_null() (in module vtools.data.gap)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.describe_series_gaps">describe_series_gaps() (in module vtools.data.gap)</a>
@@ -313,6 +728,12 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.despike">despike() (in module vtools.functions.error_detect)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.deviance">deviance() (RLM method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.dfm_pack_params">dfm_pack_params() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill">DFMFill (class in vtools.functions.neighbor_fill)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.diff_h">diff_h() (in module vtools.functions.tidalhours)</a>
 </li>
@@ -329,17 +750,27 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.ec_psu_25c">ec_psu_25c() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.ec_psu_25c">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.data.html#vtools.data.timeseries.elapsed_datetime">elapsed_datetime() (in module vtools.data.timeseries)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV">ElasticNetCV (class in vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec.ensure_room">ensure_room (GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.ensure_room">[1]</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum">Enum (class in vtools.data.gap)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.timeseries.example">example() (in module vtools.data.timeseries)</a>
 
       <ul>
         <li><a href="vtools.functions.html#vtools.functions.error_detect.example">(in module vtools.functions.error_detect)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.example2">example2() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.example_gap">example_gap() (in module vtools.data.gap)</a>
@@ -357,8 +788,20 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.fahrenheit_to_celsius">fahrenheit_to_celsius() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.fahrenheit_to_celsius">(in module vtools.functions.unit_conversions_orig)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.feature_names_in_">feature_names_in_ (Pipeline property)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d.fill_value">fill_value (interp1d property)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.filled">filled (FillResult attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult">FillResult (class in vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.filter">filter() (MLEModel method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.filter_extrema_ngood">filter_extrema_ngood() (in module vtools.functions.envelope)</a>
 </li>
@@ -366,8 +809,6 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.filtfilt">filtfilt() (in module vtools.functions.filter)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.envelope.find_peaks">find_peaks() (in module vtools.functions.envelope)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.find_raw_extrema">find_raw_extrema() (in module vtools.functions.envelope)</a>
@@ -376,10 +817,40 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.firwin">firwin() (in module vtools.functions.filter)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.fit">fit() (KNeighborsRegressor method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.fit">(MLEModel method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.fit">(Pipeline method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.fit">(RLM method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.fit">(StandardScaler method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.fit_constrained">fit_constrained() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.fit_loess_time_value">fit_loess_time_value() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.fit_predict">fit_predict() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.fit_transform">fit_transform() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.fix_params">fix_params() (MLEModel method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.frequency_response.freqz">freqz() (in module vtools.functions.frequency_response)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.unit_conversions.ft_to_m">ft_to_m() (in module vtools.functions.unit_conversions)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.from_formula">from_formula() (MLEModel class method)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.unit_conversions.ft_to_m">ft_to_m() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.ft_to_m">(in module vtools.functions.unit_conversions_orig)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -392,6 +863,18 @@
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.gap_size">gap_size() (in module vtools.data.gap)</a>
 </li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec">GapSpec (class in vtools.data.gap)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec">(class in vtools.functions.viz_gap)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapStrategy">GapStrategy (class in vtools.data.gap)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.viz_gap.GapStrategy">(class in vtools.functions.viz_gap)</a>
+</li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.filter.gaussian_filter1d">gaussian_filter1d() (in module vtools.functions.filter)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.generate_godin_fir">generate_godin_fir() (in module vtools.functions.filter)</a>
@@ -402,10 +885,16 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.generate_simplified_mixed_tide">generate_simplified_mixed_tide() (in module vtools.functions.envelope)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhl.get_phase_diff">get_phase_diff() (in module vtools.functions.tidalhl)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.get_feature_names_out">get_feature_names_out() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.get_metadata_routing">get_metadata_routing() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.get_params">get_params() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.tidalhl.get_phase_diff">get_phase_diff() (in module vtools.functions.tidalhl)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.get_smoothed_resampled">get_smoothed_resampled() (in module vtools.functions.tidalhl)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.get_tidal_amplitude">get_tidal_amplitude() (in module vtools.functions.tidalhl)</a>
@@ -432,14 +921,18 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.handle_params">handle_params() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.hessian">hessian() (MLEModel method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.hilbert">hilbert() (in module vtools.functions.tidalhours)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.hour_tide">hour_tide() (in module vtools.functions.tidalhours)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.tidalhours.hour_tide_fn">hour_tide_fn() (in module vtools.functions.tidalhours)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.tidalhours.hour_tide_fn">hour_tide_fn() (in module vtools.functions.tidalhours)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.timeseries.hours">hours() (in module vtools.data.timeseries)</a>
 
       <ul>
@@ -448,6 +941,8 @@
         <li><a href="vtools.functions.html#vtools.functions.filter.hours">(in module vtools.functions.filter)</a>
 </li>
       </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT">HuberT (class in vtools.functions.neighbor_fill)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -456,16 +951,32 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.icrosscorr">icrosscorr() (in module vtools.functions.lag_cross_correlation)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.impulse_responses">impulse_responses() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.information">information() (RLM method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.initial_variance">initial_variance (MLEModel property)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.initialization">initialization (MLEModel property)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.initialize_approximate_diffuse">initialize_approximate_diffuse() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.initialize_known">initialize_known() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.initialize_statespace">initialize_statespace() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.initialize_stationary">initialize_stationary() (MLEModel method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.frequency_response.inset_axes">inset_axes() (in module vtools.functions.frequency_response)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.vis_gap.interactive_gap_plot">interactive_gap_plot() (in module vtools.data.vis_gap)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interannual.interannual">interannual() (in module vtools.functions.interannual)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interannual.interannual_sample">interannual_sample() (in module vtools.functions.interannual)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.interannual.interannual_ticks_labels">interannual_ticks_labels() (in module vtools.functions.interannual)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d">interp1d (class in vtools.functions.tidalhours)</a>
@@ -476,6 +987,12 @@
 </li>
       <li><a href="vtools.data.html#vtools.data.sample_series.interval">interval() (in module vtools.data.sample_series)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.inverse_transform">inverse_transform() (Pipeline method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.inverse_transform">(StandardScaler method)</a>
+</li>
+      </ul></li>
       <li><a href="vtools.data.html#vtools.data.timeseries.is_regular">is_regular() (in module vtools.data.timeseries)</a>
 </li>
   </ul></td>
@@ -485,6 +1002,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.data.html#vtools.data.sample_series.jay_flinchem_chirptest">jay_flinchem_chirptest() (in module vtools.data.sample_series)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor">KNeighborsRegressor (class in vtools.functions.neighbor_fill)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -504,12 +1029,28 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.lmax">lmax() (in module vtools.functions.tidalhl)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.lmin">lmin() (in module vtools.functions.tidalhl)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.envelope.lowess">lowess() (in module vtools.functions.envelope)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.load_dfm_params">load_dfm_params() (in module vtools.functions.neighbor_fill)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.loglike">loglike() (MLEModel method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.loglike">(RLM method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.loglikelihood_burn">loglikelihood_burn (MLEModel property)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.loglikeobs">loglikeobs() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.envelope.lowess">lowess() (in module vtools.functions.envelope)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.lowess">(in module vtools.functions.neighbor_fill)</a>
+</li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.filter.lowpass_cosine_lanczos_filter_coef">lowpass_cosine_lanczos_filter_coef() (in module vtools.functions.filter)</a>
 
       <ul>
@@ -529,7 +1070,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.m_to_ft">m_to_ft() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.m_to_ft">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.main">main() (in module vtools.functions.envelope)</a>
 
       <ul>
@@ -539,8 +1084,12 @@
 </li>
         <li><a href="vtools.functions.html#vtools.functions.savitzky_golay.main">(in module vtools.functions.savitzky_golay)</a>
 </li>
+        <li><a href="vtools.functions.html#vtools.functions.separate_species.main">(in module vtools.functions.separate_species)</a>
+</li>
       </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.frequency_response.mark_inset">mark_inset() (in module vtools.functions.frequency_response)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec.max_len">max_len (GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.max_len">[1]</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.mean_error">mean_error() (in module vtools.functions.skill_metrics)</a>
 </li>
@@ -549,6 +1098,10 @@
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.median_error">median_error() (in module vtools.functions.skill_metrics)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.median_test">median_test() (in module vtools.functions.error_detect)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.metrics">metrics (FillResult attribute)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec.min_len">min_len (GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.min_len">[1]</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.mincrosscorr">mincrosscorr() (in module vtools.functions.lag_cross_correlation)</a>
 </li>
@@ -560,6 +1113,10 @@
         <li><a href="vtools.functions.html#vtools.functions.filter.minutes">(in module vtools.functions.filter)</a>
 </li>
       </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel">MLEModel (class in vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.model_info">model_info (FillResult attribute)</a>
+</li>
       <li>
     module
 
@@ -588,6 +1145,8 @@
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology</a>
 </li>
+        <li><a href="vtools.functions.html#module-vtools.functions.colname_align">vtools.functions.colname_align</a>
+</li>
         <li><a href="vtools.functions.html#module-vtools.functions.envelope">vtools.functions.envelope</a>
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions.error_detect">vtools.functions.error_detect</a>
@@ -606,11 +1165,13 @@
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions.merge">vtools.functions.merge</a>
 </li>
+        <li><a href="vtools.functions.html#module-vtools.functions.neighbor_fill">vtools.functions.neighbor_fill</a>
+</li>
         <li><a href="vtools.functions.html#module-vtools.functions.period_op">vtools.functions.period_op</a>
 </li>
-        <li><a href="vtools.functions.html#module-vtools.functions.read_dss">vtools.functions.read_dss</a>
-</li>
         <li><a href="vtools.functions.html#module-vtools.functions.savitzky_golay">vtools.functions.savitzky_golay</a>
+</li>
+        <li><a href="vtools.functions.html#module-vtools.functions.separate_species">vtools.functions.separate_species</a>
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions.skill_metrics">vtools.functions.skill_metrics</a>
 </li>
@@ -621,6 +1182,10 @@
         <li><a href="vtools.functions.html#module-vtools.functions.transition">vtools.functions.transition</a>
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions.unit_conversions">vtools.functions.unit_conversions</a>
+</li>
+        <li><a href="vtools.functions.html#module-vtools.functions.unit_conversions_orig">vtools.functions.unit_conversions_orig</a>
+</li>
+        <li><a href="vtools.functions.html#module-vtools.functions.viz_gap">vtools.functions.viz_gap</a>
 </li>
       </ul></li>
   </ul></td>
@@ -641,7 +1206,29 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.n_features_in_">n_features_in_ (Pipeline property)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec.n_gaps">n_gaps (GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.n_gaps">[1]</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.data.html#vtools.data.gap.Enum.name">name (Enum attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.named_steps">named_steps (Pipeline property)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.nrepeat">nrepeat() (in module vtools.functions.error_detect)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.observed_information_matrix">observed_information_matrix() (MLEModel method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.opg_information_matrix">opg_information_matrix() (MLEModel method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -649,6 +1236,16 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.param_names">param_names (DFMFill property)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.param_names">(MLEModel property)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.partial_fit">partial_fit() (StandardScaler method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.path">path() (ElasticNetCV static method)</a>
+</li>
       <li><a href="vtools.data.html#vtools.data.timeseries.PchipInterpolator">PchipInterpolator (class in vtools.data.timeseries)</a>
 
       <ul>
@@ -661,29 +1258,71 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.periods_per_window">periods_per_window() (in module vtools.functions.tidalhl)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.pi_lower">pi_lower (FillResult attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.pi_upper">pi_upper (FillResult attribute)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline">Pipeline (class in vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.viz_gap.plot_imputations">plot_imputations() (in module vtools.functions.viz_gap)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.vis_gap.plot_missing_data">plot_missing_data() (in module vtools.data.vis_gap)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.separate_species.plot_result">plot_result() (in module vtools.functions.separate_species)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.data.html#vtools.data.vis_gap.plot_missing_data">plot_missing_data() (in module vtools.data.vis_gap)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.predict">predict() (KNeighborsRegressor method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.predict">(Pipeline method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.predict">(RLM method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.predict_log_proba">predict_log_proba() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.predict_proba">predict_proba() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.prepare_data">prepare_data() (MLEModel method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.process_cutoff">process_cutoff() (in module vtools.functions.filter)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.viz_gap.provide_example_data">provide_example_data() (in module vtools.functions.viz_gap)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.psi">psi() (HuberT method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.psi_deriv">psi_deriv() (HuberT method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.psu_ec_25c">psu_ec_25c() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.psu_ec_25c">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.psu_ec_25c_scalar">psu_ec_25c_scalar() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.psu_ec_25c_scalar">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions.psu_ec_resid">psu_ec_resid() (in module vtools.functions.unit_conversions)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.unit_conversions_orig.psu_ec_resid">(in module vtools.functions.unit_conversions_orig)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.functions.html#vtools.functions.read_dss.read_dss">read_dss() (in module vtools.functions.read_dss)</a>
-</li>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_ts">read_ts() (in module vtools.datastore.read_ts)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.merge.reduce">reduce() (in module vtools.functions.merge)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.timeseries.rename_columns">rename_columns() (in module vtools.data.timeseries)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.rhist">rhist() (in module vtools.functions.interpolate)</a>
 </li>
@@ -691,13 +1330,17 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.rhist_coef">rhist_coef() (in module vtools.functions.interpolate)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.rhist_example">rhist_example() (in module vtools.functions.interpolate)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.rhist_val">rhist_val() (in module vtools.functions.interpolate)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.rhistinterp">rhistinterp() (in module vtools.functions.interpolate)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.rho">rho() (HuberT method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM">RLM (class in vtools.functions.neighbor_fill)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.rmse">rmse() (in module vtools.functions.skill_metrics)</a>
 </li>
@@ -705,12 +1348,18 @@
 </li>
       <li><a href="vtools.data.html#vtools.data.timeseries.rts_formula">rts_formula() (in module vtools.data.timeseries)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.separate_species.run_example">run_example() (in module vtools.functions.separate_species)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.viz_gap.run_gapfill_experiment">run_gapfill_experiment() (in module vtools.functions.viz_gap)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.save_dfm_params">save_dfm_params() (in module vtools.functions.neighbor_fill)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.savgol_filter">savgol_filter() (in module vtools.functions.envelope)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay.savgol_filter_numba">savgol_filter_numba() (in module vtools.functions.savitzky_golay)</a>
@@ -718,6 +1367,18 @@
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay.savgol_filter_weighted">savgol_filter_weighted() (in module vtools.functions.savitzky_golay)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay.savgol_filter_werror">savgol_filter_werror() (in module vtools.functions.savitzky_golay)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.score">score() (MLEModel method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.score">(Pipeline method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.RLM.score">(RLM method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.score_obs">score_obs() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.score_samples">score_samples() (Pipeline method)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.timeseries.seconds">seconds() (in module vtools.data.timeseries)</a>
 
@@ -727,13 +1388,57 @@
         <li><a href="vtools.functions.html#vtools.functions.filter.seconds">(in module vtools.functions.filter)</a>
 </li>
       </ul></li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec.seed">seed (GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.seed">[1]</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.envelope.select_salient_extrema">select_salient_extrema() (in module vtools.functions.envelope)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.separate_species.separate_species">separate_species() (in module vtools.functions.separate_species)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.set_conserve_memory">set_conserve_memory() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.set_filter_method">set_filter_method() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.set_fit_request">set_fit_request() (ElasticNetCV method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.set_fit_request">(StandardScaler method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.set_inverse_transform_request">set_inverse_transform_request() (StandardScaler method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.set_inversion_method">set_inversion_method() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.set_output">set_output() (Pipeline method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.functions.html#vtools.functions.envelope.select_salient_extrema">select_salient_extrema() (in module vtools.functions.envelope)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.set_params">set_params() (Pipeline method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.set_partial_fit_request">set_partial_fit_request() (StandardScaler method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.ElasticNetCV.set_score_request">set_score_request() (ElasticNetCV method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.KNeighborsRegressor.set_score_request">(KNeighborsRegressor method)</a>
+</li>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.set_score_request">(Pipeline method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.set_smoother_output">set_smoother_output() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.set_stability_method">set_stability_method() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.set_transform_request">set_transform_request() (StandardScaler method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.simulate">simulate() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.simulation_smoother">simulation_smoother() (MLEModel method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.skill_score">skill_score() (in module vtools.functions.skill_metrics)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.sample_series.small_subtide">small_subtide() (in module vtools.data.sample_series)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.smooth">smooth() (MLEModel method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.smooth_series">smooth_series() (in module vtools.functions.envelope)</a>
 </li>
@@ -743,7 +1448,21 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay.solve_polyfit">solve_polyfit() (in module vtools.functions.savitzky_golay)</a>
 </li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapStrategy.STAGGERED">STAGGERED (GapStrategy attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapStrategy.STAGGERED">[1]</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler">StandardScaler (class in vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.start_params">start_params (DFMFill property)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.start_params">(MLEModel property)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.state_names">state_names (MLEModel property)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.steep_then_nan">steep_then_nan() (in module vtools.functions.error_detect)</a>
+</li>
+      <li><a href="vtools.data.html#vtools.data.gap.GapSpec.strategy">strategy (GapSpec attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapSpec.strategy">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -751,6 +1470,8 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.data.html#vtools.data.gap.GapStrategy.TARGET_ONLY">TARGET_ONLY (GapStrategy attribute)</a>, <a href="vtools.functions.html#vtools.functions.viz_gap.GapStrategy.TARGET_ONLY">[1]</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect.threshold">threshold() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.tidal_envelope">tidal_envelope() (in module vtools.functions.envelope)</a>
@@ -767,9 +1488,25 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.tmean_error">tmean_error() (in module vtools.functions.skill_metrics)</a>
 </li>
+      <li><a href="vtools.data.html#vtools.data.timeseries.to_dataframe">to_dataframe() (in module vtools.data.timeseries)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.to_dict">to_dict() (FillResult method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.to_offset">to_offset() (in module vtools.functions.lag_cross_correlation)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="vtools.data.html#vtools.data.timeseries.to_dataframe">to_dataframe() (in module vtools.data.timeseries)</a>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.tolerance">tolerance (MLEModel property)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.transform">transform() (Pipeline method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.StandardScaler.transform">(StandardScaler method)</a>
+</li>
+      </ul></li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.transform_jacobian">transform_jacobian() (MLEModel method)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.transform_params">transform_params() (MLEModel method)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.timeseries.transition_ts">transition_ts() (in module vtools.data.timeseries)</a>
 
@@ -797,12 +1534,28 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.frequency_response.unit_impulse_ts">unit_impulse_ts() (in module vtools.functions.frequency_response)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.untransform_params">untransform_params() (MLEModel method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill.update">update() (DFMFill method)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.update">(MLEModel method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.data.html#vtools.data.gap.auto.value">value (auto attribute)</a>
+
+      <ul>
+        <li><a href="vtools.data.html#vtools.data.gap.Enum.value">(Enum attribute)</a>
+</li>
+      </ul></li>
       <li>
     vtools
 
@@ -888,6 +1641,13 @@
 </li>
       </ul></li>
       <li>
+    vtools.functions.colname_align
+
+      <ul>
+        <li><a href="vtools.functions.html#module-vtools.functions.colname_align">module</a>
+</li>
+      </ul></li>
+      <li>
     vtools.functions.envelope
 
       <ul>
@@ -953,6 +1713,13 @@
 </li>
       </ul></li>
       <li>
+    vtools.functions.neighbor_fill
+
+      <ul>
+        <li><a href="vtools.functions.html#module-vtools.functions.neighbor_fill">module</a>
+</li>
+      </ul></li>
+      <li>
     vtools.functions.period_op
 
       <ul>
@@ -960,17 +1727,17 @@
 </li>
       </ul></li>
       <li>
-    vtools.functions.read_dss
-
-      <ul>
-        <li><a href="vtools.functions.html#module-vtools.functions.read_dss">module</a>
-</li>
-      </ul></li>
-      <li>
     vtools.functions.savitzky_golay
 
       <ul>
         <li><a href="vtools.functions.html#module-vtools.functions.savitzky_golay">module</a>
+</li>
+      </ul></li>
+      <li>
+    vtools.functions.separate_species
+
+      <ul>
+        <li><a href="vtools.functions.html#module-vtools.functions.separate_species">module</a>
 </li>
       </ul></li>
       <li>
@@ -1008,12 +1775,28 @@
         <li><a href="vtools.functions.html#module-vtools.functions.unit_conversions">module</a>
 </li>
       </ul></li>
+      <li>
+    vtools.functions.unit_conversions_orig
+
+      <ul>
+        <li><a href="vtools.functions.html#module-vtools.functions.unit_conversions_orig">module</a>
+</li>
+      </ul></li>
+      <li>
+    vtools.functions.viz_gap
+
+      <ul>
+        <li><a href="vtools.functions.html#module-vtools.functions.viz_gap">module</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.HuberT.weights">weights() (HuberT method)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.where_changed">where_changed() (in module vtools.functions.tidalhl)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhl.where_same">where_same() (in module vtools.functions.tidalhl)</a>
@@ -1023,6 +1806,10 @@
       <li><a href="vtools.functions.html#vtools.functions.skill_metrics.willmott_score">willmott_score() (in module vtools.functions.skill_metrics)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.period_op.window_op">window_op() (in module vtools.functions.period_op)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.write_filled_csv_with_yaml_header">write_filled_csv_with_yaml_header() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.separate_species.write_th">write_th() (in module vtools.functions.separate_species)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1044,6 +1831,10 @@
         <li><a href="vtools.data.html#vtools.data.vtime.years">(in module vtools.data.vtime)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.yhat">yhat (FillResult attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
