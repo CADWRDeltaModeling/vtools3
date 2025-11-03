@@ -6,15 +6,7 @@
    "metadata": {},
    "source": [
     "\n",
-    "# Filling Non-tidal Quantities Based on a Neighbor\n",
-    "\n",
-    "**neighbor_fill.ipynb — user guide**  \n",
-    "*Generated 2025-11-02 05:52 UTC*\n",
-    "\n",
-    "This notebook is a practical, self-contained guide for filling gaps in a target time series using a neighboring series\n",
-    "(e.g., **San Joaquin at Vernalis** (VNS) flow filled from **Mossdale Bridge** (MSD) subtidal flow), the example we use here.\n",
-    "\n",
-    "---\n"
+    "# Filling Non-tidal Quantities Based on a Neighbor\n"
    ]
   },
   {
@@ -55,18 +47,14 @@
     "\n",
     "## 2. Setup\n",
     "\n",
-    "The code assumes your standard environment with `vtools`, `dms_datastore`, and `statsmodels`.  \n",
-    "If you're browsing the notebook without your environment, you can still read the narrative and formulas.\n",
-    "\n",
-    "> **Modules**  \n",
-    "> - Data & utilities: `vtools`, `vtools.data.gap`  \n",
-    "> - Gap filling: `vtools.functions.neighbor_fill.fill_from_neighbor`  \n",
-    "> - Optional data provider: `dms_datastore.read_multi.read_ts_repo`\n"
+    "The code assumes your standard environment with `vtools`, `dms_datastore`, and by extension `statsmodels`.  The first steps have to \n",
+    "do with imports, acquisition etc.\n",
+    "\n"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
+   "execution_count": null,
    "id": "b8546bcb",
    "metadata": {},
    "outputs": [],
@@ -107,13 +95,14 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": null,
    "id": "26bf5859",
    "metadata": {},
    "outputs": [],
    "source": [
     "\n",
-    "# You may replace this with a project-specific provider using dms_datastore.\n",
+    "# These series are provided in the examples. You could replace this \n",
+    "# with a project-specific provider using dms_datastore.\n",
     "# The function must return (target: Series, neighbor: Series|DataFrame, regime: Series|None),\n",
     "# aligned (or alignable) by time.\n",
     "def provide_example_data(start='2017-02-01', end='2022-12-01'):\n",
@@ -140,9 +129,6 @@
     "y, x, regime = provide_example_data()\n",
     "\n",
     "\n",
-    "\n",
-    "\n",
-    "\n",
     "# --- Stable, colorblind-safe colors and a label->color lookup ----------------\n",
     "# Okabe–Ito palette (colorblind friendly)\n",
     "OKABE_ITO = [\n",
@@ -156,7 +142,7 @@
     "    \"#F0E442\",  # 3 yellow    \n",
     "]\n",
     "\n",
-    "# Fixed order for algorithms you commonly plot (extend as needed)\n",
+    "# Fixed order for algorithms in the notebook and plots\n",
     "ALGO_ORDER = [\n",
     "    \"ols\",\n",
     "    \"huber\",\n",
@@ -366,7 +352,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": null,
    "id": "e7eb4b9c",
    "metadata": {},
    "outputs": [
@@ -445,7 +431,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": null,
    "id": "616da888",
    "metadata": {},
    "outputs": [
@@ -516,7 +502,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": null,
    "id": "85929d59",
    "metadata": {},
    "outputs": [
@@ -616,7 +602,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": null,
    "id": "06ee9218",
    "metadata": {},
    "outputs": [
@@ -823,7 +809,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": null,
    "id": "5e46f183",
    "metadata": {},
    "outputs": [

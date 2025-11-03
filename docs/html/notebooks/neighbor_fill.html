@@ -126,12 +126,6 @@
             
   <section id="Filling-Non-tidal-Quantities-Based-on-a-Neighbor">
 <h1>Filling Non-tidal Quantities Based on a Neighbor<a class="headerlink" href="#Filling-Non-tidal-Quantities-Based-on-a-Neighbor" title="Link to this heading">¶</a></h1>
-<div class="line-block">
-<div class="line"><strong>neighbor_fill.ipynb — user guide</strong></div>
-<div class="line"><em>Generated 2025-11-02 05:52 UTC</em></div>
-</div>
-<p>This notebook is a practical, self-contained guide for filling gaps in a target time series using a neighboring series (e.g., <strong>San Joaquin at Vernalis</strong> (VNS) flow filled from <strong>Mossdale Bridge</strong> (MSD) subtidal flow), the example we use here.</p>
-<hr class="docutils" />
 <section id="1.-Introduction">
 <h2>1. Introduction<a class="headerlink" href="#1.-Introduction" title="Link to this heading">¶</a></h2>
 <section id="Example-Data-and-Typical-Preprocessing">
@@ -157,20 +151,9 @@
 </section>
 <section id="2.-Setup">
 <h2>2. Setup<a class="headerlink" href="#2.-Setup" title="Link to this heading">¶</a></h2>
-<div class="line-block">
-<div class="line">The code assumes your standard environment with <code class="docutils literal notranslate"><span class="pre">vtools</span></code>, <code class="docutils literal notranslate"><span class="pre">dms_datastore</span></code>, and <code class="docutils literal notranslate"><span class="pre">statsmodels</span></code>.</div>
-<div class="line">If you’re browsing the notebook without your environment, you can still read the narrative and formulas.</div>
-</div>
-<blockquote>
-<div><div class="line-block">
-<div class="line"><strong>Modules</strong></div>
-<div class="line">- Data &amp; utilities: <code class="docutils literal notranslate"><span class="pre">vtools</span></code>, <code class="docutils literal notranslate"><span class="pre">vtools.data.gap</span></code></div>
-<div class="line">- Gap filling: <code class="docutils literal notranslate"><span class="pre">vtools.functions.neighbor_fill.fill_from_neighbor</span></code></div>
-<div class="line">- Optional data provider: <code class="docutils literal notranslate"><span class="pre">dms_datastore.read_multi.read_ts_repo</span></code></div>
-</div>
-</div></blockquote>
+<p>The code assumes your standard environment with <code class="docutils literal notranslate"><span class="pre">vtools</span></code>, <code class="docutils literal notranslate"><span class="pre">dms_datastore</span></code>, and by extension <code class="docutils literal notranslate"><span class="pre">statsmodels</span></code>. The first steps have to do with imports, acquisition etc.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="o">%</span><span class="k">load_ext</span> autoreload
@@ -202,10 +185,11 @@
 <li><p>Return <code class="docutils literal notranslate"><span class="pre">(target,</span> <span class="pre">neighbor,</span> <span class="pre">regime)</span></code> where <code class="docutils literal notranslate"><span class="pre">regime</span></code> can be <code class="docutils literal notranslate"><span class="pre">None</span></code> or a categorical series (barrier in/out, season, etc.).</p></li>
 </ol>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># You may replace this with a project-specific provider using dms_datastore.</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># These series are provided in the examples. You could replace this</span>
+<span class="c1"># with a project-specific provider using dms_datastore.</span>
 <span class="c1"># The function must return (target: Series, neighbor: Series|DataFrame, regime: Series|None),</span>
 <span class="c1"># aligned (or alignable) by time.</span>
 <span class="k">def</span> <span class="nf">provide_example_data</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2017-02-01&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;2022-12-01&#39;</span><span class="p">):</span>
@@ -232,9 +216,6 @@
 <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">regime</span> <span class="o">=</span> <span class="n">provide_example_data</span><span class="p">()</span>
 
 
-
-
-
 <span class="c1"># --- Stable, colorblind-safe colors and a label-&gt;color lookup ----------------</span>
 <span class="c1"># Okabe–Ito palette (colorblind friendly)</span>
 <span class="n">OKABE_ITO</span> <span class="o">=</span> <span class="p">[</span>
@@ -248,7 +229,7 @@
     <span class="s2">&quot;#F0E442&quot;</span><span class="p">,</span>  <span class="c1"># 3 yellow</span>
 <span class="p">]</span>
 
-<span class="c1"># Fixed order for algorithms you commonly plot (extend as needed)</span>
+<span class="c1"># Fixed order for algorithms in the notebook and plots</span>
 <span class="n">ALGO_ORDER</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;ols&quot;</span><span class="p">,</span>
     <span class="s2">&quot;huber&quot;</span><span class="p">,</span>
@@ -386,7 +367,7 @@ x_t &amp;= \lambda\,\mu_t + \mathbf{1}_{\{a^x\}}\, a^x_t + \varepsilon^x_t,\qqua
 <div class="line">- there is no recourse when the neighbor is not available.</div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y_gap0</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -453,7 +434,7 @@ ending substitution
 <p>In the picture below, we compare interpolating the original <code class="docutils literal notranslate"><span class="pre">y</span></code> versus interpolating <strong>residuals</strong> and then recombining. The direct interpolation doesn’t have enough data to track curvature in the original series so it “cuts the corners”. Residual-based methods work on the smaller difference between the series, which though wiggly can still be linearly interpolated to much lower error. Note the much narrower y-axis range on the bottom plot below, which basically reduces the linear
 interpolation to the neighborhood of 100-200cfs instead of 1000s. As shown in the top plot the method of interpolating on residuals and adding back to the original “neighbor” to get back to original values works better in non-linear segments. One other thing you can see in the residual plots, because it is more of a close up, is the fuzzy measurement noise at the Vernalis sensor. The DFM methods naturally smooth this over.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># Choose a curvy slice with a bounded gap</span>
@@ -510,7 +491,7 @@ interpolation to the neighborhood of 100-200cfs instead of 1000s. As shown in th
 <p>Below are concise examples for several methods. All return a dict with keys: <code class="docutils literal notranslate"><span class="pre">filled</span></code>, <code class="docutils literal notranslate"><span class="pre">yhat</span></code>, optional <code class="docutils literal notranslate"><span class="pre">pi_lower</span></code>/<code class="docutils literal notranslate"><span class="pre">pi_upper</span></code>, <code class="docutils literal notranslate"><span class="pre">model_info</span></code>, and <code class="docutils literal notranslate"><span class="pre">metrics</span></code>. <code class="docutils literal notranslate"><span class="pre">filled</span></code> uses the original values where available, but imputes missing values as the algorithm is capable. <code class="docutils literal notranslate"><span class="pre">yhat</span></code> is estimates for the target time series which may include predictions at non-missing times. In the case of regression, the estimates may not be great and there may be a ‘lurching’ effect between original series and
 fill values. In the case of <code class="docutils literal notranslate"><span class="pre">dfm</span></code>, the <code class="docutils literal notranslate"><span class="pre">yhat</span></code> estimate may low-pass a lot of jitter in the instrument and conceivably is preferable to the origin data. PI stands for prediction interval, a measure of confidence in the estimate that is available with dfm and characterizes the growth of uncertainty with gap size.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spec2</span> <span class="o">=</span> <span class="n">GapSpec</span><span class="p">(</span><span class="n">n_gaps</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">GapStrategy</span><span class="o">.</span><span class="n">TARGET_ONLY</span><span class="p">)</span>
@@ -597,7 +578,7 @@ active params: [&#39;log_q_beta&#39;, &#39;log_q_ay&#39;, &#39;log_r_y&#39;, &#3
 periods when both sources of data are missing which is 10% of the data!! Timing data is output, which shows the main downside of DFM and that is the fitting time. Reapplication of DFM on a larger/later time set with pre-fit parameters on a few years is much faster and that workflow is the focus of the next section.</p>
 <p>In this particular comparison DFM comes out on top not only on coverage but on accuracy. This is NOT a generalizable result – as the period and length of gap are varied the RMSE estimates between methods will change by an amount that is greater than the difference between DFM and residual interpolation and. The latter are often a smidge more accurate. The main point is that they are about the same, so it is really about time versus coverage.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
@@ -694,8 +675,7 @@ done in 74.68 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
 <div>
@@ -774,7 +754,7 @@ done in 74.68 s
 <h2>9. Storing &amp; reusing DFM fits<a class="headerlink" href="#9.-Storing-&-reusing-DFM-fits" title="Link to this heading">¶</a></h2>
 <p>You can save fitted DFM parameters and reload them to avoid re-estimation (useful for reproducible operations). The exact helper names may vary by version; the example below shows a common pattern.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="kn">import</span> <span class="nn">time</span>
