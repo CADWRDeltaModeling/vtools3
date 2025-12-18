@@ -27,6 +27,7 @@ from vtools.data.vtime import *
 from vtools.data.timeseries import *
 from vtools.data.dst import *
 
+from vtools.functions.ts_blend import *
 from vtools.functions.transition import *
 from vtools.functions.climatology import *
 from vtools.functions.interannual import *

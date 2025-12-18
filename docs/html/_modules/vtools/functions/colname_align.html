@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vtools.functions.colname_align &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <title>vtools.functions.colname_align &#8212; vtools 3.9.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
-    <script src="../../../_static/documentation_options.js?v=0ca39674"></script>
+    <script src="../../../_static/documentation_options.js?v=f2050116"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -59,7 +59,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/climatology.html">Fitting and using a climatology</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html">Merging, Splicing and Blending Time Series</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/extrapolation.html">Extrapolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks/transition.html">Transitioning</a></li>
@@ -164,7 +164,7 @@
 
 
 <div class="viewcode-block" id="align_names">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align.align_names">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.blend.align_names">[docs]</a>
 <span class="k">def</span> <span class="nf">align_names</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">result</span>
@@ -194,7 +194,7 @@
 
 
 <div class="viewcode-block" id="_coerce_inputs_strict">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align._coerce_inputs_strict">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.blend._coerce_inputs_strict">[docs]</a>
 <span class="k">def</span> <span class="nf">_coerce_inputs_strict</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Strict input alignment policy:</span>
@@ -270,7 +270,7 @@
 
 
 <div class="viewcode-block" id="align_inputs_strict">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align.align_inputs_strict">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.blend.align_inputs_strict">[docs]</a>
 <span class="k">def</span> <span class="nf">align_inputs_strict</span><span class="p">(</span><span class="n">seq_arg</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">names_kw</span><span class="o">=</span><span class="s2">&quot;names&quot;</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">deco</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
@@ -311,7 +311,7 @@
 
 
 <div class="viewcode-block" id="align_inputs_pair_strict">
-<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.colname_align.align_inputs_pair_strict">[docs]</a>
+<a class="viewcode-back" href="../../../vtools.functions.html#vtools.functions.blend.align_inputs_pair_strict">[docs]</a>
 <span class="k">def</span> <span class="nf">align_inputs_pair_strict</span><span class="p">(</span><span class="n">ts0_kw</span><span class="o">=</span><span class="s2">&quot;ts0&quot;</span><span class="p">,</span> <span class="n">ts1_kw</span><span class="o">=</span><span class="s2">&quot;ts1&quot;</span><span class="p">,</span> <span class="n">names_kw</span><span class="o">=</span><span class="s2">&quot;names&quot;</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">deco</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>

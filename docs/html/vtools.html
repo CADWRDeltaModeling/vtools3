@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>vtools package &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <title>vtools package &#8212; vtools 3.9.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <script src="_static/documentation_options.js?v=0ca39674"></script>
+    <script src="_static/documentation_options.js?v=f2050116"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -62,7 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/climatology.html">Fitting and using a climatology</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html">Merging, Splicing and Blending Time Series</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/extrapolation.html">Extrapolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/transition.html">Transitioning</a></li>
@@ -200,18 +200,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vtools.data.html#module-vtools.data.timeseries">vtools.data.timeseries module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__doc__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__doc__</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__init__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.__module__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__module__</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator._edge_case"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._edge_case()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator._find_derivatives"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator._find_derivatives()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.axis"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.axis</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.c"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.c</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.extrapolate"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.extrapolate</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.PchipInterpolator.x"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.x</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.datetime_elapsed"><code class="docutils literal notranslate"><span class="pre">datetime_elapsed()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.days"><code class="docutils literal notranslate"><span class="pre">days()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.elapsed_datetime"><code class="docutils literal notranslate"><span class="pre">elapsed_datetime()</span></code></a></li>
@@ -221,13 +209,13 @@
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.is_regular"><code class="docutils literal notranslate"><span class="pre">is_regular()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.minutes"><code class="docutils literal notranslate"><span class="pre">minutes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.months"><code class="docutils literal notranslate"><span class="pre">months()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.numtype"><code class="docutils literal notranslate"><span class="pre">numtype</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.rename_columns"><code class="docutils literal notranslate"><span class="pre">rename_columns()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.rts"><code class="docutils literal notranslate"><span class="pre">rts()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.rts_formula"><code class="docutils literal notranslate"><span class="pre">rts_formula()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.seconds"><code class="docutils literal notranslate"><span class="pre">seconds()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.time_overlap"><code class="docutils literal notranslate"><span class="pre">time_overlap()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.to_dataframe"><code class="docutils literal notranslate"><span class="pre">to_dataframe()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.transition_ts"><code class="docutils literal notranslate"><span class="pre">transition_ts()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.data.html#vtools.data.timeseries.years"><code class="docutils literal notranslate"><span class="pre">years()</span></code></a></li>
 </ul>
 </li>
@@ -261,6 +249,17 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vtools.functions.html">vtools.functions package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.blend">vtools.functions.blend module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend._blend_two"><code class="docutils literal notranslate"><span class="pre">_blend_two()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend._distance_to_gap"><code class="docutils literal notranslate"><span class="pre">_distance_to_gap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend._normalize_blend_length"><code class="docutils literal notranslate"><span class="pre">_normalize_blend_length()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend._reindex_to_continuous"><code class="docutils literal notranslate"><span class="pre">_reindex_to_continuous()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend.align_inputs_strict"><code class="docutils literal notranslate"><span class="pre">align_inputs_strict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend.gap_distance"><code class="docutils literal notranslate"><span class="pre">gap_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend.reduce"><code class="docutils literal notranslate"><span class="pre">reduce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.blend.ts_blend"><code class="docutils literal notranslate"><span class="pre">ts_blend()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.climatology.apply_climatology"><code class="docutils literal notranslate"><span class="pre">apply_climatology()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.climatology.climatology"><code class="docutils literal notranslate"><span class="pre">climatology()</span></code></a></li>
@@ -278,7 +277,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vtools.functions.html#module-vtools.functions.envelope">vtools.functions.envelope module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__annotations__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__annotations__</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__doc__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__doc__</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__init__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator.__module__"><code class="docutils literal notranslate"><span class="pre">PchipInterpolator.__module__</span></code></a></li>

@@ -4,6 +4,14 @@ vtools.functions package
 Submodules
 ----------
 
+vtools.functions.blend module
+-----------------------------
+
+.. automodule:: vtools.functions.blend
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.climatology module
 -----------------------------------
 

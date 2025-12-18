@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; vtools 3.9.5.post5+dirty documentation</title>
+    <title>Index &#8212; vtools 3.9.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <script src="_static/documentation_options.js?v=0ca39674"></script>
+    <script src="_static/documentation_options.js?v=f2050116"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -59,7 +59,7 @@
 <li class="toctree-l1"><a class="reference internal" href="notebooks/filters.html#Filters">Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tidal_envelope.html">Tidal Envelope Extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/climatology.html">Fitting and using a climatology</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html">Merging and Splicing Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html">Merging, Splicing and Blending Time Series</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/merge_splice.html#ts_merge:-strict-priority-option"><code class="docutils literal notranslate"><span class="pre">ts_merge</span></code>: strict priority option</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/extrapolation.html">Extrapolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/transition.html">Transitioning</a></li>
@@ -345,6 +345,8 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._assert_same_regular_grid">_assert_same_regular_grid() (in module vtools.functions.neighbor_fill)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.blend._blend_two">_blend_two() (in module vtools.functions.blend)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.savitzky_golay._build_vander">_build_vander() (in module vtools.functions.savitzky_golay)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._call_linear">_call_linear() (interp1d method)</a>
@@ -363,10 +365,10 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._can_inverse_transform">_can_inverse_transform() (Pipeline method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._can_transform">_can_transform() (Pipeline method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._check_and_update_bounds_error_for_extrapolation">_check_and_update_bounds_error_for_extrapolation() (interp1d method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.tidalhours.interp1d._check_bounds">_check_bounds() (interp1d method)</a>
@@ -386,6 +388,8 @@
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.DFMFill._constrain">_constrain() (DFMFill method)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._dfm_params_to_vector">_dfm_params_to_vector() (in module vtools.functions.neighbor_fill)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.blend._distance_to_gap">_distance_to_gap() (in module vtools.functions.blend)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.envelope.PchipInterpolator._edge_case">_edge_case() (PchipInterpolator static method)</a>, <a href="vtools.functions.html#vtools.functions.transition.PchipInterpolator._edge_case">[1]</a>
 </li>
@@ -493,6 +497,8 @@
       </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.unit_conversions._norm">_norm() (in module vtools.functions.unit_conversions)</a>
 </li>
+      <li><a href="vtools.functions.html#vtools.functions.blend._normalize_blend_length">_normalize_blend_length() (in module vtools.functions.blend)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.error_detect._nrepeat">_nrepeat() (in module vtools.functions.error_detect)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill._opt_debug">_opt_debug() (in module vtools.functions.neighbor_fill)</a>
@@ -515,8 +521,12 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate._ratsp1">_ratsp1() (in module vtools.functions.interpolate)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.merge._reindex_to_continuous">_reindex_to_continuous() (in module vtools.functions.merge)</a>
+      <li><a href="vtools.functions.html#vtools.functions.blend._reindex_to_continuous">_reindex_to_continuous() (in module vtools.functions.blend)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.merge._reindex_to_continuous">(in module vtools.functions.merge)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline._required_parameters">_required_parameters (Pipeline attribute)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel._res_classes">_res_classes (MLEModel property)</a>
@@ -577,16 +587,18 @@
         <li><a href="vtools.functions.html#vtools.functions.transition.align_inputs_pair_strict">(in module vtools.functions.transition)</a>
 </li>
       </ul></li>
-      <li><a href="vtools.functions.html#vtools.functions.colname_align.align_inputs_strict">align_inputs_strict() (in module vtools.functions.colname_align)</a>
+      <li><a href="vtools.functions.html#vtools.functions.blend.align_inputs_strict">align_inputs_strict() (in module vtools.functions.blend)</a>
 
       <ul>
+        <li><a href="vtools.functions.html#vtools.functions.colname_align.align_inputs_strict">(in module vtools.functions.colname_align)</a>
+</li>
         <li><a href="vtools.functions.html#vtools.functions.merge.align_inputs_strict">(in module vtools.functions.merge)</a>
 </li>
       </ul></li>
-      <li><a href="vtools.functions.html#vtools.functions.colname_align.align_names">align_names() (in module vtools.functions.colname_align)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vtools.functions.html#vtools.functions.colname_align.align_names">align_names() (in module vtools.functions.colname_align)</a>
+</li>
       <li><a href="vtools.functions.html#vtools.functions.climatology.apply_climatology">apply_climatology() (in module vtools.functions.climatology)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.apply_gaps">apply_gaps() (in module vtools.data.gap)</a>
@@ -826,7 +838,11 @@
       <li><a href="vtools.data.html#vtools.data.gap.gap_count">gap_count() (in module vtools.data.gap)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.gap_distance">gap_distance() (in module vtools.data.gap)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.blend.gap_distance">(in module vtools.functions.blend)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.data.html#vtools.data.gap.gap_size">gap_size() (in module vtools.data.gap)</a>
 </li>
       <li><a href="vtools.data.html#vtools.data.gap.GapSpec">GapSpec (class in vtools.data.gap)</a>
@@ -1097,6 +1113,8 @@
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions">vtools.functions</a>
 </li>
+        <li><a href="vtools.functions.html#module-vtools.functions.blend">vtools.functions.blend</a>
+</li>
         <li><a href="vtools.functions.html#module-vtools.functions.climatology">vtools.functions.climatology</a>
 </li>
         <li><a href="vtools.functions.html#module-vtools.functions.colname_align">vtools.functions.colname_align</a>
@@ -1254,8 +1272,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.datastore.html#vtools.datastore.read_ts.read_ts">read_ts() (in module vtools.datastore.read_ts)</a>
 </li>
-      <li><a href="vtools.functions.html#vtools.functions.merge.reduce">reduce() (in module vtools.functions.merge)</a>
+      <li><a href="vtools.functions.html#vtools.functions.blend.reduce">reduce() (in module vtools.functions.blend)</a>
+
+      <ul>
+        <li><a href="vtools.functions.html#vtools.functions.merge.reduce">(in module vtools.functions.merge)</a>
 </li>
+      </ul></li>
       <li><a href="vtools.data.html#vtools.data.timeseries.rename_columns">rename_columns() (in module vtools.data.timeseries)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.rhist">rhist() (in module vtools.functions.interpolate)</a>
@@ -1424,10 +1446,10 @@
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.FillResult.to_dict">to_dict() (FillResult method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.lag_cross_correlation.to_offset">to_offset() (in module vtools.functions.lag_cross_correlation)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.MLEModel.tolerance">tolerance (MLEModel property)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.neighbor_fill.Pipeline.transform">transform() (Pipeline method)</a>
@@ -1443,6 +1465,8 @@
       <li><a href="vtools.functions.html#vtools.functions.transition.transition_ts">transition_ts() (in module vtools.functions.transition)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.interpolate.tridiagonal">tridiagonal() (in module vtools.functions.interpolate)</a>
+</li>
+      <li><a href="vtools.functions.html#vtools.functions.blend.ts_blend">ts_blend() (in module vtools.functions.blend)</a>
 </li>
       <li><a href="vtools.functions.html#vtools.functions.filter.ts_gaussian_filter">ts_gaussian_filter() (in module vtools.functions.filter)</a>
 
@@ -1559,6 +1583,13 @@
 
       <ul>
         <li><a href="vtools.functions.html#module-vtools.functions">module</a>
+</li>
+      </ul></li>
+      <li>
+    vtools.functions.blend
+
+      <ul>
+        <li><a href="vtools.functions.html#module-vtools.functions.blend">module</a>
 </li>
       </ul></li>
       <li>
