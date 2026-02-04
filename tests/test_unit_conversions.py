@@ -98,7 +98,7 @@ def test_aliases_cms_to_cfs(alias):
 
 def test_aliases_temperature():
     x = np.array([32.0, 212.0])
-    out = uc.convert_units(x, "deg F", "degC")
+    out = uc.convert_units(x, "degf", "degc")
     expected = uc.fahrenheit_to_celsius(x)
     np.testing.assert_allclose(out, expected, atol=1e-12)
 
