@@ -35,7 +35,7 @@ def test_natural_gap_linear(test_series):
     ts0, ts1 = test_series
     # Artificially move ts1 earlier to reduce transition zone to < 2 steps
     ts1 = ts1.copy()
-    ts1.index = ts1.index - pd.Timedelta("5d")
+    ts1.index = ts1.index - pd.Timedelta("5D")
 
     with pytest.raises(ValueError, match="at least two steps"):
         transition_ts(ts0, ts1, method="linear", window=None, return_type="series")

@@ -24,6 +24,52 @@ __all__ = [
 _cached_filt_info = {}
 
 
+def _resolve_filter_len(filter_len, freq):
+    if filter_len is None:
+        return None
+    if isinstance(filter_len, (int, np.integer)):
+        return int(filter_len)
+
+    try:
+        # Convert freq to a timedelta
+        if hasattr(freq, 'delta') and freq.delta is not None:
+            freq_delta = freq.delta
+        elif hasattr(freq, 'nanos'):
+            freq_delta = pd.Timedelta(freq.nanos, unit='ns')
+        else:
+            freq_offset = pd.tseries.frequencies.to_offset(freq)
+            if hasattr(freq_offset, "delta") and freq_offset.delta is not None:
+                freq_delta = freq_offset.delta
+            elif hasattr(freq_offset, 'nanos'):
+                freq_delta = pd.Timedelta(freq_offset.nanos, unit='ns')
+            else:
+                raise TypeError("Time series frequency is not fixed")
+
+        # Convert filter_len to a timedelta
+        if hasattr(filter_len, 'delta') and filter_len.delta is not None:
+            fl_delta = filter_len.delta
+        elif hasattr(filter_len, 'nanos'):
+            fl_delta = pd.Timedelta(filter_len.nanos, unit='ns')
+        else:
+            fl_offset = pd.tseries.frequencies.to_offset(filter_len)
+            if hasattr(fl_offset, "delta") and fl_offset.delta is not None:
+                fl_delta = fl_offset.delta
+            elif hasattr(fl_offset, 'nanos'):
+                fl_delta = pd.Timedelta(fl_offset.nanos, unit='ns')
+            else:
+                fl_delta = pd.to_timedelta(filter_len)
+
+        if fl_delta % freq_delta != pd.Timedelta(0):
+            raise TypeError("filter_len was not divisible by the time step")
+        return int(fl_delta / freq_delta)
+    except TypeError:
+        raise
+    except Exception as e:
+        raise TypeError(
+            f"filter_len was not an int or divisible by the time step: {e}"
+        )
+
+
 ###########################################################################
 ## Public interface.
 ###########################################################################
@@ -118,14 +164,8 @@ def cosine_lanczos5(
 
     if m is None:
         m = int(1.25 * 2.0 / cf)
-    elif type(m) != int:
-        try:
-            m = int(m / freq)
-        except:
-            raise TypeError(
-                "filter_len was not an int or divisible by filter_len (probably a type incompatiblity)"
-            )
-        # raise NotImplementedError("Only integer length filter lengths or supported currently. Received: ".format(type(m)))
+    else:
+        m = _resolve_filter_len(m, freq)
 
     ##find out nan location and fill with 0.0. This way we can use the
     ## signal processing filtrations out-of-the box without nans causing trouble,
@@ -333,14 +373,8 @@ def _lanczos_impl(
 
     if m is None:
         m = int(1.25 * 2.0 / cf)
-    elif type(m) != int:
-        try:
-            m = int(m / freq)
-        except:
-            raise TypeError(
-                "filter_len was not an int or divisible by filter_len (probably a type incompatiblity)"
-            )
-        # raise NotImplementedError("Only integer length filter lengths or supported currently. Received: ".format(type(m)))
+    else:
+        m = _resolve_filter_len(m, freq)
 
     ##find out nan location and fill with 0.0. This way we can use the
     ## signal processing filtrations out-of-the box without nans causing trouble,
