@@ -502,12 +502,12 @@ def elapsed_datetime(index_or_ts, reftime=None, time_unit="s", inplace=False):
 def is_regular(ts, raise_exception=False):
     """
     Check if a pandas DataFrame, Series, or xarray object with a time axis (axis 0)
-    has a regular time index.
+    has a regular index.
 
     Regular means:
       - The index is unique.
-      - The index equals a date_range spanning from the first to the last value with
-        the inferred frequency.
+      - For DatetimeIndex: equals a date_range with the inferred frequency.
+      - For numeric index (int/float): differences between consecutive values are constant.
 
     Parameters:
       ts : DataFrame, Series, or xarray object.
@@ -518,7 +518,7 @@ def is_regular(ts, raise_exception=False):
          Otherwise, returns False.
 
     Returns:
-      bool : True if the time index is regular; False otherwise.
+      bool : True if the index is regular; False otherwise.
     """
     # Determine the index from the object
     if hasattr(ts, "index"):
@@ -548,6 +548,19 @@ def is_regular(ts, raise_exception=False):
         if raise_exception:
             raise ValueError(msg)
         return False
+
+    # Handle numeric indices (int, float)
+    if isinstance(idx, (pd.Index, pd.RangeIndex)) and np.issubdtype(idx.dtype, np.number):
+        # Calculate differences between consecutive values
+        diffs = np.diff(idx.values)
+        # Check if all differences are equal (within floating point tolerance)
+        if np.allclose(diffs, diffs[0]):
+            return True
+        else:
+            msg = "Numeric index has non-constant differences; it is not regular."
+            if raise_exception:
+                raise ValueError(msg)
+            return False
 
     # Ensure we are working with a DatetimeIndex. If not, attempt conversion.
     if not isinstance(idx, pd.DatetimeIndex):
