@@ -35,11 +35,10 @@ def to_dataframe(ts):
         return ts.to_frame()
 
 
-
 def rename_columns(
     ts: Union[pd.Series, pd.DataFrame],
     colnames: Union[str, Sequence[str], Mapping[str, str], Callable[[str], str]],
-    convert_df: bool = True
+    convert_df: bool = True,
 ) -> Union[pd.Series, pd.DataFrame]:
     """
     Rename columns (for DataFrame) or the name (for Series).
@@ -82,7 +81,7 @@ def rename_columns(
         is not exactly 1 (Series), or if a single string is given for a multi-column
         DataFrame.
     """
-    if isinstance(ts,pd.Series) and convert_df:
+    if isinstance(ts, pd.Series) and convert_df:
         ts = ts.to_frame()
 
     if isinstance(ts, pd.DataFrame):
@@ -113,7 +112,9 @@ def rename_columns(
         if callable(colnames) or isinstance(colnames, Mapping):
             return ts.rename(columns=colnames)
 
-        raise TypeError("rename_columns: 'colnames' must be str, list/sequence, dict/mapping, or callable for DataFrame")
+        raise TypeError(
+            "rename_columns: 'colnames' must be str, list/sequence, dict/mapping, or callable for DataFrame"
+        )
 
     elif isinstance(ts, pd.Series):
         out = ts.copy()
@@ -143,11 +144,12 @@ def rename_columns(
             out.name = colnames(out.name)
             return out
 
-        raise TypeError("rename_columns: 'colnames' must be str, list/sequence, dict/mapping, or callable for Series")
+        raise TypeError(
+            "rename_columns: 'colnames' must be str, list/sequence, dict/mapping, or callable for Series"
+        )
 
     else:
         raise TypeError("rename_columns: expected a pandas Series or DataFrame")
-
 
 
 def time_overlap(ts0, ts1, valid=True):
@@ -223,7 +225,6 @@ def rts_formula(start, end, freq, valfunc=np.nan):
         A regular time series with the `freq` attribute set
 
     """
-
 
     ndx = pd.date_range(start=start, end=end, freq=freq)
     secs = (ndx - ndx[0]).total_seconds()
@@ -498,8 +499,6 @@ def elapsed_datetime(index_or_ts, reftime=None, time_unit="s", inplace=False):
     return result
 
 
-
-
 def is_regular(ts, raise_exception=False):
     """
     Check if a pandas DataFrame, Series, or xarray object with a time axis (axis 0)
@@ -513,11 +512,11 @@ def is_regular(ts, raise_exception=False):
     Parameters:
       ts : DataFrame, Series, or xarray object.
          Series to evaluate
-      
-      raise_exception : bool 
+
+      raise_exception : bool
          If True, raises a ValueError when the index is not regular.
          Otherwise, returns False.
-         
+
     Returns:
       bool : True if the time index is regular; False otherwise.
     """
@@ -580,7 +579,6 @@ def is_regular(ts, raise_exception=False):
             raise ValueError(msg)
         return False
     return True
-
 
 
 def example():
