@@ -1,0 +1,41 @@
+import pytest
+import pandas as pd
+from vtools.data.vtime import safe_divide_interval
+
+
+def test_int_division():
+    assert safe_divide_interval(24, 1) == 24
+
+
+def test_string_offsets():
+    assert safe_divide_interval("1D", "1h") == 24
+    assert safe_divide_interval("15min", "5min") == 3
+
+
+def test_timedelta():
+    assert safe_divide_interval(pd.Timedelta("1D"), pd.Timedelta("1h")) == 24
+
+
+def test_mixed_types():
+    assert safe_divide_interval("1D", pd.Timedelta("1h")) == 24
+    assert safe_divide_interval(pd.Timedelta("1D"), "1h") == 24
+
+
+def test_non_integer_division_fails():
+    with pytest.raises(ValueError):
+        safe_divide_interval("1D", "7h")
+
+
+def test_month_rejected():
+    with pytest.raises(TypeError):
+        safe_divide_interval("1M", "1D")
+
+
+def test_year_rejected():
+    with pytest.raises(TypeError):
+        safe_divide_interval("1Y", "1D")
+
+
+def test_zero_division():
+    with pytest.raises(ZeroDivisionError):
+        safe_divide_interval("1D", "0H")

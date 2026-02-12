@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 from functools import reduce
+from vtools import to_timedelta
 from vtools.functions.colname_align import align_inputs_strict
 from vtools.data.gap import gap_distance
 from vtools.functions.merge import _reindex_to_continuous
@@ -64,22 +65,8 @@ def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
         freq = idx.freq
         if freq is None:
             raise ValueError("Time-based blending requires a regular index with .freq set.")
-        if isinstance(freq, str):
-            try:
-                freq_delta = pd.to_timedelta(1, unit=freq)
-            except ValueError as exc:
-                raise ValueError(
-                    "Time-based blending requires a frequency that can be converted to a Timedelta."
-                ) from exc
-        else:
-            try:
-                freq_delta = pd.Timedelta(freq)
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    "Time-based blending requires a frequency that can be converted to a Timedelta."
-                ) from exc  
         # counts * freq → Timedelta
-        return dist_s * freq_delta
+        return dist_s * to_timedelta(freq)
 
     raise ValueError("mode must be 'count' or 'freq'")
 
@@ -96,6 +83,9 @@ def _normalize_blend_length(blend_length, index):
     """
     if blend_length is None:
         return None, None
+    if isinstance(blend_length, str):
+        blend_length = blend_length.replace("H", "h")
+        blend_length = blend_length.replace("d", "D")
 
     # Integer: number of samples
     if isinstance(blend_length, (int, np.integer)):
@@ -103,7 +93,7 @@ def _normalize_blend_length(blend_length, index):
             return None, None
         return "count", float(blend_length)
 
-    # Timedelta-like: e.g. '2H', '30min'
+    # Timedelta-like: e.g. '2h', '30min'
     td = pd.to_timedelta(blend_length)
     if not isinstance(index, (pd.DatetimeIndex, pd.PeriodIndex)):
         raise ValueError("Time-based blend_length requires a DatetimeIndex or PeriodIndex.")

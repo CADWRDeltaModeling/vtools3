@@ -13,8 +13,8 @@ from vtools.functions.blend import ts_blend
 @pytest.fixture
 def sample_data():
     """Create sample time series data for tests."""
-    idx1 = pd.date_range("2023-01-01", periods=5, freq="d")
-    idx2 = pd.date_range("2023-01-03", periods=5, freq="d")
+    idx1 = pd.date_range("2023-01-01", periods=5, freq="D")
+    idx2 = pd.date_range("2023-01-03", periods=5, freq="D")
     series1 = pd.Series([1, 2, np.nan, 4, 5], index=idx1, name="A")
     series2 = pd.Series([10, 20, 30, np.nan, 50], index=idx2, name="A")
     df1 = pd.DataFrame({"A": [1, np.nan, 3, 4, 5]}, index=idx1)
@@ -110,7 +110,7 @@ class TestTsMerge:
         result = ts_merge((s1, s2), names="A")
         expected = pd.Series(
             [1, 2, 10, 4, 5, np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="A"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -120,7 +120,7 @@ class TestTsMerge:
         result = ts_merge((df1, df2))
         expected = pd.DataFrame(
             {"A": [1., np.nan, 3., 4., 5., 40., 50.]},
-            index=pd.date_range("2023-01-01", periods=7, freq="d")
+            index=pd.date_range("2023-01-01", periods=7, freq="D")
         )
         pd.testing.assert_frame_equal(result, expected)
 
@@ -130,7 +130,7 @@ class TestTsMerge:
         expected = pd.DataFrame({
             "A": [1., 2., 100, 4, 5, np.nan, 500],
             "B": [10., np.nan, 30, 40, 50, 4000, 5000]
-        }, index=pd.date_range("2023-01-01", periods=7, freq="d"))
+        }, index=pd.date_range("2023-01-01", periods=7, freq="D"))
         pd.testing.assert_frame_equal(result, expected)
 
     def test_series_merge_with_names(self, sample_data):
@@ -138,7 +138,7 @@ class TestTsMerge:
         result = ts_merge((s1, s2), names="new_name")
         expected = pd.Series(
             [1., 2., 10, 4, 5, np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="new_name"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -148,7 +148,7 @@ class TestTsMerge:
         result = ts_merge((df1, df2), names="Renamed_A")
         expected = pd.DataFrame(
             {"Renamed_A": [1., np.nan, 3., 4., 5., 40, 50]},
-            index=pd.date_range("2023-01-01", periods=7, freq="d")
+            index=pd.date_range("2023-01-01", periods=7, freq="D")
         )
         pd.testing.assert_frame_equal(result, expected)
 
@@ -157,7 +157,7 @@ class TestTsMerge:
         result = ts_merge((df_multi1, df_multi2), names=["A"])
         expected = pd.DataFrame(
             {"A": [1, 2, 100, 4, 5, np.nan, 500]},
-            index=pd.date_range("2023-01-01", periods=7, freq="d")
+            index=pd.date_range("2023-01-01", periods=7, freq="D")
         )
         pd.testing.assert_frame_equal(result, expected)
 
@@ -179,7 +179,7 @@ class TestTsSplice:
         result = ts_splice((s1, s2), transition="prefer_first")
         expected = pd.Series(
             [1., 2, np.nan, 4, 5, np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="A"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -189,7 +189,7 @@ class TestTsSplice:
         result = ts_splice((s1, s2), transition="prefer_last")
         expected = pd.Series(
             [1., 2, 10, 20., 30., np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="A"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -199,7 +199,7 @@ class TestTsSplice:
         result = ts_splice((s1, s2), names="new_name", transition="prefer_last")
         expected = pd.Series(
             [1, 2, 10, 20, 30, np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="new_name"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -210,7 +210,7 @@ class TestTsSplice:
         result = ts_splice((s1, s2), transition=transition_points)
         expected = pd.Series(
             [1, 2, np.nan, 4., 30., np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="A"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -220,7 +220,7 @@ class TestTsSplice:
         result = ts_splice((df1, df2), transition="prefer_first")
         expected = pd.DataFrame(
             {"A": [1, np.nan, 3, 4, 5, 40, 50]},
-            index=pd.date_range("2023-01-01", periods=7, freq="d")
+            index=pd.date_range("2023-01-01", periods=7, freq="D")
         )
         pd.testing.assert_frame_equal(result, expected)
 
@@ -229,7 +229,7 @@ class TestTsSplice:
         result = ts_splice((df1, df2), transition="prefer_last")
         expected = pd.DataFrame(
             {"A": [1., np.nan, 10, 20., np.nan, 40, 50]},
-            index=pd.date_range("2023-01-01", periods=7, freq="d")
+            index=pd.date_range("2023-01-01", periods=7, freq="D")
         )
         pd.testing.assert_frame_equal(result, expected)
 
@@ -239,7 +239,7 @@ class TestTsSplice:
         expected = pd.DataFrame({
             "A": [1., 2, 100, 200, 300., np.nan, 500],
             "B": [10., np.nan, 1000., 2000., np.nan, 4000, 5000]
-        }, index=pd.date_range("2023-01-01", periods=7, freq="d"))
+        }, index=pd.date_range("2023-01-01", periods=7, freq="D"))
         pd.testing.assert_frame_equal(result, expected)
 
     def test_splice_with_renaming(self, sample_data):
@@ -247,7 +247,7 @@ class TestTsSplice:
         result = ts_splice((s1, s2), names="Renamed_A", transition="prefer_last")
         expected = pd.Series(
             [1., 2, 10., 20., 30, np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="Renamed_A"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -257,7 +257,7 @@ class TestTsSplice:
         result = ts_splice((df_multi1, df_multi2), names=["A"], transition="prefer_last")
         expected = pd.DataFrame(
             {"A": [1., 2, 100, 200, 300, np.nan, 500]},
-            index=pd.date_range("2023-01-01", periods=7, freq="d")
+            index=pd.date_range("2023-01-01", periods=7, freq="D")
         )
         pd.testing.assert_frame_equal(result, expected)
 
@@ -266,7 +266,7 @@ class TestTsSplice:
         result = ts_splice((s1, s2), transition="prefer_last", floor_dates=True)
         expected = pd.Series(
             [1., 2, 10, 20., 30., np.nan, 50],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="A"
         )
         pd.testing.assert_series_equal(result, expected)
@@ -288,9 +288,9 @@ class TestTsSplice:
 class TestErrorConditions:
     def test_mismatched_column_names(self, sample_data):
         df1 = pd.DataFrame({"X": [1, 2, np.nan, 4, 5]}, 
-                           index=pd.date_range("2023-01-01", periods=5, freq="d"))
+                           index=pd.date_range("2023-01-01", periods=5, freq="D"))
         df2 = pd.DataFrame({"Y": [10, 20, np.nan, 40, 50]}, 
-                           index=pd.date_range("2023-01-03", periods=5, freq="d"))
+                           index=pd.date_range("2023-01-03", periods=5, freq="D"))
         with pytest.raises(ValueError, match="All input columns must be identical when `names` is None"):
             ts_merge((df1, df2))
 
@@ -366,7 +366,7 @@ class TestTsBlend:
         # For reference, this is the same expectation as TestTsMerge.test_series_merge
         expected = pd.Series(
             [1., 2., 10., 4., 5., np.nan, 50.],
-            index=pd.date_range("2023-01-01", periods=7, freq="d"),
+            index=pd.date_range("2023-01-01", periods=7, freq="D"),
             name="A",
         )
         pd.testing.assert_series_equal(result, expected)
@@ -384,7 +384,7 @@ class TestTsBlend:
         result = ts_blend((s1, s2), blend_length=2)
 
         # Union index: 2023-01-01..07
-        idx = pd.date_range("2023-01-01", periods=7, freq="d")
+        idx = pd.date_range("2023-01-01", periods=7, freq="D")
 
         # Expected values (see derivation in chat):
         # high-priority gaps (NaN) at days 3, 6, 7 (in union),
@@ -407,7 +407,7 @@ class TestTsBlend:
 
         result = ts_blend((df1, df2), blend_length=2)
 
-        idx = pd.date_range("2023-01-01", periods=7, freq="d")
+        idx = pd.date_range("2023-01-01", periods=7, freq="D")
         # Derived expectations for column "A":
         # - Fill high-priority gaps using low where possible
         # - Then blend near gaps using the same kernel as in the series test
@@ -447,7 +447,7 @@ class TestTsBlend:
         s1, s2 = sample_data["series1"], sample_data["series2"]
         result = ts_blend((s1, s2), names="new_name", blend_length=2)
 
-        idx = pd.date_range("2023-01-01", periods=7, freq="d")
+        idx = pd.date_range("2023-01-01", periods=7, freq="D")
         expected = pd.Series(
             [1.0, 2.0, 10.0, 8.0, 11.25, np.nan, 50.0],
             index=idx,

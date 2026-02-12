@@ -4,7 +4,7 @@
 from numpy import abs
 import pandas as pd
 import numpy as np
-from vtools.data.vtime import seconds, minutes, hours
+from vtools import safe_divide_interval, seconds, minutes, hours
 from scipy.signal import lfilter, firwin, filtfilt
 from scipy.signal import butter
 from scipy.ndimage import gaussian_filter1d
@@ -13,7 +13,7 @@ __all__ = [
     "cosine_lanczos",
     "butterworth",
     "godin",
-    "cosine_lanczos5",
+    "cosine_lanczos",
     "lowpass_cosine_lanczos_filter_coef",
     "ts_gaussian_filter",
     "lowpass_lanczos_filter_coef",
@@ -79,15 +79,16 @@ def process_cutoff(cutoff_frequency, cutoff_period, freq):
     if cutoff_frequency is None:
         if cutoff_period is None:
             raise ValueError("One of cutoff_frequency or cutoff_period must be given")
-        cp = pd.tseries.frequencies.to_offset(cutoff_period)
-        return 2.0 * freq / cp
+        cp = pd.Timedelta(cutoff_period)
+        dt = pd.Timedelta(freq)
+        return 2.0 * (dt / cp)
     else:
         if cutoff_frequency < 0 or cutoff_frequency > 1.0:
             raise ValueError("cutoff frequency must be 0 < cf < 1)")
         return cutoff_frequency
 
 
-def cosine_lanczos5(
+def cosine_lanczos(
     ts,
     cutoff_period=None,
     cutoff_frequency=None,
@@ -164,8 +165,14 @@ def cosine_lanczos5(
 
     if m is None:
         m = int(1.25 * 2.0 / cf)
-    else:
-        m = _resolve_filter_len(m, freq)
+    elif not isinstance(m, (int, np.integer)):
+        try:
+            m = safe_divide_interval(m, freq)
+        except Exception as e:
+            raise TypeError(
+                "filter_len was not an int or divisible by freq (probably a type incompatibility)"
+            ) from e
+
 
     ##find out nan location and fill with 0.0. This way we can use the
     ## signal processing filtrations out-of-the box without nans causing trouble,
@@ -373,8 +380,16 @@ def _lanczos_impl(
 
     if m is None:
         m = int(1.25 * 2.0 / cf)
-    else:
-        m = _resolve_filter_len(m, freq)
+    elif type(m) != int:
+        try:
+            m = int(m / freq)
+        except:
+            raise TypeError(
+                "filter_len was not an int or divisible by filter_len (probably a type incompatiblity)"
+            )
+        # raise NotImplementedError("Only integer length filter lengths or supported currently. Received: ".format(type(m)))
+
+
 
     ##find out nan location and fill with 0.0. This way we can use the
     ## signal processing filtrations out-of-the box without nans causing trouble,
@@ -562,7 +577,7 @@ def generate_godin_fir(freq):
     freqstr = str(freq)
     if freqstr in _cached_filt_info:
         return _cached_filt_info[freqstr]
-    dt_sec = int(freq / seconds(1))
+    dt_sec = safe_divide_interval(freq, seconds(1))
     nsample24 = int(86400 // dt_sec)  # 24 hours by dt (24 for hour, 96 for 15min)
     wts24 = np.zeros(nsample24, dtype="d")
     wts24[:] = 1.0 / nsample24

@@ -12,15 +12,15 @@ from vtools import extrapolate_ts
 
 # Core test cases
 def test_constant_forward():
-    ts = pd.Series([1, 2, 3], index=pd.date_range("2020-01-01", periods=3, freq="d"))
+    ts = pd.Series([1, 2, 3], index=pd.date_range("2020-01-01", periods=3, freq="D"))
     result = extrapolate_ts(ts, end="2020-01-05", method="constant", val=10)
-    expected = pd.Series([1, 2, 3, 10, 10], index=pd.date_range("2020-01-01", periods=5, freq="d"))
+    expected = pd.Series([1, 2, 3, 10, 10], index=pd.date_range("2020-01-01", periods=5, freq="D"))
     assert_series_equal(result, expected)
 
 def test_constant_backward():
-    ts = pd.Series([4, 5, 6], index=pd.date_range("2020-01-03", periods=3, freq="d"))
+    ts = pd.Series([4, 5, 6], index=pd.date_range("2020-01-03", periods=3, freq="D"))
     result = extrapolate_ts(ts, start="2020-01-01", method="constant", val=0)
-    expected = pd.Series([0, 0, 4, 5, 6], index=pd.date_range("2020-01-01", periods=5, freq="d"))
+    expected = pd.Series([0, 0, 4, 5, 6], index=pd.date_range("2020-01-01", periods=5, freq="D"))
     assert_series_equal(result, expected)
 
 def test_taper_forward():
@@ -58,7 +58,7 @@ def test_taper_without_val():
         extrapolate_ts(ts, end="2020-01-02", method="taper")
 
 def test_linear_with_val_error():
-    ts = pd.Series([1, 2], index=pd.date_range("2020-01-01", periods=2, freq="d"))
+    ts = pd.Series([1, 2], index=pd.date_range("2020-01-01", periods=2, freq="D"))
     with pytest.raises(ValueError, match="does not use 'val'"):
         extrapolate_ts(ts, start="2019-12-30", end="2020-01-03", method="linear_slope", val=99)
 
@@ -91,7 +91,7 @@ def generate_series(start, periods, freq, values=None):
 
 
 def test_taper_across_frequencies():
-    freqs = ["15min", "h", "d"]
+    freqs = ["15min", "h", "D"]
     for freq in freqs:
         ts = generate_series("2020-01-01", periods=2, freq=freq, values=[10, 20])
         interval = ts.index[1] - ts.index[0]
@@ -100,13 +100,13 @@ def test_taper_across_frequencies():
         assert result.index[-1] == end_time
 
 
-def test_taper_across_frequencies():
+def test_taper_across_frequencies2():
     results = {}
-    for freq in ["15min", "h", "d"]:
+    for freq in ["15min", "h", "D"]:
         ts = generate_series("2020-01-01", periods=2, freq=freq, values=[10, 10])  # Ensure 2+ points
         step = ts.index[1] - ts.index[0]
         end_time = ts.index[-1] + 3 * step
         result = extrapolate_ts(ts, end=end_time, method="taper", val=0.0)
-        assert result.index.freqstr.lower() == freq
+        assert result.index.freqstr == freq
         results[freq] = result
 

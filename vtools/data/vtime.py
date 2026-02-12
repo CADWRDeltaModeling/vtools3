@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 
-__all__ = ["seconds", "minutes", "hours", "days", "months", "years"]
+__all__ = ["seconds", "minutes", "hours", "days", "months", "years","to_timedelta", "safe_divide_interval"]
 
 
 def seconds(s):
@@ -91,3 +91,70 @@ def dst_to_standard_naive(ts, dst_zone="US/Pacific", standard_zone="Etc/GMT+8"):
         .tz_localize(None)
     )
     return ts2
+
+
+_FIXED_OFFSET_CLASSES = (
+    pd.offsets.Day,
+    pd.offsets.Hour,
+    pd.offsets.Minute,
+    pd.offsets.Second,
+    pd.offsets.Milli,
+    pd.offsets.Micro,
+    pd.offsets.Nano,
+)
+
+def to_timedelta(x):
+    """
+    Convert x to pandas.Timedelta if and only if it represents
+    a fixed-length duration.
+    """
+    if isinstance(x, (int, np.integer, float)):
+        return pd.Timedelta(x, unit="ns")
+
+    if isinstance(x, pd.Timedelta):
+        return x
+
+    # FIRST: try Timedelta parsing (handles "1H", "1D", etc.)
+    try:
+        if isinstance(x, str):
+            x = x.replace("H", "h").replace("d", "D").replace("T", "t")  # standardize case
+            print(x)
+        return pd.Timedelta(x)
+    except Exception:
+        pass
+
+    # FALLBACK: try fixed pandas offsets
+    try:
+        off = pd.tseries.frequencies.to_offset(x)
+    except Exception as e:
+        raise TypeError(f"Cannot interpret interval {x!r}") from e
+
+    if not isinstance(off, _FIXED_OFFSET_CLASSES):
+        raise TypeError(
+            f"Offset {type(off).__name__} is calendar-dependent "
+            "and not a fixed-length interval"
+        )
+
+    return pd.Timedelta(off.nanos, unit="ns")
+
+
+
+def safe_divide_interval(a, b, *, tol=1e-12, require_int=True):
+    td_a = to_timedelta(a)
+    td_b = to_timedelta(b)
+
+    if td_b == pd.Timedelta(0):
+        raise ZeroDivisionError("Division by zero interval")
+
+    ratio = td_a / td_b
+
+    if require_int:
+        r_int = int(round(ratio))
+        if abs(ratio - r_int) > tol:
+            raise ValueError(
+                f"Intervals are not evenly divisible: {a!r} / {b!r} = {ratio}"
+            )
+        return r_int
+
+    return float(ratio)
+

@@ -302,7 +302,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
             transition_points = [s.first_valid_index() for s in series[1:]]
             duplicate_keep = "last"
         if floor_dates:
-            transition_points = [dt.floor("d") for dt in transition_points]
+            transition_points = [dt.floor("D") for dt in transition_points]
     transition_points = [None] + transition_points + [None]
 
     # Extract sections based on transition points.

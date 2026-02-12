@@ -1,6 +1,7 @@
 from scipy.interpolate import PchipInterpolator
 import pandas as pd
 import numpy as np
+from pandas.tseries.frequencies import to_offset
 from vtools.functions.colname_align import align_inputs_pair_strict
 
 __all__ = ["transition_ts"]
@@ -154,10 +155,17 @@ def transition_ts(
     """
     if not isinstance(ts0, (pd.Series, pd.DataFrame)) or not isinstance(ts1, type(ts0)):
         raise ValueError("ts0 and ts1 must be of the same type (Series or DataFrame).")
-    if ts0.index.freq != ts1.index.freq:
+    freq0 = ts0.index.freq or ts0.index.inferred_freq
+    freq1 = ts1.index.freq or ts1.index.inferred_freq
+    if freq0 is None or freq1 is None:
+        raise ValueError("ts0 and ts1 must be regular time series with a resolvable frequency.")
+
+    freq0 = to_offset(freq0)
+    freq1 = to_offset(freq1)
+    if freq0 != freq1:
         raise ValueError("ts0 and ts1 must have the same frequency.")
 
-    freq = ts0.index.freq
+    freq = freq0
 
 
     # --- BLEND mode: explicit overlap with non-missing values in both series ---
