@@ -38,3 +38,4 @@ from vtools.functions.interpolate import *
 from vtools.functions.lag_cross_correlation import *
 from vtools.functions.envelope import *
 from vtools.functions.neighbor_fill import fill_from_neighbor,dfm_pack_params,save_dfm_params,load_dfm_params
+from vtools.functions.coarsen import ts_coarsen 
