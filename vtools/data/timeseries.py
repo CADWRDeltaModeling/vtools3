@@ -549,8 +549,24 @@ def is_regular(ts, raise_exception=False):
             raise ValueError(msg)
         return False
 
+    # If index is string-like, try datetime first, then numeric.
+    if pd.api.types.is_string_dtype(idx.dtype):
+        dt_idx = pd.to_datetime(idx, errors="coerce")
+        if not dt_idx.isna().any():
+            idx = pd.DatetimeIndex(dt_idx)
+        else:
+            num = pd.to_numeric(idx, errors="coerce")
+            if np.isnan(num).any():
+                msg = (
+                    "Index is a string that can't convert to datetime or numeric - can't assess regularity."
+                )
+                if raise_exception:
+                    raise ValueError(msg)
+                return False
+            idx = pd.Index(num)
+
     # Handle numeric indices (int, float)
-    if isinstance(idx, (pd.Index, pd.RangeIndex)) and np.issubdtype(idx.dtype, np.number):
+    if isinstance(idx, (pd.Index, pd.RangeIndex)) and pd.api.types.is_numeric_dtype(idx.dtype):
         # Calculate differences between consecutive values
         diffs = np.diff(idx.values)
         # Check if all differences are equal (within floating point tolerance)
@@ -563,7 +579,7 @@ def is_regular(ts, raise_exception=False):
             return False
 
     # Ensure we are working with a DatetimeIndex. If not, attempt conversion.
-    if not isinstance(idx, pd.DatetimeIndex):
+    if not isinstance(idx, pd.DatetimeIndex) and not pd.api.types.is_numeric_dtype(idx.dtype):
         try:
             idx = pd.to_datetime(idx)
         except Exception as e:
