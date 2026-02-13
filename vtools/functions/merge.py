@@ -280,7 +280,8 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     )
 
     # If names is a string, pre-rename each series for consistency.
-    if names and isinstance(names, str):
+
+    if names is not None and isinstance(names, str):
         series = [
             (
                 s.rename(columns={s.columns[0]: names})
