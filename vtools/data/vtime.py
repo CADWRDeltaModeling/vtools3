@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 
-__all__ = ["seconds", "minutes", "hours", "days", "months", "years","to_timedelta", "safe_divide_interval"]
+__all__ = ["seconds", "minutes", "hours", "days", "months", "years","to_timedelta", "divide_interval"]
 
 
 def seconds(s):
@@ -144,7 +144,7 @@ def to_timedelta(x):
     return pd.Timedelta(off.nanos, unit="ns")
 
 
-def safe_divide_interval(a, b, *, tol=1e-12, require_int=True):
+def divide_interval(a, b, *, tol=1e-12, require_int=True):
     """
     Divide two intervals (or two scalars) safely.
 
@@ -168,7 +168,7 @@ def safe_divide_interval(a, b, *, tol=1e-12, require_int=True):
 
     if a_is_num or b_is_num:
         raise TypeError(
-            "safe_divide_interval does not support scalar/interval division; "
+            "divide_interval does not support scalar/interval division; "
             "use explicit Timedelta scaling instead."
         )
 

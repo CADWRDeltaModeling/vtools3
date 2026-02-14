@@ -4,7 +4,7 @@
 from numpy import abs
 import pandas as pd
 import numpy as np
-from vtools import safe_divide_interval, seconds, minutes, hours
+from vtools import divide_interval, seconds, minutes, hours
 from scipy.signal import lfilter, firwin, filtfilt
 from scipy.signal import butter
 from scipy.ndimage import gaussian_filter1d
@@ -167,7 +167,7 @@ def cosine_lanczos(
         m = int(1.25 * 2.0 / cf)
     elif not isinstance(m, (int, np.integer)):
         try:
-            m = safe_divide_interval(m, freq)
+            m = divide_interval(m, freq)
         except Exception as e:
             raise TypeError(
                 "filter_len was not an int or divisible by freq (probably a type incompatibility)"
@@ -382,7 +382,7 @@ def _lanczos_impl(
         m = int(1.25 * 2.0 / cf)
     elif type(m) != int:
         try:
-            m = safe_divide_interval(m, freq)
+            m = divide_interval(m, freq)
         except:
             raise TypeError(
                 "filter_len was not an int or divisible by filter_len (probably a type incompatiblity)"
@@ -550,7 +550,7 @@ def butterworth(ts, cutoff_period=None, cutoff_frequency=None, order=4):
     if cf is None:
         if not (cutoff_period is None):
             cutoff_period = pd.tseries.frequencies.to_offset(cutoff_period)
-            cf = 2.0 * safe_divide_interval(freq, cutoff_period, require_int=False)
+            cf = 2.0 * divide_interval(freq, cutoff_period, require_int=False)
         else:
             cf = butterworth_cutoff_frequencies[interval]
 
@@ -571,7 +571,7 @@ def generate_godin_fir(freq):
     freqstr = str(freq)
     if freqstr in _cached_filt_info:
         return _cached_filt_info[freqstr]
-    dt_sec = safe_divide_interval(freq, seconds(1))
+    dt_sec = divide_interval(freq, seconds(1))
     nsample24 = int(86400 // dt_sec)  # 24 hours by dt (24 for hour, 96 for 15min)
     wts24 = np.zeros(nsample24, dtype="d")
     wts24[:] = 1.0 / nsample24
@@ -675,7 +675,7 @@ def ts_gaussian_filter(ts, sigma, order=0, mode="reflect", cval=0.0, truncate=4.
     """
     freq = ts.index.freq
     if type(sigma) != int:
-        sigma = safe_divide_interval(freq, sigma, require_int=True)
+        sigma = divide_interval(freq, sigma, require_int=True)
 
     if isinstance(ts, pd.Series):
         tsout = _gf1d(
