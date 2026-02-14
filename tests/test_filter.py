@@ -58,6 +58,49 @@ def test_butterworth_noevenorder():
     with pytest.raises(ValueError):
         butterworth(ts0, order=7)
 
+def _make_hourly_ts(n=200):
+    start = pd.Timestamp(2000, 2, 3)
+    freq = hours(1)
+    data = np.sin(np.linspace(0, 10 * np.pi, n))
+    return rts(data, start, freq)
+
+
+def test_butterworth_both_period_and_frequency_raises():
+    ts0 = _make_hourly_ts()
+    with pytest.raises(ValueError, match="simultaneously"):
+        butterworth(ts0, cutoff_period=hours(40), cutoff_frequency=0.2)
+
+
+def test_butterworth_missing_cutoff_raises():
+    ts0 = _make_hourly_ts()
+    with pytest.raises(ValueError, match="must be given"):
+        butterworth(ts0)
+
+
+def test_butterworth_cutoff_frequency_branch_preserves_freq():
+    ts0 = _make_hourly_ts()
+    ts_filt = butterworth(ts0, cutoff_frequency=0.2)
+    assert ts_filt.index.freq == ts0.index.freq
+    assert ts_filt.shape == ts0.shape
+
+
+def test_butterworth_cutoff_period_string_branch_preserves_freq():
+    ts0 = _make_hourly_ts()
+    # use lowercase 'h' to avoid Pandas4Warning for 'H'
+    ts_filt = butterworth(ts0, cutoff_period="40h")
+    assert ts_filt.index.freq == ts0.index.freq
+    assert ts_filt.shape == ts0.shape
+
+
+def test_butterworth_cutoff_period_calendar_rejected():
+    ts0 = _make_hourly_ts()
+    # Calendar-dependent periods (month/year) should not be allowed for fixed-interval math
+    with pytest.raises(TypeError):
+        butterworth(ts0, cutoff_period="1ME")
+
+
+
+
 def test_godin(filter_params):
     """Test Godin filter on a 1-hour interval series with four frequencies."""
     st = pd.Timestamp(1990, 2, 3, 11, 15)

@@ -382,7 +382,7 @@ def _lanczos_impl(
         m = int(1.25 * 2.0 / cf)
     elif type(m) != int:
         try:
-            m = int(m / freq)
+            m = safe_divide_interval(m, freq)
         except:
             raise TypeError(
                 "filter_len was not an int or divisible by filter_len (probably a type incompatiblity)"
@@ -550,7 +550,7 @@ def butterworth(ts, cutoff_period=None, cutoff_frequency=None, order=4):
     if cf is None:
         if not (cutoff_period is None):
             cutoff_period = pd.tseries.frequencies.to_offset(cutoff_period)
-            cf = 2.0 * freq / cutoff_period
+            cf = 2.0 * safe_divide_interval(freq, cutoff_period, require_int=False)
         else:
             cf = butterworth_cutoff_frequencies[interval]
 
@@ -560,12 +560,6 @@ def butterworth(ts, cutoff_period=None, cutoff_frequency=None, order=4):
     out = ts.copy(deep=True)
     out[:] = d2
 
-    #    prop={}
-    #    for key,val in ts.props.items():
-    #        prop[key]=val
-    #    prop[TIMESTAMP]=INST
-    #    prop[AGGREGATION]=INDIVIDUAL
-    #    time_interval
     return out
 
 
@@ -642,14 +636,6 @@ def godin(ts):
     return dfg
 
 
-def convert_span_to_nstep(freq, span):
-    if type(span) == int:
-        return span
-    span = pd.tseries.frequencies.to_offset(span)
-    freq = pd.tseries.frequencies.to_offset(freq)
-    return int(span / freq)
-
-
 def _gf1d(ts, sigma, order, mode, cval, truncate):
     tscopy = ts.copy()
     tscopy.loc[:] = gaussian_filter1d(
@@ -689,7 +675,7 @@ def ts_gaussian_filter(ts, sigma, order=0, mode="reflect", cval=0.0, truncate=4.
     """
     freq = ts.index.freq
     if type(sigma) != int:
-        sigma = convert_span_to_nstep(freq, sigma)
+        sigma = safe_divide_interval(freq, sigma, require_int=True)
 
     if isinstance(ts, pd.Series):
         tsout = _gf1d(

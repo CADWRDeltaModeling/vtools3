@@ -55,7 +55,8 @@ ERR_MULTI_NAMES_SERIES = "Cannot assign multiple names to a Series; pass a singl
 
 
 def align_names(result, names):
-    if not names:
+
+    if names is None:
         return result
 
     # Series case

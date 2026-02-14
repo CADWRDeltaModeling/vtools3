@@ -107,18 +107,24 @@ def to_timedelta(x):
     """
     Convert x to pandas.Timedelta if and only if it represents
     a fixed-length duration.
+
+    Notes
+    -----
+    Numeric values are rejected because they are unit-ambiguous.
     """
     if isinstance(x, (int, np.integer, float)):
-        return pd.Timedelta(x, unit="ns")
+        raise TypeError(
+            "Numeric values are ambiguous as time intervals; "
+            "use a Timedelta, offset (hours(1)), or a string like '1h'."
+        )
 
     if isinstance(x, pd.Timedelta):
         return x
 
-    # FIRST: try Timedelta parsing (handles "1H", "1D", etc.)
+    # FIRST: try Timedelta parsing (handles '1h', '1D', etc.)
     try:
         if isinstance(x, str):
-            x = x.replace("H", "h").replace("d", "D").replace("T", "t")  # standardize case
-            print(x)
+            x = x.replace("H", "h").replace("d", "D").replace("T", "t")
         return pd.Timedelta(x)
     except Exception:
         pass
@@ -138,8 +144,34 @@ def to_timedelta(x):
     return pd.Timedelta(off.nanos, unit="ns")
 
 
-
 def safe_divide_interval(a, b, *, tol=1e-12, require_int=True):
+    """
+    Divide two intervals (or two scalars) safely.
+
+    - interval / interval -> float ratio (or int if require_int)
+    - scalar / scalar     -> numeric ratio
+    - mixed scalar/interval -> TypeError
+    """
+    a_is_num = isinstance(a, (int, np.integer, float))
+    b_is_num = isinstance(b, (int, np.integer, float))
+
+    if a_is_num and b_is_num:
+        if b == 0:
+            raise ZeroDivisionError("Division by zero")
+        r = a / b
+        if require_int:
+            r_int = int(round(r))
+            if abs(r - r_int) > tol:
+                raise ValueError(f"Scalars are not evenly divisible: {a!r} / {b!r} = {r}")
+            return r_int
+        return float(r)
+
+    if a_is_num or b_is_num:
+        raise TypeError(
+            "safe_divide_interval does not support scalar/interval division; "
+            "use explicit Timedelta scaling instead."
+        )
+
     td_a = to_timedelta(a)
     td_b = to_timedelta(b)
 
@@ -157,4 +189,3 @@ def safe_divide_interval(a, b, *, tol=1e-12, require_int=True):
         return r_int
 
     return float(ratio)
-

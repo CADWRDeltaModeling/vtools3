@@ -39,3 +39,19 @@ def test_year_rejected():
 def test_zero_division():
     with pytest.raises(ZeroDivisionError):
         safe_divide_interval("1D", "0H")
+
+def test_ratio_ok_when_not_int_required():
+    assert safe_divide_interval("1D", "7h", require_int=False) == pytest.approx(24/7)
+
+def test_mixed_scalar_interval_rejected():
+    with pytest.raises(TypeError):
+        safe_divide_interval(24, "1h")
+    with pytest.raises(TypeError):
+        safe_divide_interval("1h", 24)
+        
+        
+def test_zero_division():
+    with pytest.raises(ZeroDivisionError):
+        safe_divide_interval("1D", "0h")
+
+        
