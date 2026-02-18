@@ -31,7 +31,8 @@ dependencies = [
     "scikit-learn",
     "scipy",
     "statsmodels>=0.13",
-	"pint"
+	"pint",
+    "click"
 ]
 
 [project.optional-dependencies]
@@ -66,6 +67,7 @@ exclude = ["docs"]
 
 [tool.pytest.ini_options]
 collect_ignore = ["setup.py"]
+testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 include = ["vtools*"]
@@ -77,3 +79,5 @@ version_scheme = "post-release"
 local_scheme = "dirty-tag"
 
 [project.scripts]
+vtl = "vtools.__main__:cli"
+# separate_species = "vtools.functions.separate_species:main" # suppressed, for now use "vtl separate_species"

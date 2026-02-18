@@ -8,11 +8,13 @@ from input files, seperates  the species, writes results and optionally plots
 an example
 """
 
-import argparse
-from vtools.datastore.read_ts import read_ts
 import datetime as dtm
+import re
+
+import click
+from vtools.datastore.read_ts import read_ts
 from vtools.functions.filter import cosine_lanczos
-from vtools.data.vtime import hours, minutes
+from vtools.data.vtime import days, hours, minutes
 
 
 def separate_species(ts, noise_thresh_min=40):
@@ -105,67 +107,48 @@ def plot_result(ts, ts_semi, ts_diurnal, ts_sub_tide, station):
 
 
 ################# command line application #####################
-def create_arg_parser():
-    import textwrap
-
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=textwrap.dedent(
-            """ 
-         ============== Example ==================
-      > separate_species.py --stime=2009-03-12 --etime=2010-01-01 --label="San Francisco" --outprefix=sf --plot 9414290_gageheight.csv
-      """
-        ),
-        description="""Script to filter a tide into its subtidal, diurnal and semidiurnal components (and residual noise""",
-    )
-    parser.add_argument(
-        "--stime",
-        default=None,
-        required=False,
-        help="Start time in ISO-like format 2009-03-12T00:00:00. Time part and 'T' are optional.",
-    )
-    parser.add_argument("--etime", default=None, required=False, help="End time.")
-    parser.add_argument(
-        "--plot",
-        default=False,
-        required=False,
-        action="store_true",
-        help="Plot time series in matplotlib",
-    )
-    parser.add_argument(
-        "--label", default="Tide", required=False, help="Label for station in plots"
-    )
-    parser.add_argument(
-        "--outprefix",
-        default=None,
-        help="Output file prefix (species name will be added). If omitted, the label will be used",
-    )
-    parser.add_argument("infile", help="Input file.")
-
-    return parser
-
-
-def main():
-    parser = create_arg_parser()
-    args = parser.parse_args()
-    if args.stime:
+@click.command(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help=(
+        "Script to filter a tide into its subtidal, diurnal and semidiurnal components "
+        "(and residual noise).\n\n"
+        "Example:\n"
+        "  separate_species.py --stime=2009-03-12 --etime=2010-01-01 "
+        "--label=\"San Francisco\" --outprefix=sf --plot 9414290_gageheight.csv"
+    ),
+)
+@click.option(
+    "--stime",
+    default=None,
+    help="Start time in ISO-like format 2009-03-12T00:00:00. Time part and 'T' are optional.",
+)
+@click.option("--etime", default=None, help="End time.")
+@click.option("--plot", is_flag=True, help="Plot time series in matplotlib")
+@click.option("--label", default="Tide", help="Label for station in plots")
+@click.option(
+    "--outprefix",
+    default=None,
+    help="Output file prefix (species name will be added). If omitted, the label will be used",
+)
+@click.argument("infile")
+def main(stime, etime, plot, label, outprefix, infile):
+    if stime:
         sdate = dtm.datetime(
-            *list(map(int, re.split(r"[^\d]", args.stime)))
+            *list(map(int, re.split(r"[^\d]", stime)))
         )  # convert start time string input to datetime
     else:
         sdate = None
-    if args.etime:
+    if etime:
         edate = dtm.datetime(
-            *list(map(int, re.split(r"[^\d]", args.etime)))
+            *list(map(int, re.split(r"[^\d]", etime)))
         )  # convert start time string input to datetime
     else:
         edate = None
-    data_file = args.infile
-    station_name = args.label
-    outprefix = args.outprefix
+    data_file = infile
+    station_name = label
     if not outprefix:
         outprefix = station_name.replace(" ", "_")
-    do_plot = args.plot
+    do_plot = plot
 
     ts = read_ts(data_file, None, None)
     astart = max(ts.start, sdate - days(5)) if sdate else ts.start
