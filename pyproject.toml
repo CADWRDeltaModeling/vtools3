@@ -24,6 +24,7 @@ keywords = ["vtools"]
 dependencies = [
     "numpy",
     "pandas",
+	"numba",
     "xarray",
     "dask",
     "dask-expr",
