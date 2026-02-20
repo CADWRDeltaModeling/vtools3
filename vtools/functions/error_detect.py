@@ -110,13 +110,19 @@ def threshold(ts, bounds, copy=True):
 
 
 def bounds_test(ts, bounds):
-    anomaly = pd.DataFrame(dtype=bool).reindex_like(ts)
-    anomaly[:] = False
+    # Make a boolean mask with exactly the same shape as ts
+    if isinstance(ts, pd.Series):
+        anomaly = pd.Series(False, index=ts.index, name=ts.name, dtype=bool)
+    else:
+        anomaly = pd.DataFrame(False, index=ts.index, columns=ts.columns, dtype=bool)
+
     if bounds is not None:
-        if bounds[0] is not None:
-            anomaly |= ts < bounds[0]
-        if bounds[1] is not None:
-            anomaly |= ts > bounds[1]
+        lo, hi = bounds
+        if lo is not None:
+            anomaly |= (ts < lo)
+        if hi is not None:
+            anomaly |= (ts > hi)
+            
     return anomaly
 
 
@@ -347,116 +353,227 @@ def steep_then_nan(
     quantiles=(0.01, 0.99),
     copy=True,
     as_anomaly=True,
+    *,
+    gap_aggregation="any",
+    smallgaplen=3,
+    neargapdist=5,
 ):
-    """
-    Detect outliers by running a median filter, subtracting it
-    from the original series and comparing the resulting residuals
-    to a global robust range of scale (the interquartile range).
-    Individual time points are rejected if the residual at that time point is more than level times the range of scale.
+    """Detect outliers via a median-filter residual test, gated by proximity to large gaps.
 
-    The original concept comes from Basu & Meckesheimer (2007)
-    although they didn't use the interquartile range but rather
-    expert judgment. To use this function effectively, you need to
-    be thoughtful about what the interquartile range will be. For instance,
-    for a strongly tidal flow station it is likely to
+    This is a Basu/median-style residual detector (median filter + robust global scale)
+    with an additional *gap proximity gate*: only points close to a *large* gap are
+    eligible to be flagged. "Small gaps" are treated as ignorable by converting them
+    to a sentinel before computing gap distance.
 
-    level: Number of times the scale or interquantile range the data has to be
-           to be rejected.d
+    Parameters
+    ----------
+    ts : pandas.Series or pandas.DataFrame
+        Input time series. For DataFrames, residual/outlier detection is performed
+        per column.
+    level : float, default 4.0
+        Threshold multiplier applied to the robust scale. A point is an outlier if
+        ``abs(residual) > level * scale``.
+    scale : float or pandas.Series, optional
+        If None, compute a robust global scale from residual quantiles.
+        If provided, it is used directly (scalar or per-column Series).
+    filt_len : int, default 11
+        Median filter window length passed to ``scipy.signal.medfilt``.
+    range : tuple, default (None, None)
+        Optional (lo, hi) bounds applied to the input before residual calculation.
+        If lo or hi is None, that side is not applied.
+    quantiles : tuple[float, float], default (0.01, 0.99)
+        Quantiles defining the robust range used as the scale when ``scale`` is None.
+    copy : bool, default True
+        If True, work on a copy of ``ts``.
+    as_anomaly : bool, default True
+        If True, return a boolean anomaly mask (same shape as ``ts``).
+        If False, return a copy of ``ts`` with anomalies replaced by NaN.
+    gap_aggregation : {"any", "all"}, default "any"
+        How to combine gap proximity across columns when ``ts`` is a DataFrame.
 
-    scale: Expert judgment of the scale of maximum variation over a time step.
-           If None, the interquartile range will be used. Note that for a
-           strongly tidal station the interquartile range may substantially overestimate the reasonable variation over a single time step, in which case the filter will work fine, but level should be set to
-           a number (less than one) accordingly.
+        - "any": a time is considered near a large gap if ANY column is near a gap.
+        - "all": a time is considered near a large gap only if ALL columns are near a gap.
 
-    filt_len: length of median filter, default is 5
+        This only affects the near-gap gate; residual outliers are still computed
+        per column.
+    smallgaplen : int, default 3
+        Gaps of length <= ``smallgaplen`` are treated as "small" and replaced by a
+        sentinel before gap distance is computed.
+    neargapdist : int, default 5
+        A time is considered "near a large gap" if its distance-to-gap (in samples)
+        is < ``neargapdist``.
 
-    quantiles : tuple of quantiles defining the measure of scale. Ignored
-          if scale is given directly. Default is interquartile range, and
-          this is almost always a reasonable choice.
+    Returns
+    -------
+    pandas.Series or pandas.DataFrame
+        If ``as_anomaly=True``, returns a boolean mask with the same shape as ``ts``.
+        If ``as_anomaly=False``, returns a copy of ``ts`` with flagged points set to NaN.
 
-    copy: if True, a copy is made leaving original series intact
-
-    You can also specify rejection of  values based on a simple range
-
-    Returns: copy of series with outliers replaced by nan
+    Notes
+    -----
+    - Gap proximity is computed using ``gapdist_test_series`` and ``gap_distance``.
+      For DataFrames, the per-column gap distance is reduced to a *time mask*
+      using ``gap_aggregation``.
+    - This function is intended for offline QC where gap-adjacent behavior is
+      considered more suspect than behavior in continuous data.
     """
     import warnings
+    import numpy as np
+    import pandas as pd
+    from scipy.signal import medfilt
 
     ts_out = ts.copy() if copy else ts
     warnings.filterwarnings("ignore")
 
-    test_gap = gapdist_test_series(ts, smallgaplen=3)
-    gapdist = gap_distance(test_gap, disttype="count", to="bad").squeeze()
-    neargapdist = 5
-    nearbiggap = gapdist.squeeze() < neargapdist
+    # Optional hard bounds (mutates ts_out)
+    if range is not None:
+        threshold(ts_out, range, copy=False)
+
+    # ---- Gap proximity gate (time mask) ----
+    test_gap = gapdist_test_series(ts_out, smallgaplen=smallgaplen)
+    gapdist = gap_distance(test_gap, disttype="count", to="bad")
+
+    near = gapdist < neargapdist
+    if isinstance(near, pd.DataFrame):
+        if gap_aggregation == "any":
+            near_t = near.any(axis=1)
+        elif gap_aggregation == "all":
+            near_t = near.all(axis=1)
+        else:
+            raise ValueError(f"gap_aggregation must be 'any' or 'all', got {gap_aggregation!r}")
+    else:
+        near_t = near
+
+    # ---- Median filter + residuals (per column) ----
     vals = ts_out.to_numpy()
     if ts_out.ndim == 1:
         filt = medfilt(vals, filt_len)
+        filt = pd.Series(filt, index=ts_out.index, name=ts_out.name)
     else:
         filt = np.apply_along_axis(medfilt, 0, vals, filt_len)
+        filt = pd.DataFrame(filt, index=ts_out.index, columns=ts_out.columns)
 
     res = ts_out - filt
 
+    # ---- Robust scale ----
     if scale is None:
         qq = res.quantile(q=quantiles)
+        # Series input -> qq is Series (indexed by quantiles)
+        # DataFrame input -> qq is DataFrame (index=quantiles, columns=ts_out.columns)
         scale = qq.loc[quantiles[1]] - qq.loc[quantiles[0]]
 
-    outlier = (np.absolute(res) > level * scale) | (np.absolute(res) < -level * scale)
-    diag_plot = False
-    if diag_plot:
-        fig, (ax0, ax1) = plt.subplots(2, sharex=True)
+    # ---- Outlier mask (per column / per series) ----
+    outlier = res.abs() > (level * scale)
 
-        print(outlier)
-        outliernum = (ts_out * 0.0).fillna(0.0)
-        outliernum[outlier] = 1.0
-        nearbiggapnum = (ts_out * 0.0).fillna(0.0)
-        print(nearbiggap)
-        nearbiggapnum[nearbiggap] = 1.0
-        outliernum.plot(ax=ax0)
-        nearbiggapnum.plot(ax=ax1)
-        gapdist.plot(ax=ax1)
-        plt.show()
+    # Gate by near-gap time mask
+    if isinstance(outlier, pd.DataFrame):
+        outlier = outlier & near_t.to_numpy()[:, None]
+    else:
+        outlier = outlier & near_t
 
-    outlier = outlier.squeeze() & nearbiggap.squeeze()
-    print("Any outliers?")
-    print(outlier.any())
-    print(ts_out[outlier])
-    print("Near big gap")
-    print(nearbiggap[nearbiggap.values])
-    print("OK")
+    if as_anomaly:
+        warnings.resetwarnings()
+        return outlier
 
-    if not as_anomaly:
-        values = np.where(outlier, np.nan, ts_out.values)
-        ts_out.iloc[:] = values
+    # Apply via pandas alignment (avoids shape/broadcast pitfalls)
+    ts_out = ts_out.mask(outlier)
+
     warnings.resetwarnings()
-    return outlier if as_anomaly else ts_out
+    return ts_out
 
+def despike(arr, n1=2, n2=20, block=10, *, as_anomaly=False):
+    """Detect and optionally remove isolated spikes using overlapping-window statistics.
 
-def despike(arr, n1=2, n2=20, block=10):
-    offset = arr.min()
-    arr -= offset
-    data = arr.copy()
-    roll = rolling_window(data, block)
-    roll = ma.masked_invalid(roll)
-    std = n1 * roll.std(axis=1)
-    mean = roll.mean(axis=1)
-    # Use the last value to fill-up.
-    std = np.r_[std, np.tile(std[-1], block - 1)]
-    mean = np.r_[mean, np.tile(mean[-1], block - 1)]
-    mask = np.abs(data - mean.filled(fill_value=np.nan)) > std.filled(fill_value=np.nan)
-    data[mask] = np.nan
-    # Pass two: recompute the mean and std without the flagged values from pass
-    # one now removing the flagged data.
-    roll = rolling_window(data, block)
-    roll = ma.masked_invalid(roll)
-    std = n2 * roll.std(axis=1)
-    mean = roll.mean(axis=1)
-    # Use the last value to fill-up.
-    std = np.r_[std, np.tile(std[-1], block - 1)]
-    mean = np.r_[mean, np.tile(mean[-1], block - 1)]
-    mask = np.abs(arr - mean.filled(fill_value=np.nan)) > std.filled(fill_value=np.nan)
-    arr[mask] = np.nan
-    return arr + offset
+    This is a legacy-style *spike scrubber* rather than a pure anomaly detector.
+    It runs two passes:
+
+    1) Compute a rolling (left-aligned) window mean/std and flag values whose
+       deviation exceeds ``n1 * std``. Those flagged values are temporarily set
+       to NaN.
+    2) Recompute rolling window mean/std on the NaN-masked signal and flag values
+       whose deviation exceeds ``n2 * std``. These flags are the final spikes.
+
+    Parameters
+    ----------
+    arr : array-like
+        1D numeric signal.
+    n1 : float, default 2
+        Pass-1 threshold multiplier on the rolling standard deviation.
+    n2 : float, default 20
+        Pass-2 threshold multiplier on the rolling standard deviation.
+    block : int, default 10
+        Rolling window length (number of samples). Windows are **left-aligned**
+        (i.e., window i is arr[i:i+block]). The final mean/std arrays are extended
+        by repeating the last window's stats for the last ``block-1`` samples,
+        matching the historical behavior.
+    as_anomaly : bool, default False
+        If False (default), return a cleaned array where spikes are replaced with NaN.
+        If True, return a boolean mask (True where spikes are detected by pass-2).
+
+    Returns
+    -------
+    np.ndarray
+        If ``as_anomaly`` is False: a float array (same length) with spikes set to NaN.
+        If ``as_anomaly`` is True: a boolean array (same length) marking spikes.
+
+    Notes
+    -----
+    - The implementation uses NumPy's ``sliding_window_view`` instead of an external
+      ``rolling_window`` helper to make the behavior explicit and self-contained.
+    - Any NaNs in the input are treated as missing data via masked arrays.
+    - This function copies the input and does **not** modify it in-place.
+    """
+    import numpy as np
+    import numpy.ma as ma
+    from numpy.lib.stride_tricks import sliding_window_view
+
+    x = np.asarray(arr, dtype=float).copy()
+    if x.ndim != 1:
+        raise ValueError("despike expects a 1D array")
+
+    if not isinstance(block, (int, np.integer)) or block <= 0:
+        raise ValueError("block must be a positive integer")
+
+    if x.size < block:
+        raise ValueError(f"block={block} is larger than input length {x.size}")
+
+    # Offset to reduce negative values; ignore NaNs (treated as missing).
+    offset = np.nanmin(x)
+    if not np.isfinite(offset):
+        raise ValueError("input contains no finite values")
+
+    x0 = x - offset  # offset-normalized signal
+
+    def _roll_stats(sig, mult):
+        # shape: (n-block+1, block)
+        roll = sliding_window_view(sig, window_shape=block)
+        roll = ma.masked_invalid(roll)
+        std = mult * roll.std(axis=1)
+        mean = roll.mean(axis=1)
+
+        # Extend to length n by repeating last window's stats (legacy behavior).
+        if block > 1:
+            std = np.r_[std, np.tile(std[-1], block - 1)]
+            mean = np.r_[mean, np.tile(mean[-1], block - 1)]
+        return mean.filled(np.nan), std.filled(np.nan)
+
+    # Pass 1: conservative flagging, then mask flagged values.
+    mean1, std1 = _roll_stats(x0, n1)
+    mask1 = np.abs(x0 - mean1) > std1
+
+    x1 = x0.copy()
+    x1[mask1] = np.nan
+
+    # Pass 2: aggressive flagging on the masked signal.
+    mean2, std2 = _roll_stats(x1, n2)
+    mask2 = np.abs(x0 - mean2) > std2
+
+    if as_anomaly:
+        return mask2.astype(bool)
+
+    out = x0.copy()
+    out[mask2] = np.nan
+    return out + offset
 
 
 def example():
