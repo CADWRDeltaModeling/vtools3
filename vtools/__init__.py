@@ -23,6 +23,7 @@ except PackageNotFoundError:
         __version__ = "unknown"
 
 from vtools.data.gap import *
+from vtools.data.duplicate_index import inspect_duplicate_index
 from vtools.data.vtime import *
 from vtools.data.timeseries import *
 from vtools.data.dst import *

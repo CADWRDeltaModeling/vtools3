@@ -143,7 +143,6 @@ def apply_climatology(climate, index=None, start=None, end=None, freq=None):
     Notes
     -----
     - If index is not provided, start, end, and freq must be specified to generate a DatetimeIndex using pandas.date_range.
-    - Backward compatible: original behavior is preserved if index is provided.
     """
     if len(climate) not in [12, 365, 366]:
         raise ValueError("Length of climatology must be 12, 365 or 366")
