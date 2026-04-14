@@ -189,3 +189,20 @@ def divide_interval(a, b, *, tol=1e-12, require_int=True):
         return r_int
 
     return float(ratio)
+
+
+def compare_interval(a, b):
+    """
+    Compare two fixed-length intervals.
+    Returns -1 if a < b, 0 if equal, 1 if a > b.
+    Rejects calendar-dependent offsets like months/years.
+    """
+    td_a = to_timedelta(a)
+    td_b = to_timedelta(b)
+
+    if td_a < td_b:
+        return -1
+    elif td_a > td_b:
+        return 1
+    else:
+        return 0
