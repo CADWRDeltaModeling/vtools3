@@ -33,7 +33,8 @@ dependencies = [
     "scipy",
     "statsmodels>=0.13",
 	"pint",
-    "click"
+    "click",
+    "utide",
 ]
 
 [project.optional-dependencies]
