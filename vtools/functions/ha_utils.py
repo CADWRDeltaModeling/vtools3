@@ -17,7 +17,7 @@ def nodal_factors(
     phase="Greenwich",
 ):
     """
-    Compute UTide nodal factors F, nodal phase U (cycles),
+    Compute nodal factors F, nodal phase U (cycles),
     and astronomical argument V (cycles).
 
     Parameters
