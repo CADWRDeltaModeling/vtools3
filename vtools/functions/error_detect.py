@@ -136,6 +136,38 @@ def median_test(ts, level=4, filt_len=7, quantiles=(0.005, 0.095), copy=True):
         as_anomaly=True,
     )
 
+def choose_npartitions(
+    nrows,
+    *,
+    window,
+    small_series_threshold=None,
+    min_partition_size=None,
+    target_partition_size=5000,
+):
+    if nrows <= 0:
+        raise ValueError("nrows must be positive")
+    if window <= 0:
+        raise ValueError("window must be positive")
+    if target_partition_size <= 0:
+        raise ValueError("target_partition_size must be positive")
+
+    if min_partition_size is None:
+        min_partition_size = max(4 * window, 128)
+
+    if small_series_threshold is None:
+        small_series_threshold = min_partition_size
+
+    if small_series_threshold <= 0:
+        raise ValueError("small_series_threshold must be positive")
+    if min_partition_size <= 0:
+        raise ValueError("min_partition_size must be positive")
+
+    if nrows <= small_series_threshold:
+        return 1
+
+    proposed = max(1, nrows // target_partition_size)
+    max_safe = max(1, nrows // min_partition_size)
+    return max(1, min(proposed, max_safe))
 
 def median_test_oneside(
     ts,
@@ -154,13 +186,23 @@ def median_test_oneside(
         vals = ts[::-1]
     else:
         vals = ts
-    vals = to_dataframe(vals)
-    vals.columns = ["ts"]
+        
+    if isinstance(vals, pd.Series):
+        vals = vals.to_frame(name="ts")
+    elif isinstance(vals, pd.DataFrame):
+        vals = vals.copy()
+        if vals.shape[1] != 1:
+            raise ValueError("median_test_oneside expects single-column input")
+        vals.columns = ["ts"]
+    else:
+        raise TypeError("Expected pandas Series or DataFrame")
 
     vals["z"] = vals.ts.diff()
     min_periods = kappa * 2 - 1
 
-    dds = dd.from_pandas(vals, npartitions=50)
+    window = kappa * 2
+    npartitions = choose_npartitions(len(vals), window=window)
+    dds = dd.from_pandas(vals, npartitions=npartitions)
     dds["my"] = dds["ts"].shift().rolling(kappa * 2, min_periods=min_periods).median()
     dds["mz"] = dds.z.shift().rolling(kappa * 2, min_periods=min_periods).median()
     dds["pred"] = dds.my + kappa * dds.mz
@@ -299,10 +341,7 @@ def median_test_twoside(
     warnings.filterwarnings("ignore")
 
     vals = ts_out.to_numpy()
-    # if ts_out.ndim == 1:
-    #    filt = medfilt(vals,filt_len)
-    # else:
-    #    filt = np.apply_along_axis(medfilt,0,vals,filt_len)
+
 
     def mseq(flen):
         halflen = flen // 2
@@ -312,7 +351,10 @@ def median_test_twoside(
 
     medseq = mseq(filt_len)
 
-    dds = dd.from_pandas(ts_out, npartitions=1)
+    kappa = filt_len // 2
+    window = kappa * 2
+    npartitions = choose_npartitions(len(vals), window=window)
+    dds = dd.from_pandas(ts_out, npartitions=npartitions)
     filt = (
         dds.rolling(filt_len, center=True)
         .apply(lambda x: np.nanmedian(x[medseq]), raw=True, engine="numba")
