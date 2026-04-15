@@ -27,7 +27,8 @@ def nodal_factors(
     tref_date : datetime or pandas.Timestamp
         Reference date, used for nodal amp and phase correction calculations.
         Resulted nodal factors will be computed at this reference date if
-        nodal_linear_time=True, otherwise nodal factors will be computed at t_dates.
+        nodal_linear_time=True, a single nodal factor(F/U) is returned for each constituent, 
+        otherwise nodal factors will be computed at t_dates for all constituents.
     constituents : sequence[str]
         Constituent abbreviations, e.g. ["M2", "K1", "MK3", "MO3"].
     lat_deg : float
@@ -42,12 +43,18 @@ def nodal_factors(
 
     Returns
     -------
-    F : ndarray (nt, nc)
-        Nodal amplitude factors.
-    U : ndarray (nt, nc)
-        Nodal phase corrections (cycles).
+    F : ndarray (n, nc)
+        Nodal amplitude factors. 
+        n is the length of t_dates when nodal_linear_time=False, otherwise n=1.
+        nc is the number of constituents.
+    U : ndarray (n, nc)
+        Nodal phase corrections (cycles). 
+        n is the length of t_dates when nodal_linear_time=False, otherwise n=1.
+        nc is the number of constituents.
     V : ndarray (nt, nc)
-        Astronomical arguments (cycles).
+        Astronomical arguments from tref_date (cycles).
+        nt is the length of t_dates.
+        nc is the number of constituents.
     """
     ## check input t_dates and tref_date are pandas.Timestamp or datetime
     if not (isinstance(t_dates, pd.Series) or isinstance(t_dates, pd.DatetimeIndex) or isinstance(t_dates, pd.Timestamp)):
@@ -141,5 +148,5 @@ def _fuv(
         float(lat_deg),
         ngflgs,
     )
-
+    
     return F, U, V
