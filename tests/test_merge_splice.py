@@ -455,15 +455,11 @@ class TestTsBlend:
         )
         pd.testing.assert_series_equal(result, expected)
 
-    def test_blend_time_based_requires_regular_index(self, irregular_sample_data):
-        """
-        Time-based blend_length on an irregular index (no .freq) should
-        raise a clear error.
-        """
+    def test_blend_irregular_inputs_raise(self, irregular_sample_data):
         s1 = irregular_sample_data["series1"]
         s2 = irregular_sample_data["series2"]
 
-        with pytest.raises(ValueError, match="requires a regular index with a .freq"):
+        with pytest.raises(ValueError, match="common regular frequency"):
             ts_blend((s1, s2), blend_length="2D")
 
     def test_blend_non_datetime_index_raises(self):
@@ -475,3 +471,125 @@ class TestTsBlend:
 
         with pytest.raises(ValueError, match="DatetimeIndex or PeriodIndex"):
             ts_blend((s1, s2), blend_length=2)
+
+def test_merge_conflicting_freq_raises():
+    s1 = pd.Series(
+        [1., 2., 3.],
+        index=pd.date_range("2023-01-01", periods=3, freq="D"),
+        name="A",
+    )
+    s2 = pd.Series(
+        [10., 20., 30.],
+        index=pd.date_range("2023-01-01", periods=3, freq="2D"),
+        name="A",
+    )
+
+    with pytest.raises(ValueError, match="inconsistent frequencies"):
+        ts_merge((s1, s2))
+
+def test_blend_conflicting_freq_raises():
+    s1 = pd.Series(
+        [1., 2., 3.],
+        index=pd.date_range("2023-01-01", periods=3, freq="D"),
+        name="A",
+    )
+    s2 = pd.Series(
+        [10., 20., 30.],
+        index=pd.date_range("2023-01-01", periods=3, freq="2D"),
+        name="A",
+    )
+
+    with pytest.raises(ValueError, match="inconsistent frequencies"):
+        ts_blend((s1, s2), blend_length=1)
+        
+def test_merge_regular_disjoint_inserts_nan_gap():
+    s1 = pd.Series(
+        [1., 2.],
+        index=pd.date_range("2023-01-01", periods=2, freq="D"),
+        name="A",
+    )
+    s2 = pd.Series(
+        [10., 20.],
+        index=pd.date_range("2023-01-05", periods=2, freq="D"),
+        name="A",
+    )
+
+    result = ts_merge((s1, s2))
+    expected = pd.Series(
+        [1., 2., np.nan, np.nan, 10., 20.],
+        index=pd.date_range("2023-01-01", periods=6, freq="D"),
+        name="A",
+    )
+    pd.testing.assert_series_equal(result, expected)
+    
+def test_merge_irregular_warns_when_preserve_freq_false_and_not_strict(irregular_sample_data):
+    s1 = irregular_sample_data["series1"]
+    s2 = irregular_sample_data["series2"]
+
+    with pytest.warns(UserWarning, match="irregular union-index artifacts"):
+        ts_merge((s1, s2), preserve_freq=False, strict_priority=False)
+     
+    
+def test_blend_regular_disjoint_inserts_nan_gap():
+    s1 = pd.Series(
+        [1., 2.],
+        index=pd.date_range("2023-01-01", periods=2, freq="D"),
+        name="A",
+    )
+    s2 = pd.Series(
+        [10., 20.],
+        index=pd.date_range("2023-01-05", periods=2, freq="D"),
+        name="A",
+    )
+
+    result = ts_blend((s1, s2), blend_length=None)
+    expected = pd.Series(
+        [1., 2., np.nan, np.nan, 10., 20.],
+        index=pd.date_range("2023-01-01", periods=6, freq="D"),
+        name="A",
+    )
+    pd.testing.assert_series_equal(result, expected)    
+    
+def test_blend_irregular_inputs_raise(irregular_sample_data):
+    s1 = irregular_sample_data["series1"]
+    s2 = irregular_sample_data["series2"]
+
+    with pytest.raises(ValueError, match="common regular frequency"):
+        ts_blend((s1, s2), blend_length=None)
+    
+def test_blend_irregular_raises(irregular_sample_data):
+    s1 = irregular_sample_data["series1"]
+    s2 = irregular_sample_data["series2"]
+
+    with pytest.raises(ValueError, match="common regular frequency"):
+        ts_blend((s1, s2), blend_length=None)    
+
+def test_blend_conflicting_freq_raises():
+    s1 = pd.Series(
+        [1., 2., 3.],
+        index=pd.date_range("2023-01-01", periods=3, freq="D"),
+        name="A",
+    )
+    s2 = pd.Series(
+        [10., 20., 30.],
+        index=pd.date_range("2023-01-01", periods=3, freq="2D"),
+        name="A",
+    )
+
+    with pytest.raises(ValueError, match="inconsistent frequencies"):
+        ts_blend((s1, s2), blend_length=1)
+
+def test_blend_conflicting_freq_raises():
+    s1 = pd.Series(
+        [1., 2., 3.],
+        index=pd.date_range("2023-01-01", periods=3, freq="D"),
+        name="A",
+    )
+    s2 = pd.Series(
+        [10., 20., 30.],
+        index=pd.date_range("2023-01-01", periods=3, freq="2D"),
+        name="A",
+    )
+
+    with pytest.raises(ValueError, match="inconsistent frequencies"):
+        ts_blend((s1, s2), blend_length=1)        

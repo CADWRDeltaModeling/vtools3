@@ -5,53 +5,78 @@ __all__ = ["ts_merge", "ts_splice"]
 
 import pandas as pd
 import numpy as np
-from functools import reduce
+import warnings
 from vtools.functions.colname_align import align_inputs_strict
+from vtools.data.indexing import  resolve_common_freq, regular_index_from_valid_extent
+
+def _merge_output_index_irregular(series, *, strict_priority):
+    """
+    Build the output index for ts_merge when frequency is not being preserved.
+    """
+    if strict_priority:
+        pieces = []
+        for s in series:
+            lo = s.first_valid_index()
+            hi = s.last_valid_index()
+            if lo is None or hi is None:
+                continue
+            idx = s.index[(s.index >= lo) & (s.index <= hi)]
+            pieces.append(idx)
+
+        if not pieces:
+            return series[0].index[:0]
+
+        out = pieces[0]
+        for idx in pieces[1:]:
+            out = out.union(idx, sort=False)
+        return out.sort_values()
+
+    warnings.warn(
+        "ts_merge(..., preserve_freq=False, strict_priority=False) may produce "
+        "irregular union-index artifacts; this mode is not recommended.",
+        UserWarning,
+        stacklevel=2,
+    )
+
+    out = series[0].index
+    for s in series[1:]:
+        out = out.union(s.index, sort=False)
+    return out.sort_values()
 
 
-def _reindex_to_continuous(result, first_freq):
-    if first_freq is None:
-        return result
+def _build_output_index(series, *, preserve_freq, fallback_builder):
+    """
+    Decide the output index for a composition routine.
 
-    start = result.index.min()
-    end   = result.index.max()
+    Parameters
+    ----------
+    series : sequence of Series/DataFrame
+    preserve_freq : bool
+        If True, require agreement among all freq-bearing indexes and return
+        a regular target index spanning the global valid-data extent.
+    fallback_builder : callable
+        Called as fallback_builder(series) when preserve_freq does not apply.
 
-    if isinstance(result.index, pd.DatetimeIndex):
-        cont = pd.date_range(start=start, end=end, freq=first_freq)
-    elif isinstance(result.index, pd.PeriodIndex):
-        cont = pd.period_range(start=start, end=end, freq=first_freq)
-    else:
-        return result  # unknown index type; do nothing
+    Returns
+    -------
+    pandas.Index
+    """
+    output_freq = resolve_common_freq(
+        [s.index for s in series],
+        preserve_freq=preserve_freq,
+    )
 
-    # --- NEW: never drop existing stamps
-    # If any current stamp isn't on 'cont', skip reindexing
-    try:
-        if not pd.Index(result.index).isin(cont).all():
-            # preserve data; just avoid forcing a conflicting freq
-            try:
-                result.index.freq = None
-            except ValueError:
-                pass
-            return result
-    except Exception:
-        return result
+    if output_freq is not None:
+        return regular_index_from_valid_extent(series, output_freq)
 
-    result = result.reindex(cont)
-
-    if isinstance(result.index, pd.PeriodIndex):
-        result.index = pd.PeriodIndex(result.index, freq=first_freq)
-    else:
-        try:
-            result.index.freq = first_freq
-        except ValueError:
-            result.index.freq = None
-    return result
+    return fallback_builder(series)
 
 #####################
 @align_inputs_strict(seq_arg=0, names_kw="names") 
 def ts_merge(series,
              names=None,
-             strict_priority = False):
+             strict_priority=False,
+             preserve_freq=True):
     """
     Merge multiple time series together, prioritizing series in order.
 
@@ -82,8 +107,7 @@ def ts_merge(series,
     if not all(isinstance(getattr(s, "index", None), pd.DatetimeIndex) for s in series):
         raise ValueError("All input series must have a DatetimeIndex.")
 
-    # Preserve first series freq (may be None)
-    first_freq = getattr(series[0].index, "freq", None)
+
 
     # If any DataFrame is present, convert Series->DataFrame to unify shapes
     any_df = any(isinstance(s, pd.DataFrame) for s in series)
@@ -111,13 +135,18 @@ def ts_merge(series,
                     raise ValueError(
                         "Mixed Series and DataFrames require Series names to match DataFrame columns."
                     )
-    # else: all Series → no column checks needed
+    # Build output index according to frequency / priority policy
+    original_all_series = all(isinstance(s, pd.Series) for s in series)
 
-    # Build the union index, sorted in time order
-    full_index = series[0].index
-    for s in series[1:]:
-        full_index = full_index.union(s.index, sort=False)
-    full_index = full_index.sort_values()
+
+    full_index = _build_output_index(
+        series,
+        preserve_freq=preserve_freq,
+        fallback_builder=lambda seq: _merge_output_index_irregular(
+            seq,
+            strict_priority=strict_priority,
+        ),
+    )
 
     # Align to union index and keep DataFrame shape for column-wise masking
     aligned = []
@@ -178,22 +207,17 @@ def ts_merge(series,
 
 
     # If all inputs were univariate Series, return a Series
-    all_series = all(isinstance(s, pd.Series) for s in series)
-    if all_series:
+    if original_all_series:
         merged = merged.squeeze()
     else:
         if isinstance(merged, pd.Series):
             merged = merged.to_frame()
 
-    
-    # Reindex to a continuous index using the first series' freq (your helper)
-    merged = _reindex_to_continuous(merged, first_freq)
-    # Name alignment will be added by decorator
-
     return merged
 
+
 @align_inputs_strict(seq_arg=0, names_kw="names") 
-def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
+def ts_splice(series, names=None, transition="prefer_last", floor_dates=False, preserve_freq=True):
     """
     Splice multiple time series together, prioritizing series in patches of time.
 
@@ -247,6 +271,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     --------
     ts_merge : Merges series by filling gaps in order of priority.
     """
+    
     series = [s.copy() for s in series]
 
     if not isinstance(series, (tuple, list)) or len(series) == 0:
@@ -273,14 +298,14 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
             "`transition` must be 'prefer_last', 'prefer_first', or a list of timestamps."
         )
 
-    # Determine if frequency can be preserved.
-    first_freq = series[0].index.freq
-    same_freq = all(
-        s.index.freq == first_freq for s in series if s.index.freq is not None
+    # Decide whether a regular output index should be imposed at the end.
+    target_index = _build_output_index(
+        series,
+        preserve_freq=preserve_freq,
+        fallback_builder=lambda seq: None,
     )
 
     # If names is a string, pre-rename each series for consistency.
-
     if names is not None and isinstance(names, str):
         series = [
             (
@@ -336,7 +361,8 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False):
     if dup.any():
         spliced = spliced[~dup]
 
-    # Reindex to a continuous index *****
-    spliced = _reindex_to_continuous(spliced, first_freq)
+    if target_index is not None:
+        spliced = spliced.reindex(target_index)
+
     return spliced
 
