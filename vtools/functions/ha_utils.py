@@ -52,7 +52,7 @@ def nodal_factors(
         n is the length of t_dates when nodal_linear_time=False, otherwise n=1.
         nc is the number of constituents.
     V : ndarray (nt, nc)
-        Astronomical arguments from tref_date (cycles).
+        Astronomical arguments reckoned from tref_date (cycles).
         nt is the length of t_dates.
         nc is the number of constituents.
     """
