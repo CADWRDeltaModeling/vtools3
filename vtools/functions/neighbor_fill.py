@@ -48,7 +48,13 @@ import warnings
 import numpy as np
 import pandas as pd
 
-__all__ = ["fill_from_neighbor", "FillResult","dfm_pack_params","load_dfm_params","save_dfm_params"]
+__all__ = [
+    "fill_from_neighbor",
+    "FillResult",
+    "dfm_pack_params",
+    "load_dfm_params",
+    "save_dfm_params",
+]
 
 # Optional heavy dependencies
 try:

@@ -119,10 +119,10 @@ def bounds_test(ts, bounds):
     if bounds is not None:
         lo, hi = bounds
         if lo is not None:
-            anomaly |= (ts < lo)
+            anomaly |= ts < lo
         if hi is not None:
-            anomaly |= (ts > hi)
-            
+            anomaly |= ts > hi
+
     return anomaly
 
 
@@ -135,6 +135,7 @@ def median_test(ts, level=4, filt_len=7, quantiles=(0.005, 0.095), copy=True):
         copy=False,
         as_anomaly=True,
     )
+
 
 def choose_npartitions(
     nrows,
@@ -169,6 +170,7 @@ def choose_npartitions(
     max_safe = max(1, nrows // min_partition_size)
     return max(1, min(proposed, max_safe))
 
+
 def median_test_oneside(
     ts,
     scale=None,
@@ -186,7 +188,7 @@ def median_test_oneside(
         vals = ts[::-1]
     else:
         vals = ts
-        
+
     if isinstance(vals, pd.Series):
         vals = vals.to_frame(name="ts")
     elif isinstance(vals, pd.DataFrame):
@@ -342,7 +344,6 @@ def median_test_twoside(
 
     vals = ts_out.to_numpy()
 
-
     def mseq(flen):
         halflen = flen // 2
         a = np.arange(0, halflen)
@@ -482,7 +483,9 @@ def steep_then_nan(
         elif gap_aggregation == "all":
             near_t = near.all(axis=1)
         else:
-            raise ValueError(f"gap_aggregation must be 'any' or 'all', got {gap_aggregation!r}")
+            raise ValueError(
+                f"gap_aggregation must be 'any' or 'all', got {gap_aggregation!r}"
+            )
     else:
         near_t = near
 
@@ -522,6 +525,7 @@ def steep_then_nan(
 
     warnings.resetwarnings()
     return ts_out
+
 
 def despike(arr, n1=2, n2=20, block=10, *, as_anomaly=False):
     """Detect and optionally remove isolated spikes using overlapping-window statistics.

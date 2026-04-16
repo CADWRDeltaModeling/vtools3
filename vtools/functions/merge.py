@@ -7,7 +7,8 @@ import pandas as pd
 import numpy as np
 import warnings
 from vtools.functions.colname_align import align_inputs_strict
-from vtools.data.indexing import  resolve_common_freq, regular_index_from_valid_extent
+from vtools.data.indexing import resolve_common_freq, regular_index_from_valid_extent
+
 
 def _merge_output_index_irregular(series, *, strict_priority):
     """
@@ -71,12 +72,10 @@ def _build_output_index(series, *, preserve_freq, fallback_builder):
 
     return fallback_builder(series)
 
+
 #####################
-@align_inputs_strict(seq_arg=0, names_kw="names") 
-def ts_merge(series,
-             names=None,
-             strict_priority=False,
-             preserve_freq=True):
+@align_inputs_strict(seq_arg=0, names_kw="names")
+def ts_merge(series, names=None, strict_priority=False, preserve_freq=True):
     """
     Merge multiple time series together, prioritizing series in order.
 
@@ -95,6 +94,12 @@ def ts_merge(series,
         [first_valid_index, last_valid_index] of any higher-priority series,
         lower-priority data are masked out — even if the higher-priority value is NaN.
         Outside those windows, behavior is unchanged.
+    preserve_freq : bool, default True
+        If True, attempt to preserve a common regular frequency across inputs.
+        When a common regular frequency can be established, the output is
+        reindexed to that regular extent. When it cannot be established,
+        ts_merge falls back to index-based merge behavior, which for strict_priority=True
+        is a patchwise combination of the indexes and for False is a shuffle.
 
     Returns
     -------
@@ -107,17 +112,17 @@ def ts_merge(series,
     if not all(isinstance(getattr(s, "index", None), pd.DatetimeIndex) for s in series):
         raise ValueError("All input series must have a DatetimeIndex.")
 
-
-
     # If any DataFrame is present, convert Series->DataFrame to unify shapes
     any_df = any(isinstance(s, pd.DataFrame) for s in series)
     if any_df:
-        series = [s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series]
+        series = [
+            s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series
+        ]
 
     # Column compatibility checks (messages match tests)
-    all_df     = all(isinstance(s, pd.DataFrame) for s in series)
-    any_df     = any(isinstance(s, pd.DataFrame) for s in series)
-    any_series = any(isinstance(s, pd.Series)     for s in series)
+    all_df = all(isinstance(s, pd.DataFrame) for s in series)
+    any_df = any(isinstance(s, pd.DataFrame) for s in series)
+    any_series = any(isinstance(s, pd.Series) for s in series)
 
     if all_df:
         if names is None:
@@ -129,7 +134,9 @@ def ts_merge(series,
                     )
     elif any_df and any_series:
         if names is None:
-            df_cols = {c for s in series if isinstance(s, pd.DataFrame) for c in s.columns}
+            df_cols = {
+                c for s in series if isinstance(s, pd.DataFrame) for c in s.columns
+            }
             for s in series:
                 if isinstance(s, pd.Series) and s.name not in df_cols:
                     raise ValueError(
@@ -137,7 +144,6 @@ def ts_merge(series,
                     )
     # Build output index according to frequency / priority policy
     original_all_series = all(isinstance(s, pd.Series) for s in series)
-
 
     full_index = _build_output_index(
         series,
@@ -190,21 +196,26 @@ def ts_merge(series,
         # Use the highest-priority input to define the dominance window (per-column union)
         top = aligned[0]  # DataFrame (we normalized earlier)
         lo_candidates = [top[c].first_valid_index() for c in top.columns]
-        hi_candidates = [top[c].last_valid_index()  for c in top.columns]
+        hi_candidates = [top[c].last_valid_index() for c in top.columns]
         lo0 = min([x for x in lo_candidates if x is not None], default=None)
         hi0 = max([x for x in hi_candidates if x is not None], default=None)
 
         if lo0 is not None and hi0 is not None:
             idx = merged.index
-            in_window   = (idx >= lo0) & (idx <= hi0)
-            in_top_idx  = idx.isin(series[0].index)  # keep rows that are from the top series' index
+            in_window = (idx >= lo0) & (idx <= hi0)
+            in_top_idx = idx.isin(
+                series[0].index
+            )  # keep rows that are from the top series' index
             # rows that are entirely NaN after strict masking
-            all_nan = merged.isna().all(axis=1) if isinstance(merged, pd.DataFrame) else merged.isna()
+            all_nan = (
+                merged.isna().all(axis=1)
+                if isinstance(merged, pd.DataFrame)
+                else merged.isna()
+            )
             # Drop only those that are NaN, within the window, and not in the top index (i.e., lower-only timestamps)
             drop_mask = in_window & (~in_top_idx) & all_nan
             if drop_mask.any():
                 merged = merged.loc[~drop_mask]
-
 
     # If all inputs were univariate Series, return a Series
     if original_all_series:
@@ -216,8 +227,10 @@ def ts_merge(series,
     return merged
 
 
-@align_inputs_strict(seq_arg=0, names_kw="names") 
-def ts_splice(series, names=None, transition="prefer_last", floor_dates=False, preserve_freq=True):
+@align_inputs_strict(seq_arg=0, names_kw="names")
+def ts_splice(
+    series, names=None, transition="prefer_last", floor_dates=False, preserve_freq=True
+):
     """
     Splice multiple time series together, prioritizing series in patches of time.
 
@@ -251,6 +264,13 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False, p
         are floored to the beginning of the day. This can introduce NaNs if the
         input series are regular with a `freq` attribute.
 
+    preserve_freq : bool, default True
+        If True, attempt to preserve a common regular frequency across inputs.
+        When a common regular frequency can be established, the output is
+        reindexed to that regular extent. When it cannot be established,
+        ts_merge falls back to index-based merge behavior, which for strict_priority=True
+        is a patchwise combination of the indexes and for False is a shuffle.
+
     Returns
     -------
     pandas.DataFrame or pandas.Series
@@ -271,7 +291,7 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False, p
     --------
     ts_merge : Merges series by filling gaps in order of priority.
     """
-    
+
     series = [s.copy() for s in series]
 
     if not isinstance(series, (tuple, list)) or len(series) == 0:
@@ -365,4 +385,3 @@ def ts_splice(series, names=None, transition="prefer_last", floor_dates=False, p
         spliced = spliced.reindex(target_index)
 
     return spliced
-

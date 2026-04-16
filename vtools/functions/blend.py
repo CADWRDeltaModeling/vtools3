@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 from vtools import to_timedelta
@@ -6,6 +5,7 @@ from vtools.functions.colname_align import align_inputs_strict
 from vtools.data.indexing import resolve_common_freq, regular_index_from_valid_extent
 
 __all__ = ["ts_blend"]
+
 
 def _blend_output_index(series):
     """
@@ -41,6 +41,7 @@ def _blend_output_index(series):
         )
 
     return regular_index_from_valid_extent(series, output_freq)
+
 
 def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
     """
@@ -95,7 +96,9 @@ def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
     if mode == "freq":
         freq = idx.freq
         if freq is None:
-            raise ValueError("Time-based blending requires a regular index with .freq set.")
+            raise ValueError(
+                "Time-based blending requires a regular index with .freq set."
+            )
         # counts * freq → Timedelta
         return dist_s * to_timedelta(freq)
 
@@ -127,9 +130,13 @@ def _normalize_blend_length(blend_length, index):
     # Timedelta-like: e.g. '2h', '30min'
     td = pd.to_timedelta(blend_length)
     if not isinstance(index, (pd.DatetimeIndex, pd.PeriodIndex)):
-        raise ValueError("Time-based blend_length requires a DatetimeIndex or PeriodIndex.")
+        raise ValueError(
+            "Time-based blend_length requires a DatetimeIndex or PeriodIndex."
+        )
     if index.freq is None:
-        raise ValueError("Time-based blend_length requires a regular index with a .freq attribute.")
+        raise ValueError(
+            "Time-based blend_length requires a regular index with a .freq attribute."
+        )
     if td <= pd.Timedelta(0):
         return None, None
 
@@ -166,8 +173,16 @@ def _blend_two(
     cols = sorted(set(aligned_hi.columns) | set(aligned_lo.columns))
 
     for col in cols:
-        hi_col = aligned_hi[col] if col in aligned_hi.columns else pd.Series(index=idx, dtype=float)
-        lo_col = aligned_lo[col] if col in aligned_lo.columns else pd.Series(index=idx, dtype=float)
+        hi_col = (
+            aligned_hi[col]
+            if col in aligned_hi.columns
+            else pd.Series(index=idx, dtype=float)
+        )
+        lo_col = (
+            aligned_lo[col]
+            if col in aligned_lo.columns
+            else pd.Series(index=idx, dtype=float)
+        )
 
         hi_nan = hi_col.isna()
         lo_nan = lo_col.isna()
@@ -214,8 +229,7 @@ def _blend_two(
         lo_vals = lo_col[near_gap].astype(float)
 
         blended_vals = (
-            w_hi.to_numpy() * hi_vals.to_numpy()
-            + w_lo.to_numpy() * lo_vals.to_numpy()
+            w_hi.to_numpy() * hi_vals.to_numpy() + w_lo.to_numpy() * lo_vals.to_numpy()
         )
 
         # IMPORTANT: use .loc with a boolean mask, not .at, so we never hit
@@ -234,6 +248,7 @@ from vtools.functions.colname_align import align_inputs_strict
 from vtools.data.indexing import resolve_common_freq, regular_index_from_valid_extent
 
 __all__ = ["ts_blend"]
+
 
 def _blend_output_index(series):
     """
@@ -269,6 +284,7 @@ def _blend_output_index(series):
         )
 
     return regular_index_from_valid_extent(series, output_freq)
+
 
 def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
     """
@@ -323,7 +339,9 @@ def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
     if mode == "freq":
         freq = idx.freq
         if freq is None:
-            raise ValueError("Time-based blending requires a regular index with .freq set.")
+            raise ValueError(
+                "Time-based blending requires a regular index with .freq set."
+            )
         # counts * freq → Timedelta
         return dist_s * to_timedelta(freq)
 
@@ -355,9 +373,13 @@ def _normalize_blend_length(blend_length, index):
     # Timedelta-like: e.g. '2h', '30min'
     td = pd.to_timedelta(blend_length)
     if not isinstance(index, (pd.DatetimeIndex, pd.PeriodIndex)):
-        raise ValueError("Time-based blend_length requires a DatetimeIndex or PeriodIndex.")
+        raise ValueError(
+            "Time-based blend_length requires a DatetimeIndex or PeriodIndex."
+        )
     if index.freq is None:
-        raise ValueError("Time-based blend_length requires a regular index with a .freq attribute.")
+        raise ValueError(
+            "Time-based blend_length requires a regular index with a .freq attribute."
+        )
     if td <= pd.Timedelta(0):
         return None, None
 
@@ -394,8 +416,16 @@ def _blend_two(
     cols = sorted(set(aligned_hi.columns) | set(aligned_lo.columns))
 
     for col in cols:
-        hi_col = aligned_hi[col] if col in aligned_hi.columns else pd.Series(index=idx, dtype=float)
-        lo_col = aligned_lo[col] if col in aligned_lo.columns else pd.Series(index=idx, dtype=float)
+        hi_col = (
+            aligned_hi[col]
+            if col in aligned_hi.columns
+            else pd.Series(index=idx, dtype=float)
+        )
+        lo_col = (
+            aligned_lo[col]
+            if col in aligned_lo.columns
+            else pd.Series(index=idx, dtype=float)
+        )
 
         hi_nan = hi_col.isna()
         lo_nan = lo_col.isna()
@@ -442,8 +472,7 @@ def _blend_two(
         lo_vals = lo_col[near_gap].astype(float)
 
         blended_vals = (
-            w_hi.to_numpy() * hi_vals.to_numpy()
-            + w_lo.to_numpy() * lo_vals.to_numpy()
+            w_hi.to_numpy() * hi_vals.to_numpy() + w_lo.to_numpy() * lo_vals.to_numpy()
         )
 
         # IMPORTANT: use .loc with a boolean mask, not .at, so we never hit
@@ -453,13 +482,10 @@ def _blend_two(
         out[col] = merged
 
     return out
+
 
 @align_inputs_strict(seq_arg=0, names_kw="names")
-def ts_blend(
-    series,
-    names=None,
-    blend_length=None
-):
+def ts_blend(series, names=None, blend_length=None):
     """
     Blend multiple time series together, using higher priority where possible,
     but ramping in lower-priority data near gaps in the higher-priority series.
@@ -507,7 +533,9 @@ def ts_blend(
     # If any DataFrame is present, normalize all to DataFrame
     any_df = any(isinstance(s, pd.DataFrame) for s in series)
     if any_df:
-        series = [s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series]
+        series = [
+            s.to_frame(name=s.name) if isinstance(s, pd.Series) else s for s in series
+        ]
 
     all_df = all(isinstance(s, pd.DataFrame) for s in series)
     any_series = any(isinstance(s, pd.Series) for s in series)
@@ -523,7 +551,9 @@ def ts_blend(
                     )
     elif any_df and any_series:
         if names is None:
-            df_cols = {c for s in series if isinstance(s, pd.DataFrame) for c in s.columns}
+            df_cols = {
+                c for s in series if isinstance(s, pd.DataFrame) for c in s.columns
+            }
             for s in series:
                 if isinstance(s, pd.Series) and s.name not in df_cols:
                     raise ValueError(
@@ -531,9 +561,7 @@ def ts_blend(
                     )
 
     # Build working index according to frequency policy.
-    full_index = _blend_output_index(
-        series
-    )
+    full_index = _blend_output_index(series)
 
     # Normalize blend_length against the working index
     blend_mode, blend_L = _normalize_blend_length(blend_length, full_index)
