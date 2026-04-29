@@ -5,6 +5,8 @@ from vtools.functions.filter import cosine_lanczos
 
 __all__ = [
     "get_tidal_hl",
+    "get_tidal_hh_lh",
+    "get_tidal_ll_hl",
     "get_tidal_amplitude",
     "get_tidal_hl_zerocrossing",
     "get_tidal_phase_diff",
@@ -56,6 +58,19 @@ def lmin(arr):
         return arr[idx]
     else:
         return np.nan
+@numba.jit(nopython=True)   
+def tlmax(arr):
+    """return HH(1) or LH (0)"""
+    idx = np.argmax(arr)  # only the first occurence of the maxima is return
+    # print(arr,idx)
+    return idx
+
+@numba.jit(nopython=True)
+def tlmin(arr):
+    """return LL(1) or HL(0)"""
+    idx = np.argmin(arr)
+    return idx
+
 
 
 def periods_per_window(moving_window_size: str, period_str: str) -> int:
@@ -77,6 +92,25 @@ def periods_per_window(moving_window_size: str, period_str: str) -> int:
         / pd.to_timedelta(pd.tseries.frequencies.to_offset(period_str))
     )
 
+def get_tidal_hh_lh(sh):
+    """
+    return HH(1) or LH (0) based from input tide highs (sh) using rolling window of 2 and tlmax function
+    """
+    sth = sh.rolling(2).apply(tlmax, raw=True)
+    sth.iloc[0] = (
+        0 if sth.iloc[1, 0] > 0 else 1
+    )  # fill in the first value based on next value
+    return sth.iloc[:, 0].map({np.nan: "", 0: "LH", 1: "HH"}).astype(str)
+
+
+def get_tidal_ll_hl(sl):
+    """return LL(1) or HL (0) based from input tide lows (sl) using rolling window of 2 and tlmin function
+    """
+    stl = sl.rolling(2).apply(tlmin, raw=True)
+    stl.iloc[0] = (
+        0 if stl.iloc[1, 0] > 0 else 1
+    )  # fill in the first value based on next value
+    return stl.iloc[:, 0].map({np.nan: "", 0: "HL", 1: "LL"}).astype(str)
 
 def tidal_highs(df, moving_window_size="7h"):
     """Tidal highs (could be upto two highs in a 25 hr period)
