@@ -619,7 +619,7 @@ def godin(ts):
     """
     freq = ts.index.freq
     if freq is None:
-        raise ValueException("Series must be regular (have freq set)")
+        raise ValueError("Series must be regular (have freq set)")
     godin_ir = generate_godin_fir(freq)
     nfilt = len(godin_ir)
     nhalffilt = nfilt // 2
