@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from vtools import to_timedelta
 from vtools.functions.colname_align import align_inputs_strict
-from vtools.data.indexing import resolve_common_freq, regular_index_from_valid_extent
+from vtools.data.indexing import resolve_common_freq
 
 __all__ = ["ts_blend"]
 
@@ -12,7 +12,8 @@ def _blend_output_index(series):
     Determine the working index for ts_blend.
 
     Blending requires inputs with a common regular frequency. The working
-    index is the regular index spanning the valid-data extent of the inputs.
+    index is the regular index spanning the full union extent of the inputs
+    (earliest start to latest end across all series).
 
     Parameters
     ----------
@@ -21,7 +22,7 @@ def _blend_output_index(series):
 
     Returns
     -------
-    pandas.Index
+    pandas.DatetimeIndex
         Regular index on which blending should be performed.
 
     Raises
@@ -40,250 +41,9 @@ def _blend_output_index(series):
             "For irregular handoff behavior, use ts_splice."
         )
 
-    return regular_index_from_valid_extent(series, output_freq)
-
-
-def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
-    """
-    Distance to nearest gap (NaN) in hi_col.
-
-    Parameters
-    ----------
-    hi_col : Series
-        Higher-priority series.
-    mode : {'count', 'freq'}
-        'count' -> distance in # of samples (0 at gaps).
-        'freq'  -> distance as Timedelta, using hi_col.index.freq.
-
-    Returns
-    -------
-    Series
-        Same index as hi_col, distance to nearest NaN.
-    """
-    idx = hi_col.index
-    n = len(idx)
-    mask = hi_col.isna().to_numpy()
-
-    # No gaps -> everything is effectively "far away"
-    if not mask.any():
-        dist = np.full(n, np.inf, dtype=float)
-        return pd.Series(dist, index=idx)
-
-    dist = np.full(n, np.inf, dtype=float)
-
-    # Forward pass: distance from the last gap
-    last_gap = None
-    for i in range(n):
-        if mask[i]:
-            dist[i] = 0.0
-            last_gap = i
-        elif last_gap is not None:
-            dist[i] = float(i - last_gap)
-
-    # Backward pass: distance from the next gap
-    last_gap = None
-    for i in range(n - 1, -1, -1):
-        if mask[i]:
-            last_gap = i
-        elif last_gap is not None:
-            dist[i] = min(dist[i], float(last_gap - i))
-
-    dist_s = pd.Series(dist, index=idx)
-
-    if mode == "count":
-        return dist_s
-
-    if mode == "freq":
-        freq = idx.freq
-        if freq is None:
-            raise ValueError(
-                "Time-based blending requires a regular index with .freq set."
-            )
-        # counts * freq → Timedelta
-        return dist_s * to_timedelta(freq)
-
-    raise ValueError("mode must be 'count' or 'freq'")
-
-
-def _normalize_blend_length(blend_length, index):
-    """
-    Interpret blend_length as sample count or time span.
-
-    Returns
-    -------
-    (mode, L)
-        mode : {'count', 'freq'} or None
-        L    : numeric (count) or Timedelta
-    """
-    if blend_length is None:
-        return None, None
-    if isinstance(blend_length, str):
-        blend_length = blend_length.replace("H", "h")
-        blend_length = blend_length.replace("d", "D")
-
-    # Integer: number of samples
-    if isinstance(blend_length, (int, np.integer)):
-        if blend_length <= 0:
-            return None, None
-        return "count", float(blend_length)
-
-    # Timedelta-like: e.g. '2h', '30min'
-    td = pd.to_timedelta(blend_length)
-    if not isinstance(index, (pd.DatetimeIndex, pd.PeriodIndex)):
-        raise ValueError(
-            "Time-based blend_length requires a DatetimeIndex or PeriodIndex."
-        )
-    if index.freq is None:
-        raise ValueError(
-            "Time-based blend_length requires a regular index with a .freq attribute."
-        )
-    if td <= pd.Timedelta(0):
-        return None, None
-
-    return "freq", td
-
-
-def _blend_two(
-    aligned_hi: pd.DataFrame,
-    aligned_lo: pd.DataFrame,
-    blend_mode: str,
-    blend_L,
-) -> pd.DataFrame:
-    """
-    Blend a lower-priority DataFrame into a higher-priority DataFrame.
-
-    Parameters
-    ----------
-    aligned_hi, aligned_lo : DataFrame
-        Same index. Higher priority is 'aligned_hi'.
-    blend_mode : {'count', 'freq'} or None
-    blend_L : float or Timedelta
-
-    Returns
-    -------
-    DataFrame
-        Blended result.
-    """
-    # No blending requested → just do priority overlay
-    if blend_mode is None or blend_L is None:
-        return aligned_hi.combine_first(aligned_lo)
-
-    idx = aligned_hi.index
-    out = aligned_hi.copy()
-    cols = sorted(set(aligned_hi.columns) | set(aligned_lo.columns))
-
-    for col in cols:
-        hi_col = (
-            aligned_hi[col]
-            if col in aligned_hi.columns
-            else pd.Series(index=idx, dtype=float)
-        )
-        lo_col = (
-            aligned_lo[col]
-            if col in aligned_lo.columns
-            else pd.Series(index=idx, dtype=float)
-        )
-
-        hi_nan = hi_col.isna()
-        lo_nan = lo_col.isna()
-
-        # Priority baseline: hi where present, otherwise lo
-        merged = hi_col.copy()
-        fill_mask = hi_nan & (~lo_nan)
-        merged[fill_mask] = lo_col[fill_mask]
-
-        # Distance to nearest gap in the *high-priority* series
-        dist_to_gap = _distance_to_gap(
-            hi_col,
-            mode="count" if blend_mode == "count" else "freq",
-        )
-
-        # Candidate points for blending on the shoulders of gaps:
-        # - hi has data
-        # - lo has data
-        near_gap = (~hi_nan) & (~lo_nan)
-
-        if blend_mode == "count":
-            near_gap &= (dist_to_gap > 0) & (dist_to_gap <= blend_L)
-            if not near_gap.any():
-                out[col] = merged
-                continue
-            d = dist_to_gap[near_gap].astype(float)
-            t = (blend_L - d) / blend_L
-        else:  # 'freq' mode (Timedelta)
-            near_gap &= (dist_to_gap > pd.Timedelta(0)) & (dist_to_gap <= blend_L)
-            if not near_gap.any():
-                out[col] = merged
-                continue
-            d = dist_to_gap[near_gap]
-            t = 1.0 - (d / blend_L)
-
-        t = t.clip(lower=0.0, upper=1.0)
-
-        # Kernel: lower-priority gets up to 0.5 weight at the gap edge,
-        # tapering to 0 at distance >= blend_L.
-        w_lo = 0.5 * t
-        w_hi = 1.0 - w_lo
-
-        hi_vals = hi_col[near_gap].astype(float)
-        lo_vals = lo_col[near_gap].astype(float)
-
-        blended_vals = (
-            w_hi.to_numpy() * hi_vals.to_numpy() + w_lo.to_numpy() * lo_vals.to_numpy()
-        )
-
-        # IMPORTANT: use .loc with a boolean mask, not .at, so we never hit
-        # DataFrame._set_value with a non-scalar index.
-        merged.loc[near_gap] = blended_vals
-
-        out[col] = merged
-
-    return out
-
-
-import pandas as pd
-import numpy as np
-from vtools import to_timedelta
-from vtools.functions.colname_align import align_inputs_strict
-from vtools.data.indexing import resolve_common_freq, regular_index_from_valid_extent
-
-__all__ = ["ts_blend"]
-
-
-def _blend_output_index(series):
-    """
-    Determine the working index for ts_blend.
-
-    Blending requires inputs with a common regular frequency. The working
-    index is the regular index spanning the valid-data extent of the inputs.
-
-    Parameters
-    ----------
-    series : sequence of pandas.Series or pandas.DataFrame
-        Input time series.
-
-    Returns
-    -------
-    pandas.Index
-        Regular index on which blending should be performed.
-
-    Raises
-    ------
-    ValueError
-        If a common regular frequency cannot be established.
-    """
-    output_freq = resolve_common_freq(
-        [s.index for s in series],
-        preserve_freq=True,
-    )
-
-    if output_freq is None:
-        raise ValueError(
-            "ts_blend requires inputs with a common regular frequency. "
-            "For irregular handoff behavior, use ts_splice."
-        )
-
-    return regular_index_from_valid_extent(series, output_freq)
+    start = min(s.index.min() for s in series)
+    end = max(s.index.max() for s in series)
+    return pd.date_range(start, end, freq=output_freq)
 
 
 def _distance_to_gap(hi_col: pd.Series, mode: str = "count") -> pd.Series:
