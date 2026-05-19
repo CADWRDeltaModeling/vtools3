@@ -1,6 +1,7 @@
 # vtools/data/indexing.py
 
 import pandas as pd
+from vtools.data.vtime import to_timedelta
 __all__ = ["resolve_common_freq", "regular_index_from_valid_extent",
            "reindex_to_continuous", "infer_freq_robust", "inferred_regular_freq", "compare_regular_freq"]
 
