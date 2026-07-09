@@ -169,7 +169,7 @@ def corr_coefficient(predictions, targets, method="pearson"):
         Correlation coefficient
     """
 
-    return predictions.corr(targets, method)
+    return predictions.squeeze().corr(targets.squeeze(), method)
 
 
 def _main():
