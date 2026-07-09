@@ -53,7 +53,7 @@ def median_error(predictions, targets):
     return (predictions - targets).median()
 
 
-def mean_error(predictions, targets, proportiontocut):
+def mean_error(predictions, targets, proportiontocut=None):
     """Calculate the untrimmed mean error, discounting nan values
 
     Parameters
