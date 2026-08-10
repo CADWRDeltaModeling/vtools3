@@ -360,7 +360,7 @@ def _fit_rolling_regression(
         res = sm.OLS(yi2.values, Xi2.values).fit()
         # predict at the last row of this window
         idx = Xc.index[end - 1]  # <- fixed
-        yhat.loc[idx] = float(res.predict(Xc.iloc[[end - 1]].values))
+        yhat.loc[idx] = float(np.asarray(res.predict(Xc.iloc[[end - 1]].values)).item())
         beta_list.append(res.params)
 
     # PI via rolling residual std (rough)
@@ -1096,7 +1096,7 @@ def _fit_dfm(
     nobs = P.shape[2]
     var_y = np.empty(nobs, dtype=float)
     for t in range(nobs):
-        var_y[t] = float(Zy @ P[:, :, t] @ Zy.T + H[0, 0])
+        var_y[t] = float((Zy @ P[:, :, t] @ Zy.T)[0, 0] + H[0, 0])
     se = np.sqrt(np.clip(var_y, 0.0, np.inf))
     pi_lower = pd.Series(
         yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower"
@@ -1165,7 +1165,7 @@ def _fit_dfm(
     nobs = P.shape[2]
     var_y = np.empty(nobs, dtype=float)
     for t in range(nobs):
-        var_y[t] = float(Zy @ P[:, :, t] @ Zy.T + H[0, 0])
+        var_y[t] = float((Zy @ P[:, :, t] @ Zy.T)[0, 0] + H[0, 0])
     se = np.sqrt(np.clip(var_y, 0.0, np.inf))
     pi_lower = pd.Series(
         yhat.values - 1.96 * se * y_sd, index=yhat.index, name="pi_lower"
