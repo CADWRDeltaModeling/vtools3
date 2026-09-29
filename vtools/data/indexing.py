@@ -61,7 +61,11 @@ def infer_freq_robust(
     index = index.round("1min")
     if len(index) < 8:
         # not enough to quibble, use the 8 points
-        f = pd.infer_freq(index)
+        try:
+            f = pd.infer_freq(index)
+        except ValueError:
+            f = None
+        return f
     else:
         f = pd.infer_freq(index[-7:-1])
 
