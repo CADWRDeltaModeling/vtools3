@@ -25,7 +25,7 @@ diff_h(tidal_hour_series)
 
 import numpy as np
 from scipy.interpolate import interp1d
-from vtools.functions.filter import cosine_lanczos5
+from vtools.functions.filter import cosine_lanczos
 import pandas as pd
 from scipy.signal import hilbert
 from typing import Union
@@ -65,10 +65,10 @@ def find_slack(jd, u, leave_mean=False, which="both"):
     dayindex = pd.timedelta_range(start=jd[0], periods=len(jd), freq=dtdelta)
     u_ts = pd.Series(u, index=dayindex)
     # ~1 hour lowpass
-    u_ts = cosine_lanczos5(u_ts, cutoff_period="1h")
+    u_ts = cosine_lanczos(u_ts, cutoff_period="1h")
     if not leave_mean:
-        u_ts -= cosine_lanczos5(u_ts, cutoff_period="16h")
-    u = u_ts.values
+        u_ts -= cosine_lanczos(u_ts, cutoff_period="16h")
+    u = u_ts.values.copy()
     missing = np.isnan(u)
     u[missing] = np.interp(jd[missing], jd[~missing], u[~missing])
 
@@ -284,7 +284,7 @@ def tidal_hour_signal2(
 
     # Apply filtering if requested (opposite sense of original leave_mean)
     if filter:
-        filtered = cosine_lanczos5(df, "40h")
+        filtered = cosine_lanczos(df, "40h")
     else:
         filtered = df
 
@@ -363,7 +363,7 @@ def tidal_hour_signal(ts, filter=True):
     if not isinstance(ts, pd.Series):
         raise ValueError("Input `ts` must be a pandas Series.")
     if filter:
-        ts -= cosine_lanczos5(ts, cutoff_period="40h")
+        ts -= cosine_lanczos(ts, cutoff_period="40h")
 
     analytic = ts + 1j * hilbert(ts)
     phase = np.angle(analytic)
