@@ -142,6 +142,79 @@ def test_bounds_test_flags_anomalies_or_xfails_if_current_impl_is_broken():
 
 
 # -----------------
+# max_change_test
+# -----------------
+
+@pytest.mark.parametrize(
+    "values, limit, plateau_len, flagged_positions",
+    [
+        ([], 3, 0, []),
+        ([20], 3, 0, []),
+        ([20, 20, 20], 3, 0, []),
+        ([20, 15, 15], 3, 0, []),
+        ([20, 10, 20], 3, 0, [1]),
+        ([20, 15, 10, 5, 10, 15, 20], 3, 0, [1, 2, 3, 4, 5]),
+        ([20, 15, 15, 10, 20], 3, 0, [3]),
+        ([20, 15, 15, 10, 20], 3, 1, [1, 2, 3]),
+        ([20, 16, 16, 12], 3, 1, []),
+        ([20, 14, 14, 8], 4, 1, []),
+        ([20, 10, 10, 10, 0], 3, 1, []),
+        ([20, 10, np.nan, 0, 10], 3, 10, []),
+        ([20, 10, 0, np.nan, 0, 10, 20], 3, 10, [1, 5]),
+        ([0, 3, 6], 3, 0, []),
+        ([0, 7, 7, 7, 14, 14, 14, 21], 3, 2, [1, 2, 3]),
+    ],
+)
+def test_max_change_test_run_merging_and_endpoints(
+    values, limit, plateau_len, flagged_positions
+):
+    series = _ts(np.asarray(values, dtype=float), freq="15min")
+    original = series.copy()
+    expected = pd.Series(False, index=series.index, name=series.name)
+    expected.iloc[flagged_positions] = True
+    actual = ed.max_change_test(series, limit, max_plateau_len=plateau_len)
+    pd.testing.assert_series_equal(actual, expected)
+    pd.testing.assert_series_equal(series, original)
+
+
+def test_max_change_test_dataframe_columns_are_independent():
+    frame = pd.DataFrame(
+        {"excursion": [20, 10, 20], "normal": [20, 20, 20]},
+        index=pd.date_range("2026-07-09", periods=3, freq="15min"),
+    )
+    original = frame.copy()
+    expected = pd.DataFrame(
+        {"excursion": [False, True, False], "normal": [False, False, False]},
+        index=frame.index,
+    )
+    pd.testing.assert_frame_equal(ed.max_change_test(frame, 3), expected)
+    pd.testing.assert_frame_equal(frame, original)
+
+
+@pytest.mark.parametrize("limit", [1.0, 2.0])
+def test_max_change_test_detects_july_temperature_ramp_without_recovery_flags(limit):
+    series = _ts(
+        [19.54, 16.75, 13.96, 11.17, 8.37, 5.58, 2.79, 0.0, 6.63, 13.27, 19.9],
+        freq="15min", start="2026-07-09 02:15",
+    )
+    expected = pd.Series(True, index=series.index, name=series.name)
+    expected.iloc[[0, -1]] = False
+    pd.testing.assert_series_equal(ed.max_change_test(series, limit), expected)
+
+
+@pytest.mark.parametrize("limit", [0, -1, np.nan, np.inf])
+def test_max_change_test_rejects_invalid_limits(limit):
+    with pytest.raises(ValueError, match="max_change"):
+        ed.max_change_test(_ts([20, 10, 20]), limit)
+
+
+@pytest.mark.parametrize("plateau_len", [-1, 1.5, True])
+def test_max_change_test_rejects_invalid_plateau_lengths(plateau_len):
+    with pytest.raises(ValueError, match="max_plateau_len"):
+        ed.max_change_test(_ts([20, 10, 20]), 3, max_plateau_len=plateau_len)
+
+
+# -----------------
 # med_outliers / median_test / median_test_twoside
 # -----------------
 

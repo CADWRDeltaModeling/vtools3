@@ -126,6 +126,90 @@ def bounds_test(ts, bounds):
     return anomaly
 
 
+def max_change_test(ts, max_change, max_plateau_len=0):
+    """Flag interiors of excursions with excessive adjacent changes.
+
+    Parameters
+    ----------
+    ts : pandas.Series or pandas.DataFrame
+        Numeric observations in sampling order. DataFrame columns are tested
+        independently. Input values are not modified.
+    max_change : float
+        Positive, finite absolute-change limit per sampling interval. A change
+        equal to the limit is accepted. This is not a rate per unit time;
+        choose the limit for the input sampling interval.
+    max_plateau_len : int, default 0
+        Maximum number of consecutive non-excessive difference intervals
+        between excessive-change runs that may be bridged. Merge neighboring
+        runs left-to-right only when their combined mean absolute change,
+        including the plateau, strictly exceeds ``max_change``. Missing or
+        non-finite differences cannot be bridged.
+
+    Returns
+    -------
+    pandas.Series or pandas.DataFrame
+        Boolean anomaly mask with the input index, name, and columns. Only
+        observations strictly inside each resulting run are flagged; its two
+        endpoint observations are retained. An isolated excessive difference
+        has no interior observation and flags nothing.
+
+    Notes
+    -----
+    Endpoint retention assumes the excursion starts and ends at good data.
+    Persistent steps and bad endpoints require complementary tests. Absolute
+    variation is accumulated, so changes of opposite sign do not cancel.
+    Prefix sums and a single merge scan give linear cost per column. Merge
+    order is deliberately left-to-right and can affect the resulting groups.
+    """
+    if not isinstance(ts, (pd.Series, pd.DataFrame)):
+        raise TypeError("max_change_test expects a pandas Series or DataFrame")
+    if not np.isscalar(max_change) or not np.isfinite(max_change) or max_change <= 0:
+        raise ValueError("max_change must be positive and finite")
+    if (
+        isinstance(max_plateau_len, (bool, np.bool_))
+        or not isinstance(max_plateau_len, (int, np.integer))
+        or max_plateau_len < 0
+    ):
+        raise ValueError("max_plateau_len must be a nonnegative integer")
+    if isinstance(ts, pd.DataFrame):
+        return ts.apply(_max_change_test_series, args=(max_change, max_plateau_len))
+    return _max_change_test_series(ts, max_change, max_plateau_len)
+
+
+def _max_change_test_series(ts, max_change, max_plateau_len):
+    anomaly = pd.Series(False, index=ts.index, name=ts.name, dtype=bool)
+    if len(ts) < 2:
+        return anomaly
+    values = ts.to_numpy(dtype=float, na_value=np.nan)
+    changes = np.abs(np.diff(values))
+    valid = np.isfinite(changes)
+    excessive = valid & (changes > max_change)
+    starts = np.flatnonzero(excessive & ~np.r_[False, excessive[:-1]])
+    ends = np.flatnonzero(excessive & ~np.r_[excessive[1:], False])
+    if len(starts) == 0:
+        return anomaly
+    variation = np.r_[0.0, np.cumsum(np.where(valid, changes, 0.0))]
+    missing = np.r_[0, np.cumsum(~valid)]
+    run_start = starts[0]
+    run_end = ends[0]
+    for next_start, next_end in zip(starts[1:], ends[1:]):
+        plateau_len = next_start - run_end - 1
+        no_missing = missing[next_start] == missing[run_end + 1]
+        total_change = variation[next_end + 1] - variation[run_start]
+        interval_count = next_end - run_start + 1
+        if (
+            plateau_len <= max_plateau_len
+            and no_missing
+            and total_change > max_change * interval_count
+        ):
+            run_end = next_end
+        else:
+            anomaly.iloc[run_start + 1 : run_end + 1] = True
+            run_start, run_end = next_start, next_end
+    anomaly.iloc[run_start + 1 : run_end + 1] = True
+    return anomaly
+
+
 def median_test(ts, level=4, filt_len=7, quantiles=(0.005, 0.095), copy=True):
     return med_outliers(
         ts,
