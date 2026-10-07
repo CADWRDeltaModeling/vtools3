@@ -243,6 +243,43 @@ def test_median_test_oneside_detects_outlier_and_preserves_index(monkeypatch, re
     assert bool(anom.iloc[20]) is True
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("as_frame", [False, True])
+@pytest.mark.parametrize("npartitions", [1, 3])
+def test_median_test_oneside_matches_directional_reference(
+    monkeypatch, reverse, as_frame, npartitions
+):
+    values = 0.1 * np.arange(96) + np.sin(np.arange(96) / 5.0)
+    values[13] += 7.0
+    values[61] -= 11.0
+    values[35] = np.nan
+    series = _ts(values, freq="15min")
+    source = series.to_frame() if as_frame else series
+    original = source.copy()
+    monkeypatch.setattr(
+        ed, "choose_npartitions", lambda nrows, *, window: npartitions
+    )
+    ordered = series.iloc[::-1] if reverse else series
+    window = 6
+    prediction = (
+        ordered.shift().rolling(window, min_periods=5).median()
+        + 3 * ordered.diff().shift().rolling(window, min_periods=5).median()
+    )
+    residual = ordered - prediction
+    quantiles = residual.quantile([0.25, 0.75])
+    scale = quantiles.loc[0.75] - quantiles.loc[0.25]
+    expected = (residual.abs() > 3 * scale).reindex(series.index)
+    actual = ed.median_test_oneside(
+        source, level=3, filt_len=6, quantiles=(0.25, 0.75), reverse=reverse
+    )
+    pd.testing.assert_series_equal(actual, expected, check_names=False)
+    assert bool(actual.loc[series.index[13]])
+    if as_frame:
+        pd.testing.assert_frame_equal(source, original)
+    else:
+        pd.testing.assert_series_equal(source, original)
+
+
 # -----------------
 # gapdist_test_series
 # -----------------

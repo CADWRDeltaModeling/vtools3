@@ -185,7 +185,7 @@ def median_test_oneside(
     kappa = filt_len // 2
     if reverse:
         original_index = ts.index
-        vals = ts[::-1]
+        vals = ts[::-1].reset_index(drop=True)
     else:
         vals = ts
 
