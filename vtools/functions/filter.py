@@ -75,12 +75,28 @@ def _resolve_filter_len(filter_len, freq):
 ###########################################################################
 
 
+def _fixed_timedelta(x):
+    """Convert a Timedelta, string or fixed-length offset to a Timedelta.
+
+    pandas >= 3 makes ``Day`` a calendar offset that ``pd.Timedelta`` rejects;
+    ``.nanos`` still gives its nominal length and raises for non-fixed offsets
+    such as ``MonthEnd``.
+    """
+    if isinstance(x, pd.offsets.BaseOffset):
+        return pd.Timedelta(x.nanos, unit="ns")
+    try:
+        return pd.Timedelta(x)
+    except ValueError:
+        # Bare frequency strings such as "D" or "h"
+        return pd.Timedelta(pd.tseries.frequencies.to_offset(x).nanos, unit="ns")
+
+
 def process_cutoff(cutoff_frequency, cutoff_period, freq):
     if cutoff_frequency is None:
         if cutoff_period is None:
             raise ValueError("One of cutoff_frequency or cutoff_period must be given")
-        cp = pd.Timedelta(cutoff_period)
-        dt = pd.Timedelta(freq)
+        cp = _fixed_timedelta(cutoff_period)
+        dt = _fixed_timedelta(freq)
         return 2.0 * (dt / cp)
     else:
         if cutoff_frequency < 0 or cutoff_frequency > 1.0:
