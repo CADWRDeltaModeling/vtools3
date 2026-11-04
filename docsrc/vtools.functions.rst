@@ -4,10 +4,26 @@ vtools.functions package
 Submodules
 ----------
 
+vtools.functions.blend module
+-----------------------------
+
+.. automodule:: vtools.functions.blend
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.climatology module
 -----------------------------------
 
 .. automodule:: vtools.functions.climatology
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.functions.coarsen module
+-------------------------------
+
+.. automodule:: vtools.functions.coarsen
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,6 +76,14 @@ vtools.functions.frequency\_response module
    :undoc-members:
    :show-inheritance:
 
+vtools.functions.ha\_utils module
+---------------------------------
+
+.. automodule:: vtools.functions.ha_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.functions.interannual module
 -----------------------------------
 
@@ -104,6 +128,14 @@ vtools.functions.period\_op module
 ----------------------------------
 
 .. automodule:: vtools.functions.period_op
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.functions.rhistinterp module
+-----------------------------------
+
+.. automodule:: vtools.functions.rhistinterp
    :members:
    :undoc-members:
    :show-inheritance:

@@ -12,10 +12,26 @@ vtools.data.dst module
    :undoc-members:
    :show-inheritance:
 
+vtools.data.duplicate\_index module
+-----------------------------------
+
+.. automodule:: vtools.data.duplicate_index
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vtools.data.gap module
 ----------------------
 
 .. automodule:: vtools.data.gap
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vtools.data.indexing module
+---------------------------
+
+.. automodule:: vtools.data.indexing
    :members:
    :undoc-members:
    :show-inheritance:

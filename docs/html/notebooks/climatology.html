@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Climatology &#8212; vtools 3.9.11 documentation</title>
+    <title>Climatology &#8212; vtools 3.11.1.post1+dirty documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
-    <script src="../_static/documentation_options.js?v=f2050116"></script>
+    <script src="../_static/documentation_options.js?v=091e3b9c"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tidal_envelope.html">Tidal Envelope Extraction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Fitting and using a climatology</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Estimating-quantiles">Estimating quantiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Sub-hourly-climatology">Sub-hourly climatology</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="merge_splice.html">Merging, Splicing and Blending Time Series</a></li>
@@ -204,6 +205,81 @@ Text(0, 0.5, &#39;Deg C&#39;)
 </div>
 <div class="output_area docutils container">
 <img alt="../_images/notebooks_climatology_4_1.png" src="../_images/notebooks_climatology_4_1.png" />
+</div>
+</div>
+</section>
+<section id="Sub-hourly-climatology">
+<h2>Sub-hourly climatology<a class="headerlink" href="#Sub-hourly-climatology" title="Link to this heading">¶</a></h2>
+<p>A daily climatology cannot represent the diel (day-night) cycle, which is strong in many series and especially in temperature. An hourly climatology, <code class="docutils literal notranslate"><span class="pre">freq=&quot;hour&quot;</span></code>, has 8760 values: one for each hour of a 365-day year (February 29 is ignored). Strength can be gathered from neighboring times in two ways, both wrapping around the end of the year: <code class="docutils literal notranslate"><span class="pre">nday</span></code> pools the same hour on neighboring days (an odd number of days, so <code class="docutils literal notranslate"><span class="pre">nday=7</span></code> is +/- 3 days) and <code class="docutils literal notranslate"><span class="pre">nsmooth</span></code> averages neighboring hours
+(<code class="docutils literal notranslate"><span class="pre">nsmooth=3</span></code> is +/- 1 hour).</p>
+<p>Climatology values are period averages (of a month, day or hour), so applying one at a time step finer than its period requires a choice. This is made with the <code class="docutils literal notranslate"><span class="pre">substep_interp</span></code> argument of <a class="reference external" href="../_autosummary/vtools.apply_climatology.rst">apply_climatology</a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fill&quot;</span></code> (the default): each time takes the value of the month, day or hour that contains it, a step function. This is what was used above.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>: linear interpolation between the middles of the periods.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;rhistinterp&quot;</span></code>: a rational histospline that preserves the period averages. Additional arguments such as the tension <code class="docutils literal notranslate"><span class="pre">p</span></code> and <code class="docutils literal notranslate"><span class="pre">lowbound</span></code> are passed through to <a class="reference external" href="../_autosummary/vtools.rhistinterp.rst">rhistinterp</a>.</p></li>
+</ul>
+<p>The example below fits an hourly climatology to ten years of this data (2008-06-01 to 2018-06-01) and applies it at 15 minutes with <code class="docutils literal notranslate"><span class="pre">rhistinterp</span></code>. It then shows how to transition from a historical series to a climatology, as might be needed in a forecast situation. The observations are treated as ending on 2018-08-01 (everything after is set to missing). <a class="reference external" href="../_autosummary/vtools.transition_ts.rst">transition_ts</a> with <code class="docutils literal notranslate"><span class="pre">method=&quot;blend&quot;</span></code> blends the observations into the climatology over
+2018-07-26 to 2018-08-01, and the series then continues as climatology. The result is exactly the observations before the blend window and exactly the climatology after it.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">vtools</span> <span class="kn">import</span> <span class="n">transition_ts</span>
+
+<span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data/mup_temp_2006_2018.csv&quot;</span><span class="p">,</span><span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Fit on ten years: 2008-06-01 up to (not including) 2018-06-01</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="s2">&quot;2008-06-01&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;</span> <span class="s2">&quot;2018-06-01&quot;</span><span class="p">)]</span>
+<span class="n">hclim</span> <span class="o">=</span> <span class="n">climatology</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="s2">&quot;hour&quot;</span><span class="p">,</span><span class="n">nsmooth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">nday</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>  <span class="c1"># +/- 1 hour and +/- 3 days</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">hclim</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># Apply at 15 minutes; the hourly values are period averages, which rhistinterp preserves</span>
+<span class="n">index15</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s2">&quot;2018-06-01&quot;</span><span class="p">,</span><span class="s2">&quot;2018-08-14 08:45&quot;</span><span class="p">,</span><span class="n">freq</span><span class="o">=</span><span class="s2">&quot;15min&quot;</span><span class="p">)</span>
+<span class="n">clim15</span> <span class="o">=</span> <span class="n">apply_climatology</span><span class="p">(</span><span class="n">hclim</span><span class="p">,</span><span class="n">index15</span><span class="p">,</span><span class="n">substep_interp</span><span class="o">=</span><span class="s2">&quot;rhistinterp&quot;</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+
+<span class="c1"># Forecast-like situation: observations end at the cutoff, blend into climatology before it</span>
+<span class="n">blend_start</span><span class="p">,</span> <span class="n">cutoff</span> <span class="o">=</span> <span class="s2">&quot;2018-07-26&quot;</span><span class="p">,</span> <span class="s2">&quot;2018-08-01&quot;</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="s2">&quot;2018-06-01&quot;</span><span class="p">:]</span>
+<span class="n">obs_cut</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">obs_cut</span><span class="p">[</span><span class="n">obs_cut</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;</span> <span class="n">cutoff</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="n">spliced</span> <span class="o">=</span> <span class="n">transition_ts</span><span class="p">(</span><span class="n">obs_cut</span><span class="p">,</span><span class="n">clim15</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;blend&quot;</span><span class="p">,</span><span class="n">window</span><span class="o">=</span><span class="p">(</span><span class="n">blend_start</span><span class="p">,</span><span class="n">cutoff</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+hourofyear
+1    8.556548
+2    8.536310
+3    8.519286
+4    8.503095
+5    8.489881
+Name: value, dtype: float64
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">obs</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;0.75&quot;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;observed (full)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">spliced</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">spliced</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;tab:green&quot;</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;observed to </span><span class="si">{</span><span class="n">blend_start</span><span class="si">}</span><span class="s2">, blend to </span><span class="si">{</span><span class="n">cutoff</span><span class="si">}</span><span class="s2">, then climatology&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">blend_start</span><span class="p">),</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">cutoff</span><span class="p">),</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;tab:orange&quot;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Deg C&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower right&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_climatology_7_0.png" src="../_images/notebooks_climatology_7_0.png" />
 </div>
 </div>
 </section>
