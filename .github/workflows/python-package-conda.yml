@@ -12,19 +12,19 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v2
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: 3.12
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
+        miniforge-version: latest
+        activate-environment: ""
+        auto-activate-base: false
+        channels: conda-forge
+        conda-remove-defaults: true
     - name: Conda build package and upload to anaconda.org
       env: 
         ANACONDA_CHANNEL_UPLOAD_TOKEN: ${{ secrets.ANACONDA_CHANNEL_UPLOAD_TOKEN }}
       run: |
-        conda create -n test_vtools3 -y conda-build conda-verify numpy anaconda-client setuptools-scm
+        conda create -n test_vtools3 -y python=3.12 conda-build conda-verify numpy anaconda-client setuptools-scm
         conda config --set anaconda_upload yes
         SETUPTOOLS_SCM_PRETEND_VERSION=$(conda run -n test_vtools3 python -m setuptools_scm)
         export SETUPTOOLS_SCM_PRETEND_VERSION
