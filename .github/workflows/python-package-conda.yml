@@ -24,7 +24,7 @@ jobs:
       env: 
         ANACONDA_CHANNEL_UPLOAD_TOKEN: ${{ secrets.ANACONDA_CHANNEL_UPLOAD_TOKEN }}
       run: |
-        conda create -n test_vtools3 -y python=3.12 conda-build conda-verify numpy anaconda-client setuptools-scm
+        conda create -n test_vtools3 -y python=3.11 conda-build conda-verify numpy anaconda-client setuptools-scm
         conda config --set anaconda_upload yes
         SETUPTOOLS_SCM_PRETEND_VERSION=$(conda run -n test_vtools3 python -m setuptools_scm)
         export SETUPTOOLS_SCM_PRETEND_VERSION
