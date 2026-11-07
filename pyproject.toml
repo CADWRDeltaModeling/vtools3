@@ -81,4 +81,13 @@ local_scheme = "dirty-tag"
 
 [project.scripts]
 vtl = "vtools.__main__:cli"
+
+[project.entry-points."timeseries.transforms"]
+convert_units = "vtools.functions.unit_conversions:convert_units"
+apply_climatology = "vtools.functions.climatology:apply_climatology"
+climatology = "vtools.functions.climatology:climatology"
+rename_columns = "vtools.data.timeseries:rename_columns"
+rhistinterp = "vtools.functions.interpolate:rhistinterp"
+dst_st = "vtools.data.dst:dst_st"
+ts_coarsen = "vtools.functions.coarsen:ts_coarsen"
 # separate_species = "vtools.functions.separate_species:main" # suppressed, for now use "vtl separate_species"
