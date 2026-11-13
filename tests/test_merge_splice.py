@@ -390,7 +390,7 @@ class TestTsBlend:
         # high-priority gaps (NaN) at days 3, 6, 7 (in union),
         # blended shoulders at days 4 and 5.
         expected = pd.Series(
-            [1.0, 2.0, 10.0, 8.0, 11.25, np.nan, 50.0],
+            [1.0, 2.0, 10.0, 12.0, 17.5, np.nan, 50.0],
             index=idx,
             name="A",
         )
@@ -412,7 +412,7 @@ class TestTsBlend:
         # - Fill high-priority gaps using low where possible
         # - Then blend near gaps using the same kernel as in the series test
         expected = pd.DataFrame(
-            {"A": [1.0, np.nan, 4.75, 4.0, 5.0, 40.0, 50.0]},
+            {"A": [1.0, np.nan, 6.5, 4.0, 5.0, 40.0, 50.0]},
             index=idx,
         )
         pd.testing.assert_frame_equal(result, expected)
@@ -433,7 +433,7 @@ class TestTsBlend:
 
         idx = pd.date_range("2023-01-01 00:00", periods=7, freq="h")
         expected = pd.Series(
-            [1.0, 2.0, 10.0, 8.0, 11.25, np.nan, 50.0],
+            [1.0, 2.0, 10.0, 12.0, 17.5, np.nan, 50.0],
             index=idx,
             name="A",
         )
@@ -449,11 +449,30 @@ class TestTsBlend:
 
         idx = pd.date_range("2023-01-01", periods=7, freq="D")
         expected = pd.Series(
-            [1.0, 2.0, 10.0, 8.0, 11.25, np.nan, 50.0],
+            [1.0, 2.0, 10.0, 12.0, 17.5, np.nan, 50.0],
             index=idx,
             name="new_name",
         )
         pd.testing.assert_series_equal(result, expected)
+
+    def test_blend_linear_ramp_meets_gap(self):
+        """
+        With blend_length=4 the lower-priority weight on the shoulder is
+        0.75, 0.5, 0.25, 0 at distances 1..4, reaching 1 inside the gap.
+        """
+        idx = pd.date_range("2023-01-01", periods=11, freq="h")
+        hi = pd.Series(0.0, index=idx, name="A")
+        hi.iloc[5] = np.nan
+        lo = pd.Series(1.0, index=idx, name="A")
+
+        result = ts_blend((hi, lo), blend_length=4)
+
+        expected = pd.Series(
+            [0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25, 0.0, 0.0],
+            index=idx,
+            name="A",
+        )
+        pd.testing.assert_series_equal(result, expected, check_freq=False)
 
     def test_blend_irregular_inputs_raise(self, irregular_sample_data):
         s1 = irregular_sample_data["series1"]

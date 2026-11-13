@@ -223,9 +223,9 @@ def _blend_two(
 
         t = t.clip(lower=0.0, upper=1.0)
 
-        # Kernel: lower-priority gets up to 0.5 weight at the gap edge,
-        # tapering to 0 at distance >= blend_L.
-        w_lo = 0.5 * t
+        # Kernel: lower-priority weight (L - d)/L, so it rises linearly from 0 at
+        # distance >= blend_L to meet the implied weight of 1 inside the gap.
+        w_lo = t
         w_hi = 1.0 - w_lo
 
         hi_vals = hi_col[near_gap].astype(float)
@@ -268,6 +268,13 @@ def ts_blend(series, names=None, blend_length=None):
 
         If None or non-positive, ts_blend behaves like a hard-priority merge
         with no soft shoulder blending.
+
+        Blending happens only on the shoulders of gaps, where both series have
+        data. At distance ``d`` from the nearest gap the lower-priority series
+        gets weight ``(L - d) / L`` (``L`` = blend_length), so the weight ramps
+        linearly from 0 at ``d >= L`` toward 1, which is reached in the gap
+        itself. For example, with ``blend_length=4`` the shoulder weights are
+        0.75, 0.5, 0.25 and 0 at distances 1 to 4 samples.
 
     Raises
     ------
