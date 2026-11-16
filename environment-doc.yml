@@ -1,0 +1,23 @@
+# Documentation overlay for environment.yml; run from the repository root.
+# conda env create -n vtools3_doc -f environment.yml
+# conda env update -n vtools3_doc -f environment-doc.yml
+# Do not use --prune: this overlay does not describe the runtime dependencies.
+# conda activate vtools3_doc
+# python -m pip install --no-deps -e .
+# cd docsrc
+# make html
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - pip
+  - sphinx>=8.2,<9
+  - sphinx-argparse
+  - nbsphinx
+  - numpydoc
+  - docutils
+  - nbconvert
+  - ipykernel
+  - ipython
+  - pandoc
+  - matplotlib

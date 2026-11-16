@@ -37,7 +37,7 @@ def setup(app):
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+needs_sphinx = '8.2'  # sphinx.ext.apidoc
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -47,10 +47,19 @@ extensions = ['nbsphinx', 'sphinx.ext.mathjax',
           'matplotlib.sphinxext.plot_directive',
           'sphinx.ext.intersphinx',
           'sphinx.ext.autodoc',
+          'sphinx.ext.apidoc',
           'sphinx.ext.autosummary',
           'sphinxarg.ext',
           'sphinx.ext.doctest',
           'numpydoc']
+
+# API pages are generated into the ignored docsrc/_api on every build.
+apidoc_modules = [
+    {
+        'path': '../vtools',
+        'destination': '_api',
+    }
+]
 
 autodoc_member_order = 'alphabetical'
 autosummary_generate = True

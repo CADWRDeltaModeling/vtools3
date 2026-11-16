@@ -1,0 +1,65 @@
+# This is the github action that builds the documentation and posts it to github-pages
+name: "Sphinx: Render docs"
+
+on:
+  push:
+    branches: ["main", "master"]
+    tags:
+      - 'v[0-9]*.*'
+      - '[0-9]*\.[0-9]*\.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up runtime environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          activate-environment: vtools3_doc
+          environment-file: environment.yml
+          conda-remove-defaults: true
+
+      - name: Add documentation overlay and install checkout
+        run: |
+          conda env update -n vtools3_doc -f environment-doc.yml
+          python -m pip install --no-deps -e .
+
+      - name: Build Sphinx
+        run: |
+          make -C docsrc clean
+          make -C docsrc html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

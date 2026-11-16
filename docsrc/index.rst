@@ -20,7 +20,7 @@ VTools represents a toolset for time series processing that the Delta Modeling S
    Filling Series Based on a Neighbor (like series) <notebooks/neighbor_fill.ipynb>
    Contributing <contributing>
    Authors <authors>
-   API Reference <modules>
+   API Reference <_api/modules>
 
 
 

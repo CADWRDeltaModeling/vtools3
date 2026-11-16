@@ -38,10 +38,16 @@ dependencies = [
 
 [project.optional-dependencies]
 doc = [
-    "sphinx",
-    "sphinx-rtd-theme",
-    "myst-parser",
-    "numpydoc"
+    "sphinx>=8.2",
+    "sphinx-argparse",
+    "nbsphinx",
+    "numpydoc",
+    "docutils",
+    "matplotlib",
+    "ipython",
+    "ipykernel",
+    "nbconvert",
+    "pandoc",
 ]
 test = [
     "pytest>=3",

@@ -1,0 +1,39 @@
+# Runtime + test environment for vtools3.
+# Keep in sync with [project] dependencies in pyproject.toml (the conda recipe is generated from it).
+# Minimum versions mostly serve to shrink the conda solve space.
+#
+#   conda env create -f environment.yml
+#   conda activate vtools3
+#   python -m pip install --no-deps -e .
+#
+# Documentation tools are supplied by environment-doc.yml, not this file.
+name: vtools3
+channels:
+  - conda-forge
+  - cadwr-dms
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  # build / editable install
+  - setuptools
+  - setuptools-scm
+  - wheel
+  # core numerics and data handling
+  - numpy>=2.0
+  - pandas>=2.0
+  - xarray
+  - dask>=2024
+  - dask-expr
+  - numba>=0.61
+  - scipy
+  - scikit-learn
+  - statsmodels>=0.13
+  - utide
+  - pint
+  - click
+  # plotting
+  - matplotlib
+  # testing
+  - pytest>=3
+  - pytest-cov
