@@ -70,6 +70,12 @@ For interpolating daily or monthly averages, use the established histogram-conse
 
 Do not add SCHISM- or repository-specific conventions to generic algorithms.
 
+## Documentation
+
+For documentation environment setup and local builds, follow
+[docsrc/contributing_docs.rst](docsrc/contributing_docs.rst).
+Use the `documentation` skill for Sphinx setup, builds and troubleshooting.
+
 ## Testing
 
 - Use `pytest`.

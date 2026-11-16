@@ -70,8 +70,6 @@ Ready to contribute? Here's how to set up `vtools` for local development.
     $ conda install -y -n dev_vtools3 -c cadwr-dms -c defaults numpy pandas scipy beautifulsoup4 xlrd
     $ # for dev environment
     $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 pytest pytest-runner versioneer 
-    $ # for docs generation
-    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 sphinx nbsphinx matplotlib sphinx-argparse numpydoc
     $ cd vtools3/
     $ conda activate dev_vtools3
     $ pip install -e .
@@ -94,6 +92,17 @@ Ready to contribute? Here's how to set up `vtools` for local development.
     $ git push origin name-of-your-bugfix-or-feature
 
 7. Submit a pull request through the GitHub website.
+
+Building the Documentation
+--------------------------
+
+The documentation has its own Conda environment, ``vtools3_doc``, made from
+``environment.yml`` plus the ``environment-doc.yml`` overlay (the helper
+scripts ``build_doc_env.bat`` and ``build_doc_env.sh`` do this for you). With
+that environment active, run ``make html`` in ``docsrc/``; API pages are
+generated as part of the build and the HTML is written to ``docs/html``.
+See ``docsrc/contributing_docs.rst`` for the full steps and for publishing
+with GitHub Pages.
 
 Pull Request Guidelines
 -----------------------

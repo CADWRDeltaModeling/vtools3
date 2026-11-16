@@ -19,6 +19,7 @@ VTools represents a toolset for time series processing that the Delta Modeling S
    Transitioning <notebooks/transition.ipynb> 
    Filling Series Based on a Neighbor (like series) <notebooks/neighbor_fill.ipynb>
    Contributing <contributing>
+   Building documentation <contributing_docs>
    Authors <authors>
    API Reference <_api/modules>
 
