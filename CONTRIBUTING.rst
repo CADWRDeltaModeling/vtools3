@@ -62,17 +62,16 @@ Ready to contribute? Here's how to set up `vtools` for local development.
 1. Fork the `vtools3` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/vtools.git
+    $ git clone git@github.com:your_name_here/vtools3.git
 
-3. Install your local copy into a conda. Assuming you have conda installed, this is how you set up your fork for local development::
+3. Install your local copy into a conda environment. Assuming you have conda installed, this is how you set up your fork for local development. ``environment.yml`` supplies the runtime and test dependencies::
 
-    $ conda create -y -n dev_vtools3
-    $ conda install -y -n dev_vtools3 -c cadwr-dms -c defaults numpy pandas scipy beautifulsoup4 xlrd
-    $ # for dev environment
-    $ conda install -y -c cadwr-dms -c defaults -c conda-forge -n dev_vtools3 pytest pytest-runner versioneer 
     $ cd vtools3/
-    $ conda activate dev_vtools3
-    $ pip install -e .
+    $ conda env create -f environment.yml
+    $ conda activate vtools3
+    $ python -m pip install --no-deps -e .
+
+   To build the documentation, see "Building the Documentation" below.
 
 4. Create a branch for local development::
 
@@ -113,7 +112,8 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.7, and for conda build. Check
+3. The pull request should work for the Python versions declared in
+   ``pyproject.toml``, and for conda build. Check
    and make sure that the tests pass for all supported Python versions.
 
 Tips
@@ -128,9 +128,13 @@ Deploying
 ---------
 
 A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then edit __init__.py version tag and run::
+The package version is derived from git tags by ``setuptools-scm``; do not edit a
+version number in the source. Make sure all your changes are committed and pushed,
+then create and push a version tag (for example ``3.12.1``)::
 
-$ 
+$ git tag 3.12.1
 $ git push
 $ git push --tags
+
+The documentation site is built and published separately by the
+**Sphinx: Render docs** GitHub Actions workflow; see "Building the Documentation" above.
