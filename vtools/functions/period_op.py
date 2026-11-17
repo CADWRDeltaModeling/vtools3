@@ -7,7 +7,6 @@ import statsmodels as sm
 import matplotlib.pyplot as plt
 import matplotlib
 
-from scipy.signal import boxcar
 from vtools.data.vtime import hours, minutes, days, months
 
 

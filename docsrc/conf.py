@@ -24,8 +24,11 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 def autodoc_skip_member_handler(app, what, name, obj, skip, options):
-    # Basic approach; you might want a regex instead
-    return ("test_" in name)
+    # Only add test_ members to the members autodoc already skips.
+    # Returning None leaves its decision (imports, __all__, private names) alone.
+    if "test_" in name:
+        return True
+    return None
 
 # Automatically called by sphinx at startup
 def setup(app):

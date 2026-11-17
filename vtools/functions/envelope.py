@@ -384,6 +384,7 @@ def tidal_envelope(
     """
     Compute the tidal envelope (high and low) of a time series using smoothing, extrema detection, and interpolation.
     This function processes a time series to extract its tidal envelope by smoothing the data, identifying significant peaks and troughs, filtering out unreliable extrema, selecting salient extrema within a specified window, and interpolating between anchor points to generate continuous envelope curves.
+
     Parameters
     ----------
     series : pandas.Series
@@ -400,6 +401,7 @@ def tidal_envelope(
         Maximum allowed gap in hours between anchor points for interpolation (default is 36).
     envelope_type : str, optional
         Type of envelope to compute, e.g., "outer" (default is "outer").
+
     Returns
     -------
     env_high : pandas.Series
@@ -412,6 +414,7 @@ def tidal_envelope(
         DataFrame of selected anchor points for the low envelope.
     smoothed : pandas.Series
         Smoothed version of the input series.
+
     Notes
     -----
     This function assumes regular time intervals in the input series. If the frequency cannot be inferred, it is estimated from the first two timestamps.

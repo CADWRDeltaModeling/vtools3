@@ -13,5 +13,6 @@ where a consistent standard time is required for analysis or reporting.
 **Function reference:**
 
 .. autofunction:: vtools.data.dst.dst_st
+   :no-index:
 
 See also the :ref:`API documentation <dst_st>` for details and usage examples.

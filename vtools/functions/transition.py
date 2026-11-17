@@ -110,6 +110,7 @@ def transition_ts(
 
     method : {"linear", "pchip", "blend"}, default="linear"
         The interpolation strategy:
+
         - "linear": interpolate across a gap using endpoints from ts0/ts1.
         - "pchip": shape-preserving interpolation using nearby points (see `overlap`).
         - "blend": requires an explicit `window=(start, end)` where both ts0 and ts1

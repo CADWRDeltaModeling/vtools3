@@ -268,8 +268,8 @@ def reindex_to_continuous(result, freq):
       - Missing timestamps are filled with NaN.
       - The `.freq` attribute is set on the resulting index if possible.
 
-    Limitations
-    -----------
+    **Limitations**
+
     - This function assumes that `result.index` is monotonic and
       comparable with the generated regular index.
     - It does not attempt to infer or repair irregular spacing.

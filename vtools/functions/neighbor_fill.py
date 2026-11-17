@@ -1247,9 +1247,7 @@ def fill_from_neighbor(
         One or more neighbor series with a ``DatetimeIndex`` on the **same grid**
         as ``target`` (same step and phase). Values may be NaN.
 
-    method : {'substitute', 'ols', 'huber', 'rolling', 'lagged_reg',
-            'loess', 'dfm_trimbur_rw', 'dfm_trimbur_ar',
-            'resid_interp_linear', 'resid_interp_pchip'}
+    method : {'substitute', 'ols', 'huber', 'rolling', 'lagged_reg', 'loess', 'dfm_trimbur_rw', 'dfm_trimbur_ar', 'resid_interp_linear', 'resid_interp_pchip'}
         Algorithm to use:
 
         - ``'substitute'``: pass-through neighbor after mean/scale alignment.
@@ -1259,11 +1257,11 @@ def fill_from_neighbor(
         - ``'lagged_reg'``: multivariate regression on specified neighbor lags.
         - ``'loess'``: LOESS (time → value) smoothing using neighbor as scaffold.
         - ``'dfm_trimbur_rw'``: dynamic factor model (Trimbur factor) with
-        random-walk anomaly for the target.
+          random-walk anomaly for the target.
         - ``'dfm_trimbur_ar'``: dynamic factor model (Trimbur factor) with AR anomaly
-        on the neighbor.
+          on the neighbor.
         - ``'resid_interp_linear'`` / ``'resid_interp_pchip'``: baseline y≈a+bx fit
-        on overlap, then interpolate residuals (linear or PCHIP) across gaps.
+          on overlap, then interpolate residuals (linear or PCHIP) across gaps.
 
     regime : pandas.Series, optional
         Optional categorical series indexed like ``target`` to stratify fits
@@ -1292,15 +1290,20 @@ def fill_from_neighbor(
 
         'ols'
             lags : int or Sequence[int], optional
+
             add_const : bool, default True
                 Include an intercept term.
+
             fit_intercept : bool, alias of ``add_const``.
 
         'huber'
             lags : int or Sequence[int], optional
+
             huber_t : float, default 1.35
                 Huber threshold (in residual σ units).
+
             maxiter : int, default 200
+
             tol : float, default 1e-6
 
         'rolling'
@@ -1317,6 +1320,7 @@ def fill_from_neighbor(
 
         'lagged_reg'
             lags : int or Sequence[int], recommended
+
             alpha : float, optional
                 Ridge/L2 penalty (if the backend supports it).
             l1_ratio : float, optional
@@ -1346,7 +1350,8 @@ def fill_from_neighbor(
                 AR order for the anomaly in the ``'_ar'`` variant (default may be 1).
             param_names : list[str], optional
                 For advanced users: explicit parameter naming (used when packing).
-            # Note: DFM backends accept ``params=...`` at the top level for reuse.
+
+            Note: DFM backends accept ``params=...`` at the top level for reuse.
 
         'resid_interp_linear' / 'resid_interp_pchip'
             min_overlap : int, default 3
